@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "description": "Prerecorded, sentence-locked voice-library samples. Runtime preview never invokes a TTS model or reuses another project's dialogue.",
+  "sentences": {
+    "vi": "Chào mừng bạn đến với Aura Studio. Đây là mẫu giọng đọc rõ ràng và tự nhiên để bạn lựa chọn cho video của mình.",
+    "en": "Welcome to Aura Studio. This is a clear, natural voice sample to help you choose a narrator for your video.",
+    "zh": "欢迎使用 Aura Studio。这是一段清晰自然的语音示例，帮助您为视频选择合适的旁白。"
+  },
+  "samples": []
+}
