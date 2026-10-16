@@ -4,14 +4,14 @@ Có hai gói cho **Mac Apple Silicon (M1 trở lên, gồm M3)**:
 
 | Hệ điều hành | Gói tải |
 | --- | --- |
-| macOS 26 trở lên | `Aura-Studio-macOS26-Apple-Silicon.zip` |
-| macOS 27 trở lên, runtime gốc | `Aura-Studio-macOS-Apple-Silicon.zip` |
+| macOS 26 trở lên | [Aura-Studio-macOS26-Apple-Silicon.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-macOS26-Apple-Silicon.zip) |
+| macOS 27 trở lên, runtime gốc | [Aura-Studio-macOS-Apple-Silicon.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-macOS-Apple-Silicon.zip) |
 
 Gói macOS 26 dùng các binary media tương thích và thư viện llama/SRT được build bằng SDK 26.5, deployment target 26.0. Hai gói dùng cùng mã ứng dụng và cách nhập API key thủ công.
 
 ## Cài cho đồng nghiệp dùng Mac M3
 
-Chọn đúng ZIP theo bảng trên tại [release private](https://github.com/truongminhmanq3-ai/HaizFlow-macos-api/releases/tag/v0.1.8-aura-team.2), giải nén toàn bộ rồi chạy **Cai-dat-Aura-Studio.command**. App tự được chép vào `~/Applications/Aura Studio.app`; sau khi mở app, tự nhập key trong **Cài đặt → API Key**.
+Chọn đúng ZIP theo bảng trên tại [release private](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/tag/v0.1.8-aura-team.2), giải nén toàn bộ rồi chạy **Cai-dat-Aura-Studio.command**. App tự được chép vào `~/Applications/Aura Studio.app`; sau khi mở app, tự nhập key trong **Cài đặt → API Key**.
 
 Không cần Python, Homebrew hay build từ source để chạy bản đóng gói. Giữ nguyên các file đi kèm gói cài. Có thể chạy qua Terminal tại thư mục giải nén:
 
@@ -73,7 +73,7 @@ Manifest ghim URL/SHA256 và ánh xạ thư viện ở `runtime/macos26-native-m
 
 1. Có sẵn app arm64 đã build bằng hướng dẫn trên hoặc giải nén gói Mac. Chuẩn bị Python có `requests`, `macholib`, CMake và Apple SDK 26.x.
 2. Chạy `python scripts/macos26/fetch-bottles.py --cache /path/to/cache` để lấy runtime đã ghim (không cài Homebrew vào hệ thống).
-3. Giải nén nguồn llama-cpp-python 0.3.34 và SRT 1.5.7 trong `Aura-Studio-macOS26-NativeSources.zip`, kiểm SHA theo manifest.
+3. Giải nén nguồn llama-cpp-python 0.3.34 và SRT 1.5.7 trong [Aura-Studio-macOS26-NativeSources.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-macOS26-NativeSources.zip), kiểm SHA theo manifest.
 4. Build thư viện với SDK 26.x, sau đó lắp app mới:
 
 ```bash
@@ -84,4 +84,4 @@ python scripts/macos26/audit.py "/path/to/new/Aura Studio.app" --report /path/to
 "/path/to/new/Aura Studio.app/Contents/MacOS/HaizFlow" --macos-self-test
 ```
 
-Gói nguồn bổ sung kèm công thức, giấy phép, manifest, script và báo cáo kiểm tra. Dùng cùng `Aura-Studio-macOS-ThirdPartySources.zip` cho các thành phần giữ nguyên; bảng nguồn cho biết file nào nằm trong gói nào.
+Gói nguồn bổ sung kèm công thức, giấy phép, manifest, script và báo cáo kiểm tra. Dùng cùng [Aura-Studio-macOS-ThirdPartySources.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-macOS-ThirdPartySources.zip) cho các thành phần giữ nguyên; bảng nguồn cho biết file nào nằm trong gói nào.

@@ -8,13 +8,13 @@ Repo và các gói tải đều **private**. Không kèm API key. Mỗi người
 
 ## Cài cho đồng nghiệp
 
-Mở [trang tải Aura Studio](https://github.com/truongminhmanq3-ai/HaizFlow-macos-api/releases/tag/v0.1.8-aura-team.2) bằng tài khoản GitHub đã được cấp quyền repo, rồi chọn đúng gói:
+Mở [trang tải Aura Studio](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/tag/v0.1.8-aura-team.2) bằng tài khoản GitHub đã được cấp quyền repo, rồi chọn đúng gói:
 
 | Máy | Gói tải | Cách cài sau khi giải nén |
 | --- | --- | --- |
-| Mac Apple Silicon, gồm M3; macOS 26+ | **Aura-Studio-macOS26-Apple-Silicon.zip** | Chạy **Cai-dat-Aura-Studio.command** |
-| Mac Apple Silicon, gồm M3; macOS 27+ | **Aura-Studio-macOS-Apple-Silicon.zip** | Chạy **Cai-dat-Aura-Studio.command** |
-| Windows 10/11 x64 | **Aura-Studio-Windows-x64.zip** | Chạy **Cai-dat-Aura-Studio.cmd** |
+| Mac Apple Silicon, gồm M3; macOS 26+ | [Aura-Studio-macOS26-Apple-Silicon.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-macOS26-Apple-Silicon.zip) | Chạy **Cai-dat-Aura-Studio.command** |
+| Mac Apple Silicon, gồm M3; macOS 27+ | [Aura-Studio-macOS-Apple-Silicon.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-macOS-Apple-Silicon.zip) | Chạy **Cai-dat-Aura-Studio.command** |
+| Windows 10/11 x64 | [Aura-Studio-Windows-x64.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-Windows-x64.zip) | Chạy **Cai-dat-Aura-Studio.cmd** |
 
 Không cần clone source, cài Python, Homebrew hay tự build. Giải nén **toàn bộ ZIP**, giữ các thư mục đi kèm và thoát Aura Studio trước khi chạy script cài đặt.
 
@@ -66,7 +66,7 @@ Xem [hướng dẫn API cho team](team/README.vi.md) và [cấu hình API](docs/
 ## Mã nguồn và build
 
 ```bash
-git clone https://github.com/truongminhmanq3-ai/HaizFlow-macos-api.git
+git clone https://github.com/truongminhmanq3-ai/Aura-Studio-.git
 cd HaizFlow-macos-api
 ```
 
