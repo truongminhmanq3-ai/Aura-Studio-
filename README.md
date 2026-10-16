@@ -4,7 +4,7 @@
 
 Aura Studio là app reup video douyin, có thể làm clip thủ công, tự động và đăng hàng loạt, với giao diện Liquid Glass, nhận diện Aura Studio và tích hợp DeepSeek/ElevenLabs cho team.
 
-Repo và các gói tải đều **private**. API DeepSeek/ElevenLabs dùng chung được giữ nguyên.
+Repo và các gói tải đều **private**. Không kèm API key. Mỗi người tự nhập key của mình trong **Cài đặt → API Key**.
 
 ## Cài cho đồng nghiệp
 
@@ -21,7 +21,7 @@ Không cần clone source, cài Python, Homebrew hay tự build. Giải nén **t
 
 Gói Mac hiện tại yêu cầu **macOS 27 trở lên** vì các thư viện native FFmpeg/HY-MT2 được build cho macOS 27.
 
-Script cài app vào `~/Applications/Aura Studio.app`, nạp API chung vào macOS Keychain rồi mở app. Cho phép thao tác Keychain nếu macOS hỏi. Có thể chạy qua Terminal trong thư mục vừa giải nén:
+Script cài app vào `~/Applications/Aura Studio.app` rồi mở app. Sau đó tự nhập key trong **Cài đặt → API Key**. Có thể chạy qua Terminal trong thư mục vừa giải nén:
 
 ```bash
 bash Cai-dat-Aura-Studio.command
@@ -31,16 +31,16 @@ Nếu đã có app tại vị trí đó, bản trước được giữ làm bả
 
 ### Windows
 
-Chạy `Cai-dat-Aura-Studio.cmd` trong thư mục giải nén. Script cài app cho tài khoản Windows hiện tại, nạp cùng API vào Windows Credential Manager rồi mở Aura Studio. Không cần quyền quản trị hoặc Python. Bản Windows chưa có chữ ký Authenticode.
+Chạy `Cai-dat-Aura-Studio.cmd` trong thư mục giải nén. Script cài app cho tài khoản Windows hiện tại rồi mở Aura Studio. Sau đó tự nhập key trong **Cài đặt → API Key**. Không cần quyền quản trị hoặc Python. Bản Windows chưa có chữ ký Authenticode.
 
 ### Dùng lần đầu
 
 1. Vào **Cài đặt → Gói tài nguyên**, tải Whisper và các model local cần dùng.
 2. Tạo dự án, nhập video và chọn ngôn ngữ đích.
-3. Chọn model dịch DeepSeek và công cụ giọng đọc ElevenLabs nếu dùng API chung; chọn giọng trong Cài đặt.
+3. Trong **Cài đặt → API Key**, tự nhập key DeepSeek/ElevenLabs hoặc dịch vụ cần dùng. Sau đó chọn model dịch, công cụ giọng đọc và giọng của bạn.
 4. Kiểm tra phụ đề, giọng đọc và âm thanh trước khi xuất video.
 
-Model weights tải riêng. Dùng DeepSeek không cần HY-MT2 cho bước dịch; dùng ElevenLabs không cần OmniVoice cho bước tạo giọng. Whisper vẫn cần cho nhận dạng. Credit, số dư và giới hạn dịch vụ được dùng chung trên tài khoản team.
+Model weights tải riêng. Dùng DeepSeek không cần HY-MT2 cho bước dịch; dùng ElevenLabs không cần OmniVoice cho bước tạo giọng. Whisper vẫn cần cho nhận dạng. Credit, số dư và giới hạn dịch vụ tính trên tài khoản API mà mỗi người tự cấu hình.
 
 ## Chức năng
 
@@ -52,7 +52,7 @@ Model weights tải riêng. Dùng DeepSeek không cần HY-MT2 cho bước dịc
 
 ## API và dữ liệu
 
-Cấu hình dùng chung nằm trong `team/team-api-keys.json` của repo private và thư mục `team` trong gói cài. Script chỉ nạp key vào kho bảo mật của hệ điều hành; không gọi API dịch/TTS khi cài và không ghi key vào video/dự án.
+Repo và gói cài không chứa key hoặc file nạp key dùng chung. Giữ đầy đủ màn hình nhập key và các tích hợp DeepSeek, ElevenLabs, Gemini, Zernio. Mỗi người tự nhập key trong **Cài đặt → API Key**; app lưu key bằng Keychain/Credential Manager. Bộ cài không tự ghi key vào kho bảo mật hoặc gọi API.
 
 Tên nội bộ `HaizFlow` trong package, executable, đường dẫn dữ liệu và mục Keychain/Credential Manager được giữ để tương thích cấu hình hiện có. Trên Mac, dữ liệu ứng dụng nằm tại `~/Library/Application Support/HaizFlow`.
 

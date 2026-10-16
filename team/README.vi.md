@@ -1,24 +1,12 @@
-# API dùng chung của team
+# Nhập API key cho từng người
 
-Repo và gói cài giữ **private**. File `team-api-keys.json` chứa cấu hình DeepSeek/ElevenLabs hiện có, được giữ nguyên để bạn và đồng nghiệp cùng dùng. Credit và giới hạn tài khoản được dùng chung.
+Repo và các gói cài đều private, không kèm API key hay file nạp key dùng chung.
 
-## Cách cài đơn giản
+1. Tải gói Mac Apple Silicon (macOS 27+) hoặc Windows x64 tại [release](https://github.com/truongminhmanq3-ai/HaizFlow-macos-api/releases/tag/v0.1.8-aura-team.2).
+2. Giải nén toàn bộ rồi chạy `Cai-dat-Aura-Studio.command` trên Mac hoặc `Cai-dat-Aura-Studio.cmd` trên Windows.
+3. Trong app, mở **Cài đặt → API Key**, tự nhập key DeepSeek, ElevenLabs, Gemini hoặc Zernio cần dùng và lưu.
+4. Chọn model/giọng và tải các model local cần dùng trong Cài đặt.
 
-Tải đúng gói Mac hoặc Windows tại [release](https://github.com/truongminhmanq3-ai/HaizFlow-macos-api/releases/tag/v0.1.8-aura-team.2), giải nén toàn bộ rồi chạy script cài đặt trong thư mục đó:
+Phần nhập key và các tích hợp API vẫn đầy đủ. App lưu key do người dùng nhập trong macOS Keychain hoặc Windows Credential Manager. Bộ cài không tự nhập key. Credit và giới hạn tính trên tài khoản API của từng người.
 
-- Mac Apple Silicon, macOS 27+: `Cai-dat-Aura-Studio.command`.
-- Windows: `Cai-dat-Aura-Studio.cmd`.
-
-Script cài app và nạp key vào Keychain/Credential Manager của tài khoản hiện tại. Không cần nhập từng key, clone source hoặc cài Python. Giữ nguyên các thư mục `team` và `scripts` trong gói ZIP.
-
-## Nạp lại trên Mac từ source
-
-Đóng app, mở Terminal trong thư mục repo rồi chạy:
-
-```bash
-bash scripts/Nap-key-team-Mac.command
-```
-
-Cho phép thao tác Keychain khi macOS hỏi, sau đó mở lại app. Tên dịch vụ Keychain vẫn dùng HaizFlow để tương thích cấu hình hiện có.
-
-Script không gọi API dịch/TTS, gửi video hoặc in giá trị key ra màn hình. Chọn giọng/model ElevenLabs trong Cài đặt và chọn DeepSeek/ElevenLabs trong dự án.
+Xem [cấu hình từng dịch vụ](../docs/API-CONFIG.vi.md). Không đưa key vào source, video hoặc dự án.

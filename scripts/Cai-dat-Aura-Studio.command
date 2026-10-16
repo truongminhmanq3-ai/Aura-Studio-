@@ -2,8 +2,6 @@
 set -euo pipefail
 package_dir=$(cd -- "$(dirname -- "$0")" && pwd)
 app_source="$package_dir/Aura Studio.app"
-key_file="$package_dir/team/team-api-keys.json"
-key_importer="$package_dir/scripts/import-team-keys.js"
 
 if [ "$(uname -s)" != Darwin ]; then
  echo 'Gói này dành cho macOS Apple Silicon.' >&2
@@ -13,14 +11,13 @@ if [ "$(uname -m)" != arm64 ] && [ "$(/usr/sbin/sysctl -n hw.optional.arm64 2>/d
  echo 'Gói này cần Mac chip Apple Silicon (M1 trở lên).' >&2
  exit 1
 fi
-if [ ! -d "$app_source" ] || [ ! -f "$key_file" ] || [ ! -f "$key_importer" ]; then
+if [ ! -d "$app_source" ]; then
  echo 'Hãy giải nén toàn bộ gói Aura Studio trước, rồi chạy script trong thư mục vừa giải nén.' >&2
  exit 1
 fi
 /usr/bin/codesign --verify --deep --strict "$app_source"
-/usr/bin/osascript -l JavaScript -e 'ObjC.import("Foundation"); function run(a) { try { var s = $.NSString.stringWithContentsOfFileEncodingError($(a[0]), $.NSUTF8StringEncoding, null); JSON.parse(ObjC.unwrap(s)); } catch (_) { throw new Error("File cau hinh API khong hop le."); } return "ok"; }' "$key_file" >/dev/null
 if [ "${1:-}" = --verify-only ]; then
- echo 'Gói Aura Studio hợp lệ. Chưa cài app hoặc ghi key vào Keychain.'
+ echo 'Gói Aura Studio hợp lệ. Chưa cài app.'
  exit 0
 fi
 if [ "$#" -ne 0 ]; then
@@ -38,7 +35,6 @@ cleanup() { rm -rf -- "$staging_root"; }
 trap cleanup EXIT
 /usr/bin/ditto "$app_source" "$staging_root/Aura Studio.app"
 /usr/bin/codesign --verify --deep --strict "$staging_root/Aura Studio.app"
-/usr/bin/osascript -l JavaScript "$key_importer" "$key_file"
 target_app="$install_root/Aura Studio.app"
 if [ -e "$target_app" ]; then
  backup_app="$install_root/Aura Studio-backup-$(date +%Y%m%d-%H%M%S).app"
@@ -47,5 +43,5 @@ if [ -e "$target_app" ]; then
 fi
 mv "$staging_root/Aura Studio.app" "$target_app"
 echo "Đã cài Aura Studio tại: $target_app"
-echo 'API dùng chung đã nạp vào Keychain. Model local tải trong Cài đặt → Gói tài nguyên khi cần.'
+echo 'Mở Cài đặt → API Key để tự nhập key của bạn. Model local tải trong Cài đặt → Gói tài nguyên khi cần.'
 /usr/bin/open "$target_app"

@@ -298,4 +298,4 @@ The installer gate verifies the frozen artifact, calculates real disk requiremen
 
 ## Aura Studio distribution
 
-Private releases provide ready-to-run Mac Apple Silicon and Windows x64 packages, with unchanged shared API setup and prerecorded voice samples. Windows packaging uses scripts/build-team-windows.py; Mac packaging uses scripts/build-macos.py. Component/model terms remain independent.
+Private releases provide ready-to-run Mac Apple Silicon and Windows x64 packages, with manual per-user API key entry and prerecorded voice samples. No API keys are included or automatically imported. Windows packaging uses scripts/build-team-windows.py; Mac packaging uses scripts/build-macos.py. Component/model terms remain independent.

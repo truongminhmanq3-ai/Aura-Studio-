@@ -4,21 +4,21 @@
 
 ## Cài cho đồng nghiệp dùng Mac M3
 
-Tải **Aura-Studio-macOS-Apple-Silicon.zip** tại [release private](https://github.com/truongminhmanq3-ai/HaizFlow-macos-api/releases/tag/v0.1.8-aura-team.2), giải nén toàn bộ rồi chạy **Cai-dat-Aura-Studio.command**. App tự được chép vào `~/Applications/Aura Studio.app`; API DeepSeek/ElevenLabs hiện có được nạp vào Keychain.
+Tải **Aura-Studio-macOS-Apple-Silicon.zip** tại [release private](https://github.com/truongminhmanq3-ai/HaizFlow-macos-api/releases/tag/v0.1.8-aura-team.2), giải nén toàn bộ rồi chạy **Cai-dat-Aura-Studio.command**. App tự được chép vào `~/Applications/Aura Studio.app`; sau khi mở app, tự nhập key trong **Cài đặt → API Key**.
 
-Không cần Python, Homebrew hay build từ source để chạy bản đóng gói. Giữ các thư mục `team` và `scripts` đi kèm gói cài. Có thể chạy qua Terminal tại thư mục giải nén:
+Không cần Python, Homebrew hay build từ source để chạy bản đóng gói. Giữ nguyên các file đi kèm gói cài. Có thể chạy qua Terminal tại thư mục giải nén:
 
 ```bash
 bash Cai-dat-Aura-Studio.command
 ```
 
-Cho phép thao tác Keychain khi macOS hỏi. App dùng chữ ký ad hoc nội bộ; chưa có Developer ID/notarization. Nếu macOS yêu cầu cho phép mở lần đầu, thực hiện trong Cài đặt hệ thống.
+Khi tự lưu key trong app, cho phép thao tác Keychain nếu macOS hỏi. App dùng chữ ký ad hoc nội bộ; chưa có Developer ID/notarization. Nếu macOS yêu cầu cho phép mở lần đầu, thực hiện trong Cài đặt hệ thống.
 
 ## Model và dữ liệu
 
 App kèm Python, Qt, FFmpeg, trình duyệt Douyin và engine CPU/OCR. Model weights tải riêng tại **Cài đặt → Gói tài nguyên**. Whisper dùng cho nhận dạng; HY-MT2/OmniVoice cần khi dùng dịch/giọng local. DeepSeek/ElevenLabs dùng API thay cho các model local tương ứng.
 
-Dữ liệu ứng dụng ở `~/Library/Application Support/HaizFlow`; tên Keychain vẫn dùng HaizFlow để tương thích. Giọng và model ElevenLabs được chọn trong Cài đặt; cấu hình API không bị đổi. Credit/số dư dùng chung trên tài khoản team.
+Dữ liệu ứng dụng ở `~/Library/Application Support/HaizFlow`; tên Keychain vẫn dùng HaizFlow để tương thích. Giọng và model ElevenLabs được chọn trong Cài đặt; mỗi người tự nhập key của mình. Gói cài không chứa hoặc tự nạp key. Credit/số dư tính trên tài khoản API bạn nhập.
 
 Inference hiện dùng CPU; chưa có MPS/Metal cho Whisper/OmniVoice. Xuất H.264 ưu tiên VideoToolbox, có fallback CPU.
 

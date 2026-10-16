@@ -1,6 +1,6 @@
 # Cấu hình đầy đủ các API
 
-Các tích hợp có đủ trong source. Repo private này có key DeepSeek/ElevenLabs dùng chung tại `team/team-api-keys.json`; xem [hướng dẫn nạp key tự động](../team/README.vi.md). Bạn vẫn có thể nhập key riêng tại **Cài đặt → API Key**.
+Các tích hợp và màn hình nhập key được giữ đầy đủ. Repo và gói cài không chứa API key. Mỗi người tự nhập key của mình tại **Cài đặt → API Key**.
 
 ## Dịch phụ đề
 
@@ -48,6 +48,6 @@ Mở **API Key → Zernio**, thêm key và kiểm tra kết nối. Liên kết t
 
 ## Chia sẻ cho đồng nghiệp
 
-Trong repo private này, đồng nghiệp có quyền truy cập chạy script ở [thư mục team](../team/README.vi.md) để nạp hai key dùng chung vào Keychain. GitHub Secrets chỉ dành cho workflow tự động, không tự đưa key vào app desktop. Không export Keychain, cookie Douyin hoặc file dữ liệu người dùng vào source.
+Đồng nghiệp có quyền truy cập tải gói cài rồi tự nhập key trong **Cài đặt → API Key**; xem [hướng dẫn cho từng người](../team/README.vi.md). GitHub Secrets chỉ dành cho workflow tự động, không tự đưa key vào app desktop. Không export Keychain, cookie Douyin hoặc file dữ liệu người dùng vào source.
 
 File [api-settings.example.json](api-settings.example.json) minh họa các lựa chọn để cấu hình trong UI; không phải file nhập tự động hay kho chứa key.
