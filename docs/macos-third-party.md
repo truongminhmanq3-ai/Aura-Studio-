@@ -19,3 +19,11 @@ codesign --verify --deep --strict "/path/to/Aura Studio.app"
 ```
 
 Thay Chromium cần tạo lại inventory bằng script build. Xem [hướng dẫn thay thư viện](third-party-library-replacement.md). Model weights và điều khoản model là thành phần độc lập.
+
+## Runtime macOS 26
+
+Tải thêm `Aura-Studio-macOS26-NativeSources.zip` ở cùng release cho runtime mới. Đây là **gói bổ sung**, dùng cùng gói nguồn Mac chung ở trên. `source-manifest.json` liệt kê chính xác phiên bản, URL, SHA256 và archive chứa từng nguồn; các nguồn chung được tham chiếu theo SHA256, các nguồn thay đổi được kèm trực tiếp. Nguồn llama-cpp-python 0.3.34 kèm toàn bộ vendor llama.cpp.
+
+SRT 1.5.7 được build lại từ archive upstream đã kiểm SHA256 vì archive hiện tại khác checksum lịch sử trong công thức Homebrew. Cả SRT và llama dùng SDK 26.5, target 26.0; công thức và hướng dẫn build được kèm. Các binary còn lại lấy từ bottle arm64 Tahoe hoặc phiên bản cũ hơn được ghim trong `runtime/macos26-native-manifest.json`.
+
+Thông báo và giấy phép của runtime mới nằm tại `Contents/Resources/licenses/macos26-native` trong app. Các điều khoản của thư viện và model được giữ nguyên.

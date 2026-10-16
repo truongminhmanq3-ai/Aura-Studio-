@@ -1,0 +1,3018 @@
+{
+  "target_macos": "26.0",
+  "architecture": "arm64",
+  "ffmpeg_version": "9.0.2",
+  "llama_cpp_python": "0.3.34",
+  "llama_build_sdk": "26.5",
+  "llama_deployment_target": "26.0",
+  "bottles": {
+    "aom": {
+      "name": "aom",
+      "version": "3.15.0",
+      "platform": "arm64_tahoe",
+      "sha256": "fa21f5d8f33607865ebb97f3d0d00c1b66478974655429fbb380453860b49bc8",
+      "url": "https://ghcr.io/v2/homebrew/core/aom/blobs/sha256:fa21f5d8f33607865ebb97f3d0d00c1b66478974655429fbb380453860b49bc8",
+      "license": "BSD-2-Clause",
+      "oci_manifest_sha256": "sha256:d1afd44a8b55fd022540992a67c8b916b7dc342b86abd8e122f88503b996ccf8"
+    },
+    "aribb24": {
+      "name": "aribb24",
+      "version": "1.0.4",
+      "platform": "arm64_tahoe",
+      "sha256": "68aed54c8d78b72dcc8306e91e004c2afcf193563be22adca2774fa094121ee5",
+      "url": "https://ghcr.io/v2/homebrew/core/aribb24/blobs/sha256:68aed54c8d78b72dcc8306e91e004c2afcf193563be22adca2774fa094121ee5",
+      "license": "LGPL-3.0-only",
+      "oci_manifest_sha256": "sha256:d8e869ee986f1b1c1aed71913a469f69d843148f7a9655293b339ddc2c56d726"
+    },
+    "brotli": {
+      "name": "brotli",
+      "version": "1.2.0",
+      "platform": "arm64_tahoe",
+      "sha256": "71ffd30ccd74a9f28cfb210c21fcdc1aa5fec79e23ad2264b6dbceb73437601f",
+      "url": "https://ghcr.io/v2/homebrew/core/brotli/blobs/sha256:71ffd30ccd74a9f28cfb210c21fcdc1aa5fec79e23ad2264b6dbceb73437601f",
+      "license": "MIT",
+      "oci_manifest_sha256": "sha256:3fc24b4495fbc5bb1b2cca966fab65721ec390bea303952d0f5f18b63e5d73ba"
+    },
+    "cjson": {
+      "name": "cjson",
+      "version": "1.7.19",
+      "platform": "arm64_tahoe",
+      "sha256": "3949c4efc1e2bb3de33dff83f7bb3322465f4e459b05b9c8ecafb50f9589453a",
+      "url": "https://ghcr.io/v2/homebrew/core/cjson/blobs/sha256:3949c4efc1e2bb3de33dff83f7bb3322465f4e459b05b9c8ecafb50f9589453a",
+      "license": "MIT",
+      "oci_manifest_sha256": "sha256:32821ecfd030e4d31eb00c072499d5f497e096a73bf8a5ef431935b7a6295a13"
+    },
+    "dav1d": {
+      "name": "dav1d",
+      "version": "1.5.4",
+      "platform": "arm64_tahoe",
+      "sha256": "d30ff747564febd643ec4b279c5adc74f708b8d6eb8e172f914b9fcdec26c464",
+      "url": "https://ghcr.io/v2/homebrew/core/dav1d/blobs/sha256:d30ff747564febd643ec4b279c5adc74f708b8d6eb8e172f914b9fcdec26c464",
+      "license": "BSD-2-Clause",
+      "oci_manifest_sha256": "sha256:c834df8109ef154064b3f1da4b50211670a3af12c924b205a3a0fdf97bac4292"
+    },
+    "ffmpeg-full": {
+      "name": "ffmpeg-full",
+      "version": "9.0.2",
+      "platform": "arm64_tahoe",
+      "sha256": "b32725987244bf52f2da5f5b3104d62f25207b2806d74b06eafd507f6a1f395b",
+      "url": "https://ghcr.io/v2/homebrew/core/ffmpeg-full/blobs/sha256:b32725987244bf52f2da5f5b3104d62f25207b2806d74b06eafd507f6a1f395b",
+      "license": "GPL-3.0-or-later",
+      "oci_manifest_sha256": "sha256:7a71749fde60355a84a93c102ab9a2cbec6f9d0c071e9c882d0fb8dcfe3f2300"
+    },
+    "fontconfig": {
+      "name": "fontconfig",
+      "version": "2.18.3",
+      "platform": "arm64_tahoe",
+      "sha256": "ad1c5a3054313853e9eefa9a07c32a3ff7b11c4fbcff9e73affc2a50233dbafe",
+      "url": "https://ghcr.io/v2/homebrew/core/fontconfig/blobs/sha256:ad1c5a3054313853e9eefa9a07c32a3ff7b11c4fbcff9e73affc2a50233dbafe",
+      "license": "HPND-sell-variant AND Unicode-3.0 AND MIT-Modern-Variant AND MIT AND LicenseRef-Homebrew-public-domain",
+      "oci_manifest_sha256": "sha256:08e2bcc40b8d03d5ad97207808d8be1e97ba0f179cc580b91d33581e63f51431"
+    },
+    "freetype": {
+      "name": "freetype",
+      "version": "2.14.3",
+      "platform": "arm64_tahoe",
+      "sha256": "449e22351da81ba5c8c398f87c295decac6b396bd6fab54becbb3d18800b62d1",
+      "url": "https://ghcr.io/v2/homebrew/core/freetype/blobs/sha256:449e22351da81ba5c8c398f87c295decac6b396bd6fab54becbb3d18800b62d1",
+      "license": "FTL",
+      "oci_manifest_sha256": "sha256:b063dd5f5b6cef1120533939983550c4bb178756af00955203b1e3c4d338d3e2"
+    },
+    "fribidi": {
+      "name": "fribidi",
+      "version": "1.0.16",
+      "platform": "arm64_tahoe",
+      "sha256": "4f6b90cece7f5eb2491a4938689366c84e5cba64e4a99009f20c92aaf341d186",
+      "url": "https://ghcr.io/v2/homebrew/core/fribidi/blobs/sha256:4f6b90cece7f5eb2491a4938689366c84e5cba64e4a99009f20c92aaf341d186",
+      "license": "GPL-2.0-or-later AND LGPL-2.1-or-later",
+      "oci_manifest_sha256": "sha256:003a643002a2163303c9549c7485139575bebd9d2c2ac3a8611755ab12bbaac7"
+    },
+    "gettext": {
+      "name": "gettext",
+      "version": "1.0",
+      "platform": "arm64_tahoe",
+      "sha256": "1f98400343132c8e469ed475157f8f4d0f516ea86bd4600552e8b75ab638fcf9",
+      "url": "https://ghcr.io/v2/homebrew/core/gettext/blobs/sha256:1f98400343132c8e469ed475157f8f4d0f516ea86bd4600552e8b75ab638fcf9",
+      "license": "GPL-3.0-or-later AND LGPL-2.1-or-later",
+      "oci_manifest_sha256": "sha256:349157b5d143b3741db72c2a0b6fa0f599c2fc711da7231aba0ffdc23f4b6ff0"
+    },
+    "ggml": {
+      "name": "ggml",
+      "version": "0.24.0",
+      "platform": "arm64_tahoe",
+      "sha256": "35c897757c506e65c29ec6b4a5d340c7cf8183f12252cc203c80dff53177cb09",
+      "url": "https://ghcr.io/v2/homebrew/core/ggml/blobs/sha256:35c897757c506e65c29ec6b4a5d340c7cf8183f12252cc203c80dff53177cb09",
+      "license": "MIT",
+      "oci_manifest_sha256": "sha256:8189bd318f2085492e3322f0057c40c5bc9be485db58929da7d6c14619682a19"
+    },
+    "giflib": {
+      "name": "giflib",
+      "version": "6.1.3",
+      "platform": "arm64_tahoe",
+      "sha256": "bef1f5fb654184cce8af628e3a0c222eeab3c61fcaa4ff169974b22c22f01a8c",
+      "url": "https://ghcr.io/v2/homebrew/core/giflib/blobs/sha256:bef1f5fb654184cce8af628e3a0c222eeab3c61fcaa4ff169974b22c22f01a8c",
+      "license": "MIT",
+      "oci_manifest_sha256": "sha256:6245a9f6839dc4cb4f4072337c1c8a671e8a84552fafca5dd006cebf55b1b194"
+    },
+    "glib": {
+      "name": "glib",
+      "version": "2.90.0",
+      "platform": "arm64_tahoe",
+      "sha256": "e2d2d3cff3bb121e8f6c98f9a831e03f78b66e88063fc5d432a68bf0b4951092",
+      "url": "https://ghcr.io/v2/homebrew/core/glib/blobs/sha256:e2d2d3cff3bb121e8f6c98f9a831e03f78b66e88063fc5d432a68bf0b4951092",
+      "license": "LGPL-2.1-or-later",
+      "oci_manifest_sha256": "sha256:2eb20a2ddb4e0733dba5e397fc1f706adeaeace494b0185c75fef6293aa4760e"
+    },
+    "gmp": {
+      "name": "gmp",
+      "version": "6.3.0",
+      "platform": "arm64_tahoe",
+      "sha256": "db8075f389ca0a9f9aba54762c93760db66ef92ee989f4a32b5e13b4b987339c",
+      "url": "https://ghcr.io/v2/homebrew/core/gmp/blobs/sha256:db8075f389ca0a9f9aba54762c93760db66ef92ee989f4a32b5e13b4b987339c",
+      "license": "LGPL-3.0-or-later OR GPL-2.0-or-later",
+      "oci_manifest_sha256": "sha256:410cdc87cf478ff599786594e8f857140bb54cf580712d58a42f6ff5d5359cbb"
+    },
+    "gnutls": {
+      "name": "gnutls",
+      "version": "3.8.13_2",
+      "platform": "arm64_tahoe",
+      "sha256": "734c0efdecbab73827b30af2d46ecb7e4236eb9dbfa55b81b4293d369d434b2a",
+      "url": "https://ghcr.io/v2/homebrew/core/gnutls/blobs/sha256:734c0efdecbab73827b30af2d46ecb7e4236eb9dbfa55b81b4293d369d434b2a",
+      "license": "LGPL-2.1-or-later AND GPL-3.0-only",
+      "oci_manifest_sha256": "sha256:aafb0c59befa9d19f2cdba574b0e2af012ab7ee15eca464485c9668333f12e89"
+    },
+    "graphite2": {
+      "name": "graphite2",
+      "version": "1.3.15",
+      "platform": "arm64_tahoe",
+      "sha256": "c05e664c8872f3a9e08ada587a33d71b841673126840fe0cd301300c1f59acea",
+      "url": "https://ghcr.io/v2/homebrew/core/graphite2/blobs/sha256:c05e664c8872f3a9e08ada587a33d71b841673126840fe0cd301300c1f59acea",
+      "license": "GPL-2.0-or-later OR LGPL-2.1-or-later OR MPL-1.1+",
+      "oci_manifest_sha256": "sha256:0b020fba38b9d7c032032f45e88c269c8e9783b203ca79831b842338d6428050"
+    },
+    "harfbuzz": {
+      "name": "harfbuzz",
+      "version": "14.4.0",
+      "platform": "arm64_tahoe",
+      "sha256": "05cf5776d8e75b155c6630532b8018a37a2fb56321ade7d46b70804ee23357a6",
+      "url": "https://ghcr.io/v2/homebrew/core/harfbuzz/blobs/sha256:05cf5776d8e75b155c6630532b8018a37a2fb56321ade7d46b70804ee23357a6",
+      "license": "MIT",
+      "oci_manifest_sha256": "sha256:c69cc58cebb739a8d117ba077463bef07d7139aac05bb3d630824e6fda48d86e"
+    },
+    "highway": {
+      "name": "highway",
+      "version": "1.4.0",
+      "platform": "arm64_tahoe",
+      "sha256": "4a17f51ff9c2f22f412db35dacc63860a7e1c722f08fbf308f05f9f4db21db0d",
+      "url": "https://ghcr.io/v2/homebrew/core/highway/blobs/sha256:4a17f51ff9c2f22f412db35dacc63860a7e1c722f08fbf308f05f9f4db21db0d",
+      "license": "Apache-2.0 OR BSD-3-Clause",
+      "oci_manifest_sha256": "sha256:12c629883a812dfbb754dbf48160204af38896d089fd642d671b1fcf13bbd517"
+    },
+    "jpeg-turbo": {
+      "name": "jpeg-turbo",
+      "version": "3.2.0",
+      "platform": "arm64_tahoe",
+      "sha256": "516f4fcf68020aea477a82ac745d5a89bff9fb4908e01c7529c191a563fd1a7b",
+      "url": "https://ghcr.io/v2/homebrew/core/jpeg-turbo/blobs/sha256:516f4fcf68020aea477a82ac745d5a89bff9fb4908e01c7529c191a563fd1a7b",
+      "license": "IJG AND Zlib AND BSD-3-Clause",
+      "oci_manifest_sha256": "sha256:0b4321fd40ab991e411b2cb9eeeee8f4ec2713adcc1f47029a37273a55ec8d92"
+    },
+    "jpeg-xl": {
+      "name": "jpeg-xl",
+      "version": "0.12.0",
+      "platform": "arm64_tahoe",
+      "sha256": "ee54d6aaca2716c393a0620f1ecc152aca52909afbeb93d7d918e7a4c3b4af47",
+      "url": "https://ghcr.io/v2/homebrew/core/jpeg-xl/blobs/sha256:ee54d6aaca2716c393a0620f1ecc152aca52909afbeb93d7d918e7a4c3b4af47",
+      "license": "BSD-3-Clause",
+      "oci_manifest_sha256": "sha256:dcf42d5cb210eeffa8ba11837704aadf3b0147659a606d7fa7434287f42e978a"
+    },
+    "lame": {
+      "name": "lame",
+      "version": "4.0",
+      "platform": "arm64_tahoe",
+      "sha256": "b0fe0cfb39c74a53b7635833fe3293a62c886b084bc5ccc8ed7cd177803182e4",
+      "url": "https://ghcr.io/v2/homebrew/core/lame/blobs/sha256:b0fe0cfb39c74a53b7635833fe3293a62c886b084bc5ccc8ed7cd177803182e4",
+      "license": "LGPL-2.0-or-later",
+      "oci_manifest_sha256": "sha256:9378e8b3060151f0665106536798ad6cb2b6a220beef422f24c284cdff8e4429"
+    },
+    "leptonica": {
+      "name": "leptonica",
+      "version": "1.87.0",
+      "platform": "arm64_tahoe",
+      "sha256": "ab32f1b8d1615316af71452ecb542668b6dc53b423389d87b15379f3a1640e27",
+      "url": "https://ghcr.io/v2/homebrew/core/leptonica/blobs/sha256:ab32f1b8d1615316af71452ecb542668b6dc53b423389d87b15379f3a1640e27",
+      "license": "BSD-2-Clause",
+      "oci_manifest_sha256": "sha256:bc49562aebc4413eb4b40cf8486adbed0952cf3c29fc0f5f3918d729ce84eff6"
+    },
+    "libarchive": {
+      "name": "libarchive",
+      "version": "3.8.9",
+      "platform": "arm64_tahoe",
+      "sha256": "0d24892c4031758a148bece7e41b82cc8be8c8af020eb379d43a98cf984ba26d",
+      "url": "https://ghcr.io/v2/homebrew/core/libarchive/blobs/sha256:0d24892c4031758a148bece7e41b82cc8be8c8af020eb379d43a98cf984ba26d",
+      "license": "BSD-2-Clause",
+      "oci_manifest_sha256": "sha256:33587a99720c95635d604240ec0f59989618584c6362cb6a605b7ee5c45f1ca4"
+    },
+    "libass": {
+      "name": "libass",
+      "version": "0.17.5_1",
+      "platform": "arm64_tahoe",
+      "sha256": "29ac9a179908bc0c3d918b0f41fc40f7fbdfbc8819fa774ac85f0620b9281dc3",
+      "url": "https://ghcr.io/v2/homebrew/core/libass/blobs/sha256:29ac9a179908bc0c3d918b0f41fc40f7fbdfbc8819fa774ac85f0620b9281dc3",
+      "license": "ISC",
+      "oci_manifest_sha256": "sha256:9d470364042a22a106101b4eed40707481c5975b02931f5f52617bacc2953d10"
+    },
+    "libb2": {
+      "name": "libb2",
+      "version": "0.98.1",
+      "platform": "arm64_tahoe",
+      "sha256": "4c161a089a39249a589b88d39f57998c6a2183426647ce886708861774b001eb",
+      "url": "https://ghcr.io/v2/homebrew/core/libb2/blobs/sha256:4c161a089a39249a589b88d39f57998c6a2183426647ce886708861774b001eb",
+      "license": "CC0-1.0",
+      "oci_manifest_sha256": "sha256:aad02dc0d05030929c0d4ade447041afd15778ea3f71f158e5e635320149925d"
+    },
+    "libbluray": {
+      "name": "libbluray",
+      "version": "1.5.0",
+      "platform": "arm64_tahoe",
+      "sha256": "6f27f52be0330c4e36c59a6beb6a12255e8e6d51448d35d889246419d20ac042",
+      "url": "https://ghcr.io/v2/homebrew/core/libbluray/blobs/sha256:6f27f52be0330c4e36c59a6beb6a12255e8e6d51448d35d889246419d20ac042",
+      "license": "LGPL-2.1-or-later",
+      "oci_manifest_sha256": "sha256:67b6e221defe658520841f27843998f205691644069d205724645774d5ff9443"
+    },
+    "libidn2": {
+      "name": "libidn2",
+      "version": "2.3.8",
+      "platform": "arm64_tahoe",
+      "sha256": "f8f1b459f15a4ac11d2dce786a9140509782227b7d499cbdf3a1279dd325d90b",
+      "url": "https://ghcr.io/v2/homebrew/core/libidn2/blobs/sha256:f8f1b459f15a4ac11d2dce786a9140509782227b7d499cbdf3a1279dd325d90b",
+      "license": "(GPL-2.0-or-later OR LGPL-3.0-or-later) AND (Unicode-TOU AND Unicode-DFS-2016) AND GPL-3.0-or-later AND LGPL-2.1-or-later AND FSFAP-no-warranty-disclaimer",
+      "oci_manifest_sha256": "sha256:be736c326f2965e33c08849c4183f8087018cc96a1a7d8da37c03b3f984b2b94"
+    },
+    "libogg": {
+      "name": "libogg",
+      "version": "1.3.6",
+      "platform": "arm64_tahoe",
+      "sha256": "4d9d14f8e36ed913c02201bfc01682ba3f550de412e9a24e3ef9aed4f1b8a23d",
+      "url": "https://ghcr.io/v2/homebrew/core/libogg/blobs/sha256:4d9d14f8e36ed913c02201bfc01682ba3f550de412e9a24e3ef9aed4f1b8a23d",
+      "license": "BSD-3-Clause",
+      "oci_manifest_sha256": "sha256:c59f85d9d9b10a53286c0562e5bd7a4b55db9fbbe8b00403ae7bea2bb5727043"
+    },
+    "libomp": {
+      "name": "libomp",
+      "version": "23.1.1",
+      "platform": "arm64_tahoe",
+      "sha256": "78b11c916952efc86cfebfe80ec6e877c8f0f974839d2329ef9653fc8fd6718c",
+      "url": "https://ghcr.io/v2/homebrew/core/libomp/blobs/sha256:78b11c916952efc86cfebfe80ec6e877c8f0f974839d2329ef9653fc8fd6718c",
+      "license": "MIT",
+      "oci_manifest_sha256": "sha256:6729513879959b21ee73286a22140494f948f29a5b7e1405a58ee30406439602"
+    },
+    "libplacebo": {
+      "name": "libplacebo",
+      "version": "7.360.1",
+      "platform": "arm64_tahoe",
+      "sha256": "6575f7e22f75c946f5c831d2ff130b89aa275a2cdd4dbe7a0204590513b87b25",
+      "url": "https://ghcr.io/v2/homebrew/core/libplacebo/blobs/sha256:6575f7e22f75c946f5c831d2ff130b89aa275a2cdd4dbe7a0204590513b87b25",
+      "license": "LGPL-2.1-or-later",
+      "oci_manifest_sha256": "sha256:f1a22d2334bc9439b3109d1831230b862294f2280c1e6bba967ebe7ccfe09747"
+    },
+    "libpng": {
+      "name": "libpng",
+      "version": "1.6.58",
+      "platform": "arm64_tahoe",
+      "sha256": "a28e1e29bf508ddf89800c215a013694c2751ca63e8ae40aca859aff7bf7b02c",
+      "url": "https://ghcr.io/v2/homebrew/core/libpng/blobs/sha256:a28e1e29bf508ddf89800c215a013694c2751ca63e8ae40aca859aff7bf7b02c",
+      "license": "libpng-2.0",
+      "oci_manifest_sha256": "sha256:001bc125a5644f98abd06e16f6856ae8f8c92590f8102d3f2f95e430dde62741"
+    },
+    "librist": {
+      "name": "librist",
+      "version": "0.2.20",
+      "platform": "arm64_tahoe",
+      "sha256": "2bf5965a57d45f6fa801e28e7b18caec07d6db79586d4ed28d7c8ee51b13616a",
+      "url": "https://ghcr.io/v2/homebrew/core/librist/blobs/sha256:2bf5965a57d45f6fa801e28e7b18caec07d6db79586d4ed28d7c8ee51b13616a",
+      "license": "BSD-2-Clause",
+      "oci_manifest_sha256": "sha256:fd80bf830806df9cc5d753300e21bf48f4a2ce1a92505cf39238753c2c2f25da"
+    },
+    "libsamplerate": {
+      "name": "libsamplerate",
+      "version": "0.2.2",
+      "platform": "arm64_sequoia",
+      "sha256": "5fc173532c2b6fce115a5e36266da6c2dab4b4508478132790befa5f0342199e",
+      "url": "https://ghcr.io/v2/homebrew/core/libsamplerate/blobs/sha256:5fc173532c2b6fce115a5e36266da6c2dab4b4508478132790befa5f0342199e",
+      "license": "BSD-2-Clause",
+      "oci_manifest_sha256": "sha256:d3a2870971334ce53ba76bcf02006e8f540abf42f8c764a127b1d0ab2d1a25af"
+    },
+    "libsodium": {
+      "name": "libsodium",
+      "version": "1.0.22",
+      "platform": "arm64_tahoe",
+      "sha256": "665929906297818edf15955cf4e4faefca7d717271c9fa448291989d2511d266",
+      "url": "https://ghcr.io/v2/homebrew/core/libsodium/blobs/sha256:665929906297818edf15955cf4e4faefca7d717271c9fa448291989d2511d266",
+      "license": "ISC",
+      "oci_manifest_sha256": "sha256:6c57b9b9b2c62c090936472f3328977fed40e27592d5a4fd04bb1c727b9dd58f"
+    },
+    "libsoxr": {
+      "name": "libsoxr",
+      "version": "0.1.3",
+      "platform": "arm64_tahoe",
+      "sha256": "6fd815529e1078139d7965e7bb7e92b4fa5680e74ca671357aaf4c0e1ea1dc95",
+      "url": "https://ghcr.io/v2/homebrew/core/libsoxr/blobs/sha256:6fd815529e1078139d7965e7bb7e92b4fa5680e74ca671357aaf4c0e1ea1dc95",
+      "license": "LGPL-2.1-or-later"
+    },
+    "libssh": {
+      "name": "libssh",
+      "version": "0.12.2",
+      "platform": "arm64_tahoe",
+      "sha256": "0d7992b5269b93e53695ab3e52037eb454e846e46627a32d60df416a71fb71ea",
+      "url": "https://ghcr.io/v2/homebrew/core/libssh/blobs/sha256:0d7992b5269b93e53695ab3e52037eb454e846e46627a32d60df416a71fb71ea",
+      "license": "LGPL-2.1-or-later",
+      "oci_manifest_sha256": "sha256:11a62cde1589685ee330cdd53ccf40cbbd9b358187dfc77f65b8c46001989507"
+    },
+    "libtasn1": {
+      "name": "libtasn1",
+      "version": "4.21.0",
+      "platform": "arm64_tahoe",
+      "sha256": "ae01713eec0bd922b903ed2bf514dc085ec3108636c4ead84614b23a2c33f267",
+      "url": "https://ghcr.io/v2/homebrew/core/libtasn1/blobs/sha256:ae01713eec0bd922b903ed2bf514dc085ec3108636c4ead84614b23a2c33f267",
+      "license": "LGPL-2.1-or-later",
+      "oci_manifest_sha256": "sha256:9ab6356fb03d6cf49ee54143b847cd329c0e9d112b48968364eb2537621eb02b"
+    },
+    "libtiff": {
+      "name": "libtiff",
+      "version": "4.7.2",
+      "platform": "arm64_tahoe",
+      "sha256": "38f4a84e4a689a065991a7f2445563fa38306f9bdd6a27e2c60b33bf11a7d614",
+      "url": "https://ghcr.io/v2/homebrew/core/libtiff/blobs/sha256:38f4a84e4a689a065991a7f2445563fa38306f9bdd6a27e2c60b33bf11a7d614",
+      "license": "libtiff",
+      "oci_manifest_sha256": "sha256:601298fb1665c5b860b5326efc88b7b96d0ec5b19a938d2d09f060e243ba318b"
+    },
+    "libudfread": {
+      "name": "libudfread",
+      "version": "1.2.0",
+      "platform": "arm64_tahoe",
+      "sha256": "c30a3d1c34e209bd79301f3626e0e617ed841979ae1e33b0acc066c9643f9dea",
+      "url": "https://ghcr.io/v2/homebrew/core/libudfread/blobs/sha256:c30a3d1c34e209bd79301f3626e0e617ed841979ae1e33b0acc066c9643f9dea",
+      "license": "LGPL-2.1-or-later",
+      "oci_manifest_sha256": "sha256:f00c69f7ec70475fea5b680669615023f4fded4623c1be3257b165a1cc5a9a07"
+    },
+    "libunibreak": {
+      "name": "libunibreak",
+      "version": "8.0",
+      "platform": "arm64_tahoe",
+      "sha256": "b5ea43d5ae7e12db466b52c75ae517be48aa31c270e9dbb2cb8a9412d94f1aff",
+      "url": "https://ghcr.io/v2/homebrew/core/libunibreak/blobs/sha256:b5ea43d5ae7e12db466b52c75ae517be48aa31c270e9dbb2cb8a9412d94f1aff",
+      "license": "Zlib",
+      "oci_manifest_sha256": "sha256:8fb4562786bfc1d2fe963aba121f71d74ad3d1ab23c2d0f0b811f80dc1a2680b"
+    },
+    "libunistring": {
+      "name": "libunistring",
+      "version": "1.4.2",
+      "platform": "arm64_tahoe",
+      "sha256": "bae6d6d8dffc573c039a850a96e36f1b7fd846abd9ccada8260b7e888b5a3646",
+      "url": "https://ghcr.io/v2/homebrew/core/libunistring/blobs/sha256:bae6d6d8dffc573c039a850a96e36f1b7fd846abd9ccada8260b7e888b5a3646",
+      "license": "GPL-2.0-only OR LGPL-3.0-or-later",
+      "oci_manifest_sha256": "sha256:a0c3d062a4d476662f7556a8d440f5e790ee5799596a532bcedb1d608251e46d"
+    },
+    "libvidstab": {
+      "name": "libvidstab",
+      "version": "1.1.2",
+      "platform": "arm64_tahoe",
+      "sha256": "e6808d2f543809c806b81c690719b23c14c177cbb0cb1f42c27d559b4cb1b172",
+      "url": "https://ghcr.io/v2/homebrew/core/libvidstab/blobs/sha256:e6808d2f543809c806b81c690719b23c14c177cbb0cb1f42c27d559b4cb1b172",
+      "license": "GPL-2.0-or-later",
+      "oci_manifest_sha256": "sha256:0d9004baf7dce60463b68b0c64749e8dfad163e377ecac70540e2159786a9dee"
+    },
+    "libvmaf": {
+      "name": "libvmaf",
+      "version": "3.2.1",
+      "platform": "arm64_tahoe",
+      "sha256": "703f56cd94ba6bb86ee1463bec792d8ad6f9841f67152fa6e93040b966bbf82f",
+      "url": "https://ghcr.io/v2/homebrew/core/libvmaf/blobs/sha256:703f56cd94ba6bb86ee1463bec792d8ad6f9841f67152fa6e93040b966bbf82f",
+      "license": "BSD-2-Clause-Patent",
+      "oci_manifest_sha256": "sha256:f6773e960f50d6b32a70c8c569378481db0e40c6e666e9f79d0632de32f85aa0"
+    },
+    "libvorbis": {
+      "name": "libvorbis",
+      "version": "1.3.7",
+      "platform": "arm64_ventura",
+      "sha256": "7c0b32505548e1e6e475923981587d90c92544e4e06838e0043c931ec1b9ce2e",
+      "url": "https://ghcr.io/v2/homebrew/core/libvorbis/blobs/sha256:7c0b32505548e1e6e475923981587d90c92544e4e06838e0043c931ec1b9ce2e",
+      "license": null,
+      "oci_manifest_sha256": "sha256:8e06ff10d7ad387be4c962ffbc01f6c90dceebfb2a0ac0388e16aced35bcd0d1"
+    },
+    "libvpx": {
+      "name": "libvpx",
+      "version": "1.17.0",
+      "platform": "arm64_tahoe",
+      "sha256": "0b25798cd931cf522c100b7dafbdb75a4bf9f3758e3036e91bef071375d3ec09",
+      "url": "https://ghcr.io/v2/homebrew/core/libvpx/blobs/sha256:0b25798cd931cf522c100b7dafbdb75a4bf9f3758e3036e91bef071375d3ec09",
+      "license": "BSD-3-Clause",
+      "oci_manifest_sha256": "sha256:c8aa60605c9bca43d6f8476ed40ae0ab102e7bd61706e1050f409e142173fcf0"
+    },
+    "libx11": {
+      "name": "libx11",
+      "version": "1.8.13",
+      "platform": "arm64_tahoe",
+      "sha256": "cddc8c50c6140f0f64724e4f7c508fe7d26676b24cf7ae2b2527bf884a07a5ea",
+      "url": "https://ghcr.io/v2/homebrew/core/libx11/blobs/sha256:cddc8c50c6140f0f64724e4f7c508fe7d26676b24cf7ae2b2527bf884a07a5ea",
+      "license": "MIT",
+      "oci_manifest_sha256": "sha256:0a657c7660546a3b7f8eea05223b61dcf756658280796d192433493a3fa6ee3e"
+    },
+    "libxau": {
+      "name": "libxau",
+      "version": "1.0.12",
+      "platform": "arm64_tahoe",
+      "sha256": "503040606c5d29dd415f2c8dcba7e181d259e4cdff02d1d8bde4e9ea5244765a",
+      "url": "https://ghcr.io/v2/homebrew/core/libxau/blobs/sha256:503040606c5d29dd415f2c8dcba7e181d259e4cdff02d1d8bde4e9ea5244765a",
+      "license": "MIT",
+      "oci_manifest_sha256": "sha256:f1dcf685938daf3208a1ac226f28ba85833b24216beabe60208161927359d662"
+    },
+    "libxcb": {
+      "name": "libxcb",
+      "version": "1.17.0",
+      "platform": "arm64_sequoia",
+      "sha256": "424cfa4a90faa3e8a83924ab33e339fe7f332c05428fd7ff64e39fbdebc20732",
+      "url": "https://ghcr.io/v2/homebrew/core/libxcb/blobs/sha256:424cfa4a90faa3e8a83924ab33e339fe7f332c05428fd7ff64e39fbdebc20732",
+      "license": "MIT",
+      "oci_manifest_sha256": "sha256:7a9c8122199eb58c300a9a7fec62d7994bc7bfa4333f2fac69d21a19ac152a87"
+    },
+    "libxdmcp": {
+      "name": "libxdmcp",
+      "version": "1.1.5",
+      "platform": "arm64_tahoe",
+      "sha256": "34ca0da1c319eeea93ce31badfb5c29c8876cea644754279e93f6cf032ab5cb1",
+      "url": "https://ghcr.io/v2/homebrew/core/libxdmcp/blobs/sha256:34ca0da1c319eeea93ce31badfb5c29c8876cea644754279e93f6cf032ab5cb1",
+      "license": "MIT",
+      "oci_manifest_sha256": "sha256:d113a2676b072bdf5e251723a235d465e0a8df711fce3d9dc2d0c2d01704327c"
+    },
+    "little-cms2": {
+      "name": "little-cms2",
+      "version": "2.19.1",
+      "platform": "arm64_tahoe",
+      "sha256": "bdd144e98ee16fa60a99ec45048aa06e24cc95bd16e059952f693c4c4f8f7725",
+      "url": "https://ghcr.io/v2/homebrew/core/little-cms2/blobs/sha256:bdd144e98ee16fa60a99ec45048aa06e24cc95bd16e059952f693c4c4f8f7725",
+      "license": "MIT",
+      "oci_manifest_sha256": "sha256:c3a7ca81eddda20cd484459c23597fa0d39ff8d971dff831681e4360acd98658"
+    },
+    "lz4": {
+      "name": "lz4",
+      "version": "1.10.0",
+      "platform": "arm64_sonoma",
+      "sha256": "cf10ee811e95f338888acbb57ffaf269f1264ef906f037e045bfe66e97e74d7c",
+      "url": "https://ghcr.io/v2/homebrew/core/lz4/blobs/sha256:cf10ee811e95f338888acbb57ffaf269f1264ef906f037e045bfe66e97e74d7c",
+      "license": null,
+      "oci_manifest_sha256": "sha256:61e6f751a3e91042f02936a20c6ccdbd8d0cf24b0bc11698a7aaf85b7028e2fd"
+    },
+    "mbedtls@3": {
+      "name": "mbedtls@3",
+      "version": "3.6.7",
+      "platform": "arm64_tahoe",
+      "sha256": "fd7f0577e006f5d4b7bae70773a1eb13d55dc00d7aac524d021ea72619b71da5",
+      "url": "https://ghcr.io/v2/homebrew/core/mbedtls/3/blobs/sha256:fd7f0577e006f5d4b7bae70773a1eb13d55dc00d7aac524d021ea72619b71da5",
+      "license": "Apache-2.0",
+      "oci_manifest_sha256": "sha256:2787bc65776704c152154e092a2286937dd996a581cf6a4fd0287e5e7845a87c"
+    },
+    "mpg123": {
+      "name": "mpg123",
+      "version": "1.33.7",
+      "platform": "arm64_tahoe",
+      "sha256": "acabaed07a2aa95e360e1047df604cb45845254f2ff136671b9fb0d4bafc69ce",
+      "url": "https://ghcr.io/v2/homebrew/core/mpg123/blobs/sha256:acabaed07a2aa95e360e1047df604cb45845254f2ff136671b9fb0d4bafc69ce",
+      "license": "LGPL-2.1-only",
+      "oci_manifest_sha256": "sha256:06b676348abb79397274df85d42f56160fc801939cede1fc8eb946502fdf00e0"
+    },
+    "nettle": {
+      "name": "nettle",
+      "version": "4.0",
+      "platform": "arm64_tahoe",
+      "sha256": "ba11eb261bc502c28c9cd695f8354306d0a31cb1e55c3d3f1568e051293a0f10",
+      "url": "https://ghcr.io/v2/homebrew/core/nettle/blobs/sha256:ba11eb261bc502c28c9cd695f8354306d0a31cb1e55c3d3f1568e051293a0f10",
+      "license": "GPL-2.0-or-later OR LGPL-3.0-or-later",
+      "oci_manifest_sha256": "sha256:1af705228363e279b8579e731e161301b2d6384b27cb6e44f7dd8adaaddcde44"
+    },
+    "opencore-amr": {
+      "name": "opencore-amr",
+      "version": "0.1.6",
+      "platform": "arm64_tahoe",
+      "sha256": "38dea780c6b453fcae6c1addb3054b0d14a4c216183a319e26575f61fda8050b",
+      "url": "https://ghcr.io/v2/homebrew/core/opencore-amr/blobs/sha256:38dea780c6b453fcae6c1addb3054b0d14a4c216183a319e26575f61fda8050b",
+      "license": "Apache-2.0",
+      "oci_manifest_sha256": "sha256:b99234ff25ca9710310da0b304a6bd5034e01654e0ae2faa7ea59438e8b75f6d"
+    },
+    "openjpeg": {
+      "name": "openjpeg",
+      "version": "2.5.4",
+      "platform": "arm64_tahoe",
+      "sha256": "e9becf9b440b08fd771dbaa75d4f5b06a49119f9ce163e6ad08f272f4f3b9c9d",
+      "url": "https://ghcr.io/v2/homebrew/core/openjpeg/blobs/sha256:e9becf9b440b08fd771dbaa75d4f5b06a49119f9ce163e6ad08f272f4f3b9c9d",
+      "license": "BSD-2-Clause",
+      "oci_manifest_sha256": "sha256:ea937ea54cca5ed4b7ee0dbf69a398114836b996fca0716171f52e516568c75e"
+    },
+    "openssl@3": {
+      "name": "openssl@3",
+      "version": "3.6.4",
+      "platform": "arm64_tahoe",
+      "sha256": "8c7dab98311d025fda379dba80eaf985af1ceca26c403c66318b3c7d43a028b9",
+      "url": "https://ghcr.io/v2/homebrew/core/openssl/3/blobs/sha256:8c7dab98311d025fda379dba80eaf985af1ceca26c403c66318b3c7d43a028b9",
+      "license": "Apache-2.0",
+      "oci_manifest_sha256": "sha256:24d195af9b1b334b68dfb3cf63c7909b7cf2503609ef89730465ba7ac3f621c8"
+    },
+    "opus": {
+      "name": "opus",
+      "version": "1.6.1",
+      "platform": "arm64_tahoe",
+      "sha256": "5e8146a64fab2683ea447aaa7d0de0b1d717539b4cdabd1fedd4a510e4be0d1e",
+      "url": "https://ghcr.io/v2/homebrew/core/opus/blobs/sha256:5e8146a64fab2683ea447aaa7d0de0b1d717539b4cdabd1fedd4a510e4be0d1e",
+      "license": "BSD-3-Clause",
+      "oci_manifest_sha256": "sha256:8acec6ff94bce60adb9c4321927d77f81f45ad6008b702fe891d017404c5567d"
+    },
+    "p11-kit": {
+      "name": "p11-kit",
+      "version": "0.26.5",
+      "platform": "arm64_tahoe",
+      "sha256": "0e6d34def01884f9a650e591dd8f86241c7fb90bebc827c94203c837749feed6",
+      "url": "https://ghcr.io/v2/homebrew/core/p11-kit/blobs/sha256:0e6d34def01884f9a650e591dd8f86241c7fb90bebc827c94203c837749feed6",
+      "license": "BSD-3-Clause",
+      "oci_manifest_sha256": "sha256:f46eded59255033689617b94ea274e58a4a367a27c07e3305b95e0eee20f1eb3"
+    },
+    "pcre2": {
+      "name": "pcre2",
+      "version": "10.48",
+      "platform": "arm64_tahoe",
+      "sha256": "46681bd5769d4c0ab2aec568ff400ea00a69e9e5e05dc32b360bcf113b0af278",
+      "url": "https://ghcr.io/v2/homebrew/core/pcre2/blobs/sha256:46681bd5769d4c0ab2aec568ff400ea00a69e9e5e05dc32b360bcf113b0af278",
+      "license": "BSD-3-Clause",
+      "oci_manifest_sha256": "sha256:90b3500c69cee659b46bb6c37e9b781d56f726620f80d7ee138d7c4c4dc3817b"
+    },
+    "qrencode": {
+      "name": "qrencode",
+      "version": "4.1.1_1",
+      "platform": "arm64_tahoe",
+      "sha256": "52a9ea0465a3446c8b0930bbd7c0d5ac0c84c350992fe4937de39301758e2f20",
+      "url": "https://ghcr.io/v2/homebrew/core/qrencode/blobs/sha256:52a9ea0465a3446c8b0930bbd7c0d5ac0c84c350992fe4937de39301758e2f20",
+      "license": "LGPL-2.1-or-later",
+      "oci_manifest_sha256": "sha256:673bfdf19992ace252f0dd03ec1c762554c901317a586f55476d4db1ed2cf1da"
+    },
+    "rav1e": {
+      "name": "rav1e",
+      "version": "0.8.1",
+      "platform": "arm64_tahoe",
+      "sha256": "66ef57034787b9e1328abec79bb85ca9fd65c5f4a2bb800be9b5a58ecab849a5",
+      "url": "https://ghcr.io/v2/homebrew/core/rav1e/blobs/sha256:66ef57034787b9e1328abec79bb85ca9fd65c5f4a2bb800be9b5a58ecab849a5",
+      "license": "BSD-2-Clause",
+      "oci_manifest_sha256": "sha256:afb2b3739ff9f48a5c31cf1d11b9e7bc946470eb36e5c7afa5ac993861422b49"
+    },
+    "rubberband": {
+      "name": "rubberband",
+      "version": "4.0.0",
+      "platform": "arm64_tahoe",
+      "sha256": "65ba1e050a7368f043369932bfc493de4f33f9dda9f6863250960559b5bdf1d8",
+      "url": "https://ghcr.io/v2/homebrew/core/rubberband/blobs/sha256:65ba1e050a7368f043369932bfc493de4f33f9dda9f6863250960559b5bdf1d8",
+      "license": "GPL-2.0-or-later",
+      "oci_manifest_sha256": "sha256:5559bcdabf0f5014102df0a7d16a6c41dc96a65748f7e03ce544b190cc285aa2"
+    },
+    "shaderc": {
+      "name": "shaderc",
+      "version": "2026.4",
+      "platform": "arm64_tahoe",
+      "sha256": "12ba0c59a98fb8f671f9473573002b2a812f26d2e60ea4f577f0c8c750c9838a",
+      "url": "https://ghcr.io/v2/homebrew/core/shaderc/blobs/sha256:12ba0c59a98fb8f671f9473573002b2a812f26d2e60ea4f577f0c8c750c9838a",
+      "license": "Apache-2.0",
+      "oci_manifest_sha256": "sha256:94b3b8d78e3d070865bca8e9d67bd6b864a9a565eb0a2790fdcd33a983ca7c07"
+    },
+    "snappy": {
+      "name": "snappy",
+      "version": "1.3.1",
+      "platform": "arm64_tahoe",
+      "sha256": "11f6a15644bc2dece119e6d0cf912e702ed5355ec706409a57bb8d482ff022b0",
+      "url": "https://ghcr.io/v2/homebrew/core/snappy/blobs/sha256:11f6a15644bc2dece119e6d0cf912e702ed5355ec706409a57bb8d482ff022b0",
+      "license": "BSD-3-Clause",
+      "oci_manifest_sha256": "sha256:2cc6d5d277c3f8d2ae0aa4fd51090cc8e037680fdc5f865c75f6d308ef0f864d"
+    },
+    "speex": {
+      "name": "speex",
+      "version": "1.2.1",
+      "platform": "arm64_tahoe",
+      "sha256": "a7608ef62c92fd11d5eed0e3643e769087e4f0eb6de3a321fa602d6dd041387d",
+      "url": "https://ghcr.io/v2/homebrew/core/speex/blobs/sha256:a7608ef62c92fd11d5eed0e3643e769087e4f0eb6de3a321fa602d6dd041387d",
+      "license": "BSD-3-Clause",
+      "oci_manifest_sha256": "sha256:b25e20a85f550c9a7d6dcb132dc1f5ebb05eef4286129ee6ada8e0dbee4318ad"
+    },
+    "srt": {
+      "name": "srt",
+      "version": "1.5.7",
+      "platform": "arm64_tahoe",
+      "sha256": "a09e2746cd2fe48a6674da75c163705b91cb695ce2a585f5e62129dbe4f562d8",
+      "url": "https://ghcr.io/v2/homebrew/core/srt/blobs/sha256:a09e2746cd2fe48a6674da75c163705b91cb695ce2a585f5e62129dbe4f562d8",
+      "license": "MPL-2.0",
+      "oci_manifest_sha256": "sha256:f47a9084b8c39a28f805883c70b03d3b5c426bf6ce6458c3e5b556c4683dbc55"
+    },
+    "svt-av1": {
+      "name": "svt-av1",
+      "version": "4.2.0",
+      "platform": "arm64_tahoe",
+      "sha256": "bd6186cc963d1980f0d81d59ecef58c8fa6263eb1124211dd3537b224e04c9e0",
+      "url": "https://ghcr.io/v2/homebrew/core/svt-av1/blobs/sha256:bd6186cc963d1980f0d81d59ecef58c8fa6263eb1124211dd3537b224e04c9e0",
+      "license": "BSD-3-Clause",
+      "oci_manifest_sha256": "sha256:e64292e64e811cdb0c1e962058818cf8f7d400cf6eb34dc7d369ff5497927246"
+    },
+    "tesseract": {
+      "name": "tesseract",
+      "version": "5.5.3",
+      "platform": "arm64_sequoia",
+      "sha256": "7d38a25067344a9b7ba957e4f81545773712402b8910dd9f0669187c32d06dd0",
+      "url": "https://ghcr.io/v2/homebrew/core/tesseract/blobs/sha256:7d38a25067344a9b7ba957e4f81545773712402b8910dd9f0669187c32d06dd0",
+      "license": "Apache-2.0",
+      "oci_manifest_sha256": "sha256:f5a4c7af632d7bd9fe97280fa2c2346f360a80b569854bf2ad651bcc5e602988"
+    },
+    "theora": {
+      "name": "theora",
+      "version": "1.2.0",
+      "platform": "arm64_tahoe",
+      "sha256": "b611f6607b0d916bd49ec4b88113cd230d7c0199865b287e75b1ae769bae64b0",
+      "url": "https://ghcr.io/v2/homebrew/core/theora/blobs/sha256:b611f6607b0d916bd49ec4b88113cd230d7c0199865b287e75b1ae769bae64b0",
+      "license": "BSD-3-Clause",
+      "oci_manifest_sha256": "sha256:3eb07000ad8062b538bcc4974e6b7f6aff8496a9eeb3e885e30c3c2bd5945949"
+    },
+    "vulkan-loader": {
+      "name": "vulkan-loader",
+      "version": "1.4.357.0",
+      "platform": "arm64_tahoe",
+      "sha256": "fcca79db1d905b8d119ac29f172e3fa4c2a5a9928eee5865e11131492d7f1f67",
+      "url": "https://ghcr.io/v2/homebrew/core/vulkan-loader/blobs/sha256:fcca79db1d905b8d119ac29f172e3fa4c2a5a9928eee5865e11131492d7f1f67",
+      "license": "Apache-2.0",
+      "oci_manifest_sha256": "sha256:6083e6ffd8e2c3568030780d889862b2400c1fb93dba1f3195b3d00f43657862"
+    },
+    "webp": {
+      "name": "webp",
+      "version": "1.6.0",
+      "platform": "arm64_tahoe",
+      "sha256": "11a19ac5db13a8485d4d6f712d65d48531f99e8d7237407ab42718777eefacb3",
+      "url": "https://ghcr.io/v2/homebrew/core/webp/blobs/sha256:11a19ac5db13a8485d4d6f712d65d48531f99e8d7237407ab42718777eefacb3",
+      "license": "BSD-3-Clause",
+      "oci_manifest_sha256": "sha256:b6c73e789697125e769a9b68c55cf204301535b6cda7a2b2f7c10b60e02d1d26"
+    },
+    "whisper.cpp": {
+      "name": "whisper.cpp",
+      "version": "1.9.4",
+      "platform": "arm64_tahoe",
+      "sha256": "7f4638ec796dadd46cf4436afe439f1c9f8056e61f8624379a800417e905d321",
+      "url": "https://ghcr.io/v2/homebrew/core/whisper.cpp/blobs/sha256:7f4638ec796dadd46cf4436afe439f1c9f8056e61f8624379a800417e905d321",
+      "license": "MIT",
+      "oci_manifest_sha256": "sha256:8c4606e136718afeca907acd86b0dbe293cdcdc76bd19289d0e2b333227af10f"
+    },
+    "x264": {
+      "name": "x264",
+      "version": "r3222",
+      "platform": "arm64_tahoe",
+      "sha256": "b631667b5ad55c6c3ae383484f658c5b4ba14da8a2fbb1d537975695852529ca",
+      "url": "https://ghcr.io/v2/homebrew/core/x264/blobs/sha256:b631667b5ad55c6c3ae383484f658c5b4ba14da8a2fbb1d537975695852529ca",
+      "license": "GPL-2.0-or-later",
+      "oci_manifest_sha256": "sha256:88a2fe4b8d50e44e8f431bd239c01bd0dc9bff43a9f3ba3dab78c2681db6f6fd"
+    },
+    "x265": {
+      "name": "x265",
+      "version": "4.3",
+      "platform": "arm64_tahoe",
+      "sha256": "844a99704d4b41e0b33331b795d3a0bba7756001f68c1925dc3dea88d5aa3a18",
+      "url": "https://ghcr.io/v2/homebrew/core/x265/blobs/sha256:844a99704d4b41e0b33331b795d3a0bba7756001f68c1925dc3dea88d5aa3a18",
+      "license": "GPL-2.0-or-later",
+      "oci_manifest_sha256": "sha256:3afb273159e881d12b4f5357651c2565e190be77c615a23a7e01920885946d97"
+    },
+    "xvid": {
+      "name": "xvid",
+      "version": "1.3.7",
+      "platform": "arm64_tahoe",
+      "sha256": "21251c2f572311e1e1dc610bc763596ae8e3a4a181fdfca98ba168a545df4151",
+      "url": "https://ghcr.io/v2/homebrew/core/xvid/blobs/sha256:21251c2f572311e1e1dc610bc763596ae8e3a4a181fdfca98ba168a545df4151",
+      "license": "GPL-2.0-or-later",
+      "oci_manifest_sha256": "sha256:1a0be9a287c2a771ba0b92240495b478ef53e02c12b405ce64b282fdb5c32136"
+    },
+    "xz": {
+      "name": "xz",
+      "version": "5.8.4",
+      "platform": "arm64_tahoe",
+      "sha256": "d291ad2277682238329b0e4d249e5e2c948c4b10cd64dba1963d897330ad88dd",
+      "url": "https://ghcr.io/v2/homebrew/core/xz/blobs/sha256:d291ad2277682238329b0e4d249e5e2c948c4b10cd64dba1963d897330ad88dd",
+      "license": "0BSD AND GPL-2.0-or-later",
+      "oci_manifest_sha256": "sha256:241852dda37f9a1d106c188642c33921775a27bd1c6f31e95124858779e80e80"
+    },
+    "zeromq": {
+      "name": "zeromq",
+      "version": "4.3.5_2",
+      "platform": "arm64_tahoe",
+      "sha256": "76e3d40941eb6d5d2ea5f94c017fd3503b68aee2aefc017291ab38b729fbcf08",
+      "url": "https://ghcr.io/v2/homebrew/core/zeromq/blobs/sha256:76e3d40941eb6d5d2ea5f94c017fd3503b68aee2aefc017291ab38b729fbcf08",
+      "license": "MPL-2.0",
+      "oci_manifest_sha256": "sha256:56b7d6bcc5d452017e96457edf80ad58a9d3828f890b2e4ac45acadf94d66255"
+    },
+    "zimg": {
+      "name": "zimg",
+      "version": "3.0.6",
+      "platform": "arm64_tahoe",
+      "sha256": "2beb74e61904dd631d9dfc8e43ae710572041e93058d759b77c37b20c6a9a431",
+      "url": "https://ghcr.io/v2/homebrew/core/zimg/blobs/sha256:2beb74e61904dd631d9dfc8e43ae710572041e93058d759b77c37b20c6a9a431",
+      "license": "WTFPL",
+      "oci_manifest_sha256": "sha256:da6021ac6c9d6198b431b12919619bd6f6ede73fd07e28a10d0d3f77b4e02118"
+    },
+    "zstd": {
+      "name": "zstd",
+      "version": "1.5.7_1",
+      "platform": "arm64_tahoe",
+      "sha256": "628a4ef53428d0078e3d76d297171ce8d0294f5ec1de3f20305e08c4dd333565",
+      "url": "https://ghcr.io/v2/homebrew/core/zstd/blobs/sha256:628a4ef53428d0078e3d76d297171ce8d0294f5ec1de3f20305e08c4dd333565",
+      "license": "(BSD-3-Clause OR GPL-2.0-only) AND BSD-2-Clause AND MIT",
+      "oci_manifest_sha256": "sha256:ca919fc69d1c03e7968d06e4d8f58b9b14dee04218c1e7ecd440abdbef7228a8"
+    }
+  },
+  "runtime_tests_host": "macOS 27.2; not executed on macOS 26",
+  "remove_from_frameworks": [
+    "bin/ffmpeg",
+    "bin/ffprobe",
+    "libSvtAv1Enc.4.dylib",
+    "libX11.6.dylib",
+    "libXau.6.dylib",
+    "libXdmcp.6.dylib",
+    "libaom.3.dylib",
+    "libarchive.13.dylib",
+    "libaribb24.0.dylib",
+    "libass.9.dylib",
+    "libavcodec.63.dylib",
+    "libavdevice.63.dylib",
+    "libavfilter.12.dylib",
+    "libavformat.63.dylib",
+    "libavutil.61.dylib",
+    "libb2.1.dylib",
+    "libbluray.4.dylib",
+    "libbrotlienc.1.dylib",
+    "libcjson.1.dylib",
+    "libcrypto.4.dylib",
+    "libdav1d.7.dylib",
+    "libfontconfig.1.dylib",
+    "libfreetype.6.dylib",
+    "libfribidi.0.dylib",
+    "libggml-base.0.dylib",
+    "libggml.0.dylib",
+    "libgif.dylib",
+    "libglib-2.0.0.dylib",
+    "libgmp.10.dylib",
+    "libgnutls.30.dylib",
+    "libgraphite2.3.dylib",
+    "libharfbuzz.0.dylib",
+    "libhogweed.7.dylib",
+    "libhwy.1.dylib",
+    "libidn2.0.dylib",
+    "libintl.8.dylib",
+    "libjpeg.8.dylib",
+    "libjxl.0.12.dylib",
+    "libjxl_cms.0.12.dylib",
+    "libjxl_threads.0.12.dylib",
+    "libleptonica.6.dylib",
+    "liblz4.1.dylib",
+    "liblzma.5.dylib",
+    "libmp3lame.0.dylib",
+    "libmpg123.0.dylib",
+    "libnettle.9.dylib",
+    "libogg.0.dylib",
+    "libomp.dylib",
+    "libopencore-amrnb.0.dylib",
+    "libopencore-amrwb.0.dylib",
+    "libopus.0.dylib",
+    "libp11-kit.0.dylib",
+    "libpcre2-8.0.dylib",
+    "libplacebo.360.dylib",
+    "libpng16.16.dylib",
+    "libqrencode.4.dylib",
+    "librav1e.0.8.dylib",
+    "librist.4.dylib",
+    "librubberband.3.dylib",
+    "libsamplerate.0.dylib",
+    "libshaderc_shared.1.dylib",
+    "libsharpyuv.0.dylib",
+    "libsnappy.1.dylib",
+    "libsodium.26.dylib",
+    "libsoxr.0.dylib",
+    "libspeex.1.dylib",
+    "libsrt.1.5.dylib",
+    "libssh.4.dylib",
+    "libssl.4.dylib",
+    "libswresample.7.dylib",
+    "libswscale.10.dylib",
+    "libtasn1.6.dylib",
+    "libtesseract.5.dylib",
+    "libtheoradec.2.dylib",
+    "libtheoraenc.2.dylib",
+    "libudfread.3.dylib",
+    "libunibreak.8.dylib",
+    "libunistring.5.dylib",
+    "libvidstab.1.2.dylib",
+    "libvmaf.3.dylib",
+    "libvorbis.0.dylib",
+    "libvorbisenc.2.dylib",
+    "libvpx.12.dylib",
+    "libvulkan.1.dylib",
+    "libwebp.7.dylib",
+    "libwebpmux.3.dylib",
+    "libwhisper.1.dylib",
+    "libx264.165.dylib",
+    "libx265.217.dylib",
+    "libxcb-shape.0.dylib",
+    "libxcb-shm.0.dylib",
+    "libxcb-xfixes.0.dylib",
+    "libxvidcore.4.dylib",
+    "libzimg.2.dylib",
+    "libzmq.5.dylib",
+    "libzstd.1.dylib"
+  ],
+  "native_closure": {
+    "bin/ffmpeg": {
+      "formula": "ffmpeg-full",
+      "source": "ffmpeg-full/9.0.2/bin/ffmpeg",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavcodec.63.dylib",
+          "libavcodec.63.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavdevice.63.dylib",
+          "libavdevice.63.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavfilter.12.dylib",
+          "libavfilter.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavformat.63.dylib",
+          "libavformat.63.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavutil.61.dylib",
+          "libavutil.61.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libswresample.7.dylib",
+          "libswresample.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libswscale.10.dylib",
+          "libswscale.10.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/aom/lib/libaom.3.dylib",
+          "libaom.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/aribb24/lib/libaribb24.0.dylib",
+          "libaribb24.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/dav1d/lib/libdav1d.7.dylib",
+          "libdav1d.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/fontconfig/lib/libfontconfig.1.dylib",
+          "libfontconfig.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/freetype/lib/libfreetype.6.dylib",
+          "libfreetype.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/ggml/lib/libggml-base.0.dylib",
+          "libggml-base.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/ggml/lib/libggml.0.dylib",
+          "libggml.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/gnutls/lib/libgnutls.30.dylib",
+          "libgnutls.30.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/harfbuzz/lib/libharfbuzz.0.dylib",
+          "libharfbuzz.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-xl/lib/libjxl.0.12.dylib",
+          "libjxl.0.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-xl/lib/libjxl_threads.0.12.dylib",
+          "libjxl_threads.0.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/lame/lib/libmp3lame.0.dylib",
+          "libmp3lame.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libarchive/lib/libarchive.13.dylib",
+          "libarchive.13.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libass/lib/libass.9.dylib",
+          "libass.9.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libbluray/lib/libbluray.4.dylib",
+          "libbluray.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libogg/lib/libogg.0.dylib",
+          "libogg.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libplacebo/lib/libplacebo.360.dylib",
+          "libplacebo.360.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/librist/lib/librist.4.dylib",
+          "librist.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libsamplerate/lib/libsamplerate.0.dylib",
+          "libsamplerate.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libsoxr/lib/libsoxr.0.dylib",
+          "libsoxr.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libssh/lib/libssh.4.dylib",
+          "libssh.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvidstab/lib/libvidstab.1.2.dylib",
+          "libvidstab.1.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvmaf/lib/libvmaf.3.dylib",
+          "libvmaf.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvorbis/lib/libvorbis.0.dylib",
+          "libvorbis.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvorbis/lib/libvorbisenc.2.dylib",
+          "libvorbisenc.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvpx/lib/libvpx.12.dylib",
+          "libvpx.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libx11/lib/libX11.6.dylib",
+          "libX11.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxcb/lib/libxcb-shape.0.dylib",
+          "libxcb-shape.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxcb/lib/libxcb-shm.0.dylib",
+          "libxcb-shm.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxcb/lib/libxcb-xfixes.0.dylib",
+          "libxcb-xfixes.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxcb/lib/libxcb.1.dylib",
+          "libxcb.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opencore-amr/lib/libopencore-amrnb.0.dylib",
+          "libopencore-amrnb.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opencore-amr/lib/libopencore-amrwb.0.dylib",
+          "libopencore-amrwb.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/openjpeg/lib/libopenjp2.7.dylib",
+          "libopenjp2.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opus/lib/libopus.0.dylib",
+          "libopus.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/qrencode/lib/libqrencode.4.dylib",
+          "libqrencode.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/rav1e/lib/librav1e.0.8.dylib",
+          "librav1e.0.8.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/rubberband/lib/librubberband.3.dylib",
+          "librubberband.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/snappy/lib/libsnappy.1.dylib",
+          "libsnappy.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/speex/lib/libspeex.1.dylib",
+          "libspeex.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/srt/lib/libsrt.1.5.dylib",
+          "libsrt.1.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/svt-av1/lib/libSvtAv1Enc.4.dylib",
+          "libSvtAv1Enc.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/tesseract/lib/libtesseract.5.dylib",
+          "libtesseract.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/theora/lib/libtheoradec.2.dylib",
+          "libtheoradec.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/theora/lib/libtheoraenc.2.dylib",
+          "libtheoraenc.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebp.7.dylib",
+          "libwebp.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebpmux.3.dylib",
+          "libwebpmux.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/whisper.cpp/lib/libwhisper.1.dylib",
+          "libwhisper.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/x264/lib/libx264.165.dylib",
+          "libx264.165.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/x265/lib/libx265.217.dylib",
+          "libx265.217.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xvid/lib/libxvidcore.4.dylib",
+          "libxvidcore.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xz/lib/liblzma.5.dylib",
+          "liblzma.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/zeromq/lib/libzmq.5.dylib",
+          "libzmq.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/zimg/lib/libzimg.2.dylib",
+          "libzimg.2.dylib"
+        ]
+      ]
+    },
+    "bin/ffprobe": {
+      "formula": "ffmpeg-full",
+      "source": "ffmpeg-full/9.0.2/bin/ffprobe",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavcodec.63.dylib",
+          "libavcodec.63.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavdevice.63.dylib",
+          "libavdevice.63.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavfilter.12.dylib",
+          "libavfilter.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavformat.63.dylib",
+          "libavformat.63.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavutil.61.dylib",
+          "libavutil.61.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libswresample.7.dylib",
+          "libswresample.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libswscale.10.dylib",
+          "libswscale.10.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/aom/lib/libaom.3.dylib",
+          "libaom.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/aribb24/lib/libaribb24.0.dylib",
+          "libaribb24.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/dav1d/lib/libdav1d.7.dylib",
+          "libdav1d.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/fontconfig/lib/libfontconfig.1.dylib",
+          "libfontconfig.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/freetype/lib/libfreetype.6.dylib",
+          "libfreetype.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/ggml/lib/libggml-base.0.dylib",
+          "libggml-base.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/ggml/lib/libggml.0.dylib",
+          "libggml.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/gnutls/lib/libgnutls.30.dylib",
+          "libgnutls.30.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/harfbuzz/lib/libharfbuzz.0.dylib",
+          "libharfbuzz.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-xl/lib/libjxl.0.12.dylib",
+          "libjxl.0.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-xl/lib/libjxl_threads.0.12.dylib",
+          "libjxl_threads.0.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/lame/lib/libmp3lame.0.dylib",
+          "libmp3lame.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libarchive/lib/libarchive.13.dylib",
+          "libarchive.13.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libass/lib/libass.9.dylib",
+          "libass.9.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libbluray/lib/libbluray.4.dylib",
+          "libbluray.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libogg/lib/libogg.0.dylib",
+          "libogg.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libplacebo/lib/libplacebo.360.dylib",
+          "libplacebo.360.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/librist/lib/librist.4.dylib",
+          "librist.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libsamplerate/lib/libsamplerate.0.dylib",
+          "libsamplerate.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libsoxr/lib/libsoxr.0.dylib",
+          "libsoxr.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libssh/lib/libssh.4.dylib",
+          "libssh.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvidstab/lib/libvidstab.1.2.dylib",
+          "libvidstab.1.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvmaf/lib/libvmaf.3.dylib",
+          "libvmaf.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvorbis/lib/libvorbis.0.dylib",
+          "libvorbis.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvorbis/lib/libvorbisenc.2.dylib",
+          "libvorbisenc.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvpx/lib/libvpx.12.dylib",
+          "libvpx.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libx11/lib/libX11.6.dylib",
+          "libX11.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxcb/lib/libxcb-shape.0.dylib",
+          "libxcb-shape.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxcb/lib/libxcb-shm.0.dylib",
+          "libxcb-shm.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxcb/lib/libxcb-xfixes.0.dylib",
+          "libxcb-xfixes.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxcb/lib/libxcb.1.dylib",
+          "libxcb.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opencore-amr/lib/libopencore-amrnb.0.dylib",
+          "libopencore-amrnb.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opencore-amr/lib/libopencore-amrwb.0.dylib",
+          "libopencore-amrwb.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/openjpeg/lib/libopenjp2.7.dylib",
+          "libopenjp2.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opus/lib/libopus.0.dylib",
+          "libopus.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/qrencode/lib/libqrencode.4.dylib",
+          "libqrencode.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/rav1e/lib/librav1e.0.8.dylib",
+          "librav1e.0.8.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/rubberband/lib/librubberband.3.dylib",
+          "librubberband.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/snappy/lib/libsnappy.1.dylib",
+          "libsnappy.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/speex/lib/libspeex.1.dylib",
+          "libspeex.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/srt/lib/libsrt.1.5.dylib",
+          "libsrt.1.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/svt-av1/lib/libSvtAv1Enc.4.dylib",
+          "libSvtAv1Enc.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/tesseract/lib/libtesseract.5.dylib",
+          "libtesseract.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/theora/lib/libtheoradec.2.dylib",
+          "libtheoradec.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/theora/lib/libtheoraenc.2.dylib",
+          "libtheoraenc.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebp.7.dylib",
+          "libwebp.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebpmux.3.dylib",
+          "libwebpmux.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/whisper.cpp/lib/libwhisper.1.dylib",
+          "libwhisper.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/x264/lib/libx264.165.dylib",
+          "libx264.165.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/x265/lib/libx265.217.dylib",
+          "libx265.217.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xvid/lib/libxvidcore.4.dylib",
+          "libxvidcore.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xz/lib/liblzma.5.dylib",
+          "liblzma.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/zeromq/lib/libzmq.5.dylib",
+          "libzmq.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/zimg/lib/libzimg.2.dylib",
+          "libzimg.2.dylib"
+        ]
+      ]
+    },
+    "libavcodec.63.dylib": {
+      "formula": "ffmpeg-full",
+      "source": "ffmpeg-full/9.0.2/lib/libavcodec.63.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavutil.61.dylib",
+          "libavutil.61.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libswresample.7.dylib",
+          "libswresample.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/aom/lib/libaom.3.dylib",
+          "libaom.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/aribb24/lib/libaribb24.0.dylib",
+          "libaribb24.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/dav1d/lib/libdav1d.7.dylib",
+          "libdav1d.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-xl/lib/libjxl.0.12.dylib",
+          "libjxl.0.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-xl/lib/libjxl_threads.0.12.dylib",
+          "libjxl_threads.0.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/lame/lib/libmp3lame.0.dylib",
+          "libmp3lame.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libogg/lib/libogg.0.dylib",
+          "libogg.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libsoxr/lib/libsoxr.0.dylib",
+          "libsoxr.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvmaf/lib/libvmaf.3.dylib",
+          "libvmaf.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvorbis/lib/libvorbis.0.dylib",
+          "libvorbis.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvorbis/lib/libvorbisenc.2.dylib",
+          "libvorbisenc.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvpx/lib/libvpx.12.dylib",
+          "libvpx.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libx11/lib/libX11.6.dylib",
+          "libX11.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opencore-amr/lib/libopencore-amrnb.0.dylib",
+          "libopencore-amrnb.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opencore-amr/lib/libopencore-amrwb.0.dylib",
+          "libopencore-amrwb.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/openjpeg/lib/libopenjp2.7.dylib",
+          "libopenjp2.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opus/lib/libopus.0.dylib",
+          "libopus.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/rav1e/lib/librav1e.0.8.dylib",
+          "librav1e.0.8.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/snappy/lib/libsnappy.1.dylib",
+          "libsnappy.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/speex/lib/libspeex.1.dylib",
+          "libspeex.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/svt-av1/lib/libSvtAv1Enc.4.dylib",
+          "libSvtAv1Enc.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/theora/lib/libtheoradec.2.dylib",
+          "libtheoradec.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/theora/lib/libtheoraenc.2.dylib",
+          "libtheoraenc.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebp.7.dylib",
+          "libwebp.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebpmux.3.dylib",
+          "libwebpmux.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/x264/lib/libx264.165.dylib",
+          "libx264.165.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/x265/lib/libx265.217.dylib",
+          "libx265.217.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xvid/lib/libxvidcore.4.dylib",
+          "libxvidcore.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xz/lib/liblzma.5.dylib",
+          "liblzma.5.dylib"
+        ]
+      ]
+    },
+    "libavdevice.63.dylib": {
+      "formula": "ffmpeg-full",
+      "source": "ffmpeg-full/9.0.2/lib/libavdevice.63.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavcodec.63.dylib",
+          "libavcodec.63.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavfilter.12.dylib",
+          "libavfilter.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavformat.63.dylib",
+          "libavformat.63.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavutil.61.dylib",
+          "libavutil.61.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libswresample.7.dylib",
+          "libswresample.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libswscale.10.dylib",
+          "libswscale.10.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/aom/lib/libaom.3.dylib",
+          "libaom.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/aribb24/lib/libaribb24.0.dylib",
+          "libaribb24.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/dav1d/lib/libdav1d.7.dylib",
+          "libdav1d.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/fontconfig/lib/libfontconfig.1.dylib",
+          "libfontconfig.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/freetype/lib/libfreetype.6.dylib",
+          "libfreetype.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/ggml/lib/libggml-base.0.dylib",
+          "libggml-base.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/ggml/lib/libggml.0.dylib",
+          "libggml.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/gnutls/lib/libgnutls.30.dylib",
+          "libgnutls.30.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/harfbuzz/lib/libharfbuzz.0.dylib",
+          "libharfbuzz.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-xl/lib/libjxl.0.12.dylib",
+          "libjxl.0.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-xl/lib/libjxl_threads.0.12.dylib",
+          "libjxl_threads.0.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/lame/lib/libmp3lame.0.dylib",
+          "libmp3lame.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libarchive/lib/libarchive.13.dylib",
+          "libarchive.13.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libass/lib/libass.9.dylib",
+          "libass.9.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libbluray/lib/libbluray.4.dylib",
+          "libbluray.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libogg/lib/libogg.0.dylib",
+          "libogg.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libplacebo/lib/libplacebo.360.dylib",
+          "libplacebo.360.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/librist/lib/librist.4.dylib",
+          "librist.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libsamplerate/lib/libsamplerate.0.dylib",
+          "libsamplerate.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libsoxr/lib/libsoxr.0.dylib",
+          "libsoxr.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libssh/lib/libssh.4.dylib",
+          "libssh.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvidstab/lib/libvidstab.1.2.dylib",
+          "libvidstab.1.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvmaf/lib/libvmaf.3.dylib",
+          "libvmaf.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvorbis/lib/libvorbis.0.dylib",
+          "libvorbis.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvorbis/lib/libvorbisenc.2.dylib",
+          "libvorbisenc.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvpx/lib/libvpx.12.dylib",
+          "libvpx.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libx11/lib/libX11.6.dylib",
+          "libX11.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxcb/lib/libxcb-shape.0.dylib",
+          "libxcb-shape.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxcb/lib/libxcb-shm.0.dylib",
+          "libxcb-shm.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxcb/lib/libxcb-xfixes.0.dylib",
+          "libxcb-xfixes.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxcb/lib/libxcb.1.dylib",
+          "libxcb.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opencore-amr/lib/libopencore-amrnb.0.dylib",
+          "libopencore-amrnb.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opencore-amr/lib/libopencore-amrwb.0.dylib",
+          "libopencore-amrwb.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/openjpeg/lib/libopenjp2.7.dylib",
+          "libopenjp2.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opus/lib/libopus.0.dylib",
+          "libopus.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/qrencode/lib/libqrencode.4.dylib",
+          "libqrencode.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/rav1e/lib/librav1e.0.8.dylib",
+          "librav1e.0.8.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/rubberband/lib/librubberband.3.dylib",
+          "librubberband.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/snappy/lib/libsnappy.1.dylib",
+          "libsnappy.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/speex/lib/libspeex.1.dylib",
+          "libspeex.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/srt/lib/libsrt.1.5.dylib",
+          "libsrt.1.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/svt-av1/lib/libSvtAv1Enc.4.dylib",
+          "libSvtAv1Enc.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/tesseract/lib/libtesseract.5.dylib",
+          "libtesseract.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/theora/lib/libtheoradec.2.dylib",
+          "libtheoradec.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/theora/lib/libtheoraenc.2.dylib",
+          "libtheoraenc.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebp.7.dylib",
+          "libwebp.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebpmux.3.dylib",
+          "libwebpmux.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/whisper.cpp/lib/libwhisper.1.dylib",
+          "libwhisper.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/x264/lib/libx264.165.dylib",
+          "libx264.165.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/x265/lib/libx265.217.dylib",
+          "libx265.217.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xvid/lib/libxvidcore.4.dylib",
+          "libxvidcore.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xz/lib/liblzma.5.dylib",
+          "liblzma.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/zeromq/lib/libzmq.5.dylib",
+          "libzmq.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/zimg/lib/libzimg.2.dylib",
+          "libzimg.2.dylib"
+        ]
+      ]
+    },
+    "libavfilter.12.dylib": {
+      "formula": "ffmpeg-full",
+      "source": "ffmpeg-full/9.0.2/lib/libavfilter.12.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavcodec.63.dylib",
+          "libavcodec.63.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavformat.63.dylib",
+          "libavformat.63.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavutil.61.dylib",
+          "libavutil.61.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libswresample.7.dylib",
+          "libswresample.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libswscale.10.dylib",
+          "libswscale.10.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/aom/lib/libaom.3.dylib",
+          "libaom.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/aribb24/lib/libaribb24.0.dylib",
+          "libaribb24.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/dav1d/lib/libdav1d.7.dylib",
+          "libdav1d.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/fontconfig/lib/libfontconfig.1.dylib",
+          "libfontconfig.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/freetype/lib/libfreetype.6.dylib",
+          "libfreetype.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/ggml/lib/libggml-base.0.dylib",
+          "libggml-base.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/ggml/lib/libggml.0.dylib",
+          "libggml.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/gnutls/lib/libgnutls.30.dylib",
+          "libgnutls.30.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/harfbuzz/lib/libharfbuzz.0.dylib",
+          "libharfbuzz.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-xl/lib/libjxl.0.12.dylib",
+          "libjxl.0.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-xl/lib/libjxl_threads.0.12.dylib",
+          "libjxl_threads.0.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/lame/lib/libmp3lame.0.dylib",
+          "libmp3lame.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libarchive/lib/libarchive.13.dylib",
+          "libarchive.13.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libass/lib/libass.9.dylib",
+          "libass.9.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libbluray/lib/libbluray.4.dylib",
+          "libbluray.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libogg/lib/libogg.0.dylib",
+          "libogg.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libplacebo/lib/libplacebo.360.dylib",
+          "libplacebo.360.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/librist/lib/librist.4.dylib",
+          "librist.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libsamplerate/lib/libsamplerate.0.dylib",
+          "libsamplerate.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libsoxr/lib/libsoxr.0.dylib",
+          "libsoxr.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libssh/lib/libssh.4.dylib",
+          "libssh.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvidstab/lib/libvidstab.1.2.dylib",
+          "libvidstab.1.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvmaf/lib/libvmaf.3.dylib",
+          "libvmaf.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvorbis/lib/libvorbis.0.dylib",
+          "libvorbis.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvorbis/lib/libvorbisenc.2.dylib",
+          "libvorbisenc.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvpx/lib/libvpx.12.dylib",
+          "libvpx.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libx11/lib/libX11.6.dylib",
+          "libX11.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opencore-amr/lib/libopencore-amrnb.0.dylib",
+          "libopencore-amrnb.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opencore-amr/lib/libopencore-amrwb.0.dylib",
+          "libopencore-amrwb.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/openjpeg/lib/libopenjp2.7.dylib",
+          "libopenjp2.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opus/lib/libopus.0.dylib",
+          "libopus.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/qrencode/lib/libqrencode.4.dylib",
+          "libqrencode.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/rav1e/lib/librav1e.0.8.dylib",
+          "librav1e.0.8.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/rubberband/lib/librubberband.3.dylib",
+          "librubberband.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/snappy/lib/libsnappy.1.dylib",
+          "libsnappy.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/speex/lib/libspeex.1.dylib",
+          "libspeex.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/srt/lib/libsrt.1.5.dylib",
+          "libsrt.1.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/svt-av1/lib/libSvtAv1Enc.4.dylib",
+          "libSvtAv1Enc.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/tesseract/lib/libtesseract.5.dylib",
+          "libtesseract.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/theora/lib/libtheoradec.2.dylib",
+          "libtheoradec.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/theora/lib/libtheoraenc.2.dylib",
+          "libtheoraenc.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebp.7.dylib",
+          "libwebp.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebpmux.3.dylib",
+          "libwebpmux.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/whisper.cpp/lib/libwhisper.1.dylib",
+          "libwhisper.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/x264/lib/libx264.165.dylib",
+          "libx264.165.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/x265/lib/libx265.217.dylib",
+          "libx265.217.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xvid/lib/libxvidcore.4.dylib",
+          "libxvidcore.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xz/lib/liblzma.5.dylib",
+          "liblzma.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/zeromq/lib/libzmq.5.dylib",
+          "libzmq.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/zimg/lib/libzimg.2.dylib",
+          "libzimg.2.dylib"
+        ]
+      ]
+    },
+    "libavformat.63.dylib": {
+      "formula": "ffmpeg-full",
+      "source": "ffmpeg-full/9.0.2/lib/libavformat.63.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavcodec.63.dylib",
+          "libavcodec.63.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavutil.61.dylib",
+          "libavutil.61.dylib"
+        ],
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libswresample.7.dylib",
+          "libswresample.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/aom/lib/libaom.3.dylib",
+          "libaom.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/aribb24/lib/libaribb24.0.dylib",
+          "libaribb24.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/dav1d/lib/libdav1d.7.dylib",
+          "libdav1d.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/gnutls/lib/libgnutls.30.dylib",
+          "libgnutls.30.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-xl/lib/libjxl.0.12.dylib",
+          "libjxl.0.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-xl/lib/libjxl_threads.0.12.dylib",
+          "libjxl_threads.0.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/lame/lib/libmp3lame.0.dylib",
+          "libmp3lame.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libbluray/lib/libbluray.4.dylib",
+          "libbluray.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libogg/lib/libogg.0.dylib",
+          "libogg.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/librist/lib/librist.4.dylib",
+          "librist.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libsoxr/lib/libsoxr.0.dylib",
+          "libsoxr.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libssh/lib/libssh.4.dylib",
+          "libssh.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvmaf/lib/libvmaf.3.dylib",
+          "libvmaf.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvorbis/lib/libvorbis.0.dylib",
+          "libvorbis.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvorbis/lib/libvorbisenc.2.dylib",
+          "libvorbisenc.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvpx/lib/libvpx.12.dylib",
+          "libvpx.12.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libx11/lib/libX11.6.dylib",
+          "libX11.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opencore-amr/lib/libopencore-amrnb.0.dylib",
+          "libopencore-amrnb.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opencore-amr/lib/libopencore-amrwb.0.dylib",
+          "libopencore-amrwb.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/openjpeg/lib/libopenjp2.7.dylib",
+          "libopenjp2.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/opus/lib/libopus.0.dylib",
+          "libopus.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/rav1e/lib/librav1e.0.8.dylib",
+          "librav1e.0.8.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/snappy/lib/libsnappy.1.dylib",
+          "libsnappy.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/speex/lib/libspeex.1.dylib",
+          "libspeex.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/srt/lib/libsrt.1.5.dylib",
+          "libsrt.1.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/svt-av1/lib/libSvtAv1Enc.4.dylib",
+          "libSvtAv1Enc.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/theora/lib/libtheoradec.2.dylib",
+          "libtheoradec.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/theora/lib/libtheoraenc.2.dylib",
+          "libtheoraenc.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebp.7.dylib",
+          "libwebp.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebpmux.3.dylib",
+          "libwebpmux.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/x264/lib/libx264.165.dylib",
+          "libx264.165.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/x265/lib/libx265.217.dylib",
+          "libx265.217.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xvid/lib/libxvidcore.4.dylib",
+          "libxvidcore.4.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xz/lib/liblzma.5.dylib",
+          "liblzma.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/zeromq/lib/libzmq.5.dylib",
+          "libzmq.5.dylib"
+        ]
+      ]
+    },
+    "libavutil.61.dylib": {
+      "formula": "ffmpeg-full",
+      "source": "ffmpeg-full/9.0.2/lib/libavutil.61.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libx11/lib/libX11.6.dylib",
+          "libX11.6.dylib"
+        ]
+      ]
+    },
+    "libswresample.7.dylib": {
+      "formula": "ffmpeg-full",
+      "source": "ffmpeg-full/9.0.2/lib/libswresample.7.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavutil.61.dylib",
+          "libavutil.61.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libsoxr/lib/libsoxr.0.dylib",
+          "libsoxr.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libx11/lib/libX11.6.dylib",
+          "libX11.6.dylib"
+        ]
+      ]
+    },
+    "libswscale.10.dylib": {
+      "formula": "ffmpeg-full",
+      "source": "ffmpeg-full/9.0.2/lib/libswscale.10.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/ffmpeg-full/9.0.2/lib/libavutil.61.dylib",
+          "libavutil.61.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libx11/lib/libX11.6.dylib",
+          "libX11.6.dylib"
+        ]
+      ]
+    },
+    "libaom.3.dylib": {
+      "formula": "aom",
+      "source": "aom/3.15.0/lib/libaom.3.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libvmaf/lib/libvmaf.3.dylib",
+          "libvmaf.3.dylib"
+        ]
+      ]
+    },
+    "libaribb24.0.dylib": {
+      "formula": "aribb24",
+      "source": "aribb24/1.0.4/lib/libaribb24.0.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libpng/lib/libpng16.16.dylib",
+          "libpng16.16.dylib"
+        ]
+      ]
+    },
+    "libdav1d.7.dylib": {
+      "formula": "dav1d",
+      "source": "dav1d/1.5.4/lib/libdav1d.7.dylib",
+      "dependencies": []
+    },
+    "libfontconfig.1.dylib": {
+      "formula": "fontconfig",
+      "source": "fontconfig/2.18.3/lib/libfontconfig.1.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/freetype/lib/libfreetype.6.dylib",
+          "libfreetype.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/gettext/lib/libintl.8.dylib",
+          "libintl.8.dylib"
+        ]
+      ]
+    },
+    "libfreetype.6.dylib": {
+      "formula": "freetype",
+      "source": "freetype/2.14.3/lib/libfreetype.6.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libpng/lib/libpng16.16.dylib",
+          "libpng16.16.dylib"
+        ]
+      ]
+    },
+    "libggml-base.0.dylib": {
+      "formula": "ggml",
+      "source": "ggml/0.24.0/lib/libggml-base.0.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libomp/lib/libomp.dylib",
+          "libomp.dylib"
+        ]
+      ]
+    },
+    "libggml.0.dylib": {
+      "formula": "ggml",
+      "source": "ggml/0.24.0/lib/libggml.0.dylib",
+      "dependencies": [
+        [
+          "@rpath/libggml-base.0.dylib",
+          "libggml-base.0.dylib"
+        ]
+      ]
+    },
+    "libgnutls.30.dylib": {
+      "formula": "gnutls",
+      "source": "gnutls/3.8.13_2/lib/libgnutls.30.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/gettext/lib/libintl.8.dylib",
+          "libintl.8.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/gmp/lib/libgmp.10.dylib",
+          "libgmp.10.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libidn2/lib/libidn2.0.dylib",
+          "libidn2.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libtasn1/lib/libtasn1.6.dylib",
+          "libtasn1.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libunistring/lib/libunistring.5.dylib",
+          "libunistring.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/nettle/lib/libhogweed.7.dylib",
+          "libhogweed.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/nettle/lib/libnettle.9.dylib",
+          "libnettle.9.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/p11-kit/lib/libp11-kit.0.dylib",
+          "libp11-kit.0.dylib"
+        ]
+      ]
+    },
+    "libharfbuzz.0.dylib": {
+      "formula": "harfbuzz",
+      "source": "harfbuzz/14.4.0/lib/libharfbuzz.0.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/freetype/lib/libfreetype.6.dylib",
+          "libfreetype.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/glib/lib/libglib-2.0.0.dylib",
+          "libglib-2.0.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/graphite2/lib/libgraphite2.3.dylib",
+          "libgraphite2.3.dylib"
+        ]
+      ]
+    },
+    "libjxl.0.12.dylib": {
+      "formula": "jpeg-xl",
+      "source": "jpeg-xl/0.12.0/lib/libjxl.0.12.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/brotli/lib/libbrotlicommon.1.dylib",
+          "libbrotlicommon.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/brotli/lib/libbrotlidec.1.dylib",
+          "libbrotlidec.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/brotli/lib/libbrotlienc.1.dylib",
+          "libbrotlienc.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/highway/lib/libhwy.1.dylib",
+          "libhwy.1.dylib"
+        ],
+        [
+          "@rpath/libjxl_cms.0.12.dylib",
+          "libjxl_cms.0.12.dylib"
+        ]
+      ]
+    },
+    "libjxl_threads.0.12.dylib": {
+      "formula": "jpeg-xl",
+      "source": "jpeg-xl/0.12.0/lib/libjxl_threads.0.12.dylib",
+      "dependencies": []
+    },
+    "libmp3lame.0.dylib": {
+      "formula": "lame",
+      "source": "lame/4.0/lib/libmp3lame.0.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/mpg123/lib/libmpg123.0.dylib",
+          "libmpg123.0.dylib"
+        ]
+      ]
+    },
+    "libarchive.13.dylib": {
+      "formula": "libarchive",
+      "source": "libarchive/3.8.9/lib/libarchive.13.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libb2/lib/libb2.1.dylib",
+          "libb2.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/lz4/lib/liblz4.1.dylib",
+          "liblz4.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xz/lib/liblzma.5.dylib",
+          "liblzma.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/zstd/lib/libzstd.1.dylib",
+          "libzstd.1.dylib"
+        ]
+      ]
+    },
+    "libass.9.dylib": {
+      "formula": "libass",
+      "source": "libass/0.17.5_1/lib/libass.9.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/freetype/lib/libfreetype.6.dylib",
+          "libfreetype.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/fribidi/lib/libfribidi.0.dylib",
+          "libfribidi.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/harfbuzz/lib/libharfbuzz.0.dylib",
+          "libharfbuzz.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libunibreak/lib/libunibreak.8.dylib",
+          "libunibreak.8.dylib"
+        ]
+      ]
+    },
+    "libbluray.4.dylib": {
+      "formula": "libbluray",
+      "source": "libbluray/1.5.0/lib/libbluray.4.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/fontconfig/lib/libfontconfig.1.dylib",
+          "libfontconfig.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/freetype/lib/libfreetype.6.dylib",
+          "libfreetype.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libudfread/lib/libudfread.3.dylib",
+          "libudfread.3.dylib"
+        ]
+      ]
+    },
+    "libogg.0.dylib": {
+      "formula": "libogg",
+      "source": "libogg/1.3.6/lib/libogg.0.dylib",
+      "dependencies": []
+    },
+    "libplacebo.360.dylib": {
+      "formula": "libplacebo",
+      "source": "libplacebo/7.360.1/lib/libplacebo.360.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/little-cms2/lib/liblcms2.2.dylib",
+          "liblcms2.2.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/shaderc/lib/libshaderc_shared.1.dylib",
+          "libshaderc_shared.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/vulkan-loader/lib/libvulkan.1.dylib",
+          "libvulkan.1.dylib"
+        ]
+      ]
+    },
+    "librist.4.dylib": {
+      "formula": "librist",
+      "source": "librist/0.2.20/lib/librist.4.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/cjson/lib/libcjson.1.dylib",
+          "libcjson.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/lz4/lib/liblz4.1.dylib",
+          "liblz4.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/mbedtls@3/lib/libmbedcrypto.16.dylib",
+          "libmbedcrypto.16.dylib"
+        ]
+      ]
+    },
+    "libsamplerate.0.dylib": {
+      "formula": "libsamplerate",
+      "source": "libsamplerate/0.2.2/lib/libsamplerate.0.dylib",
+      "dependencies": []
+    },
+    "libsoxr.0.dylib": {
+      "formula": "libsoxr",
+      "source": "libsoxr/0.1.3/lib/libsoxr.0.dylib",
+      "dependencies": []
+    },
+    "libssh.4.dylib": {
+      "formula": "libssh",
+      "source": "libssh/0.12.2/lib/libssh.4.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/openssl@3/lib/libcrypto.3.dylib",
+          "libcrypto.3.dylib"
+        ]
+      ]
+    },
+    "libvidstab.1.2.dylib": {
+      "formula": "libvidstab",
+      "source": "libvidstab/1.1.2/lib/libvidstab.1.2.dylib",
+      "dependencies": []
+    },
+    "libvmaf.3.dylib": {
+      "formula": "libvmaf",
+      "source": "libvmaf/3.2.1/lib/libvmaf.3.dylib",
+      "dependencies": []
+    },
+    "libvorbis.0.dylib": {
+      "formula": "libvorbis",
+      "source": "libvorbis/1.3.7/lib/libvorbis.0.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libogg/lib/libogg.0.dylib",
+          "libogg.0.dylib"
+        ]
+      ]
+    },
+    "libvorbisenc.2.dylib": {
+      "formula": "libvorbis",
+      "source": "libvorbis/1.3.7/lib/libvorbisenc.2.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/libvorbis/1.3.7/lib/libvorbis.0.dylib",
+          "libvorbis.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libogg/lib/libogg.0.dylib",
+          "libogg.0.dylib"
+        ]
+      ]
+    },
+    "libvpx.12.dylib": {
+      "formula": "libvpx",
+      "source": "libvpx/1.17.0/lib/libvpx.12.dylib",
+      "dependencies": []
+    },
+    "libX11.6.dylib": {
+      "formula": "libx11",
+      "source": "libx11/1.8.13/lib/libX11.6.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxcb/lib/libxcb.1.dylib",
+          "libxcb.1.dylib"
+        ]
+      ]
+    },
+    "libxcb-shape.0.dylib": {
+      "formula": "libxcb",
+      "source": "libxcb/1.17.0/lib/libxcb-shape.0.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/libxcb/1.17.0/lib/libxcb.1.dylib",
+          "libxcb.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxau/lib/libXau.6.dylib",
+          "libXau.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxdmcp/lib/libXdmcp.6.dylib",
+          "libXdmcp.6.dylib"
+        ]
+      ]
+    },
+    "libxcb-shm.0.dylib": {
+      "formula": "libxcb",
+      "source": "libxcb/1.17.0/lib/libxcb-shm.0.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/libxcb/1.17.0/lib/libxcb.1.dylib",
+          "libxcb.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxau/lib/libXau.6.dylib",
+          "libXau.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxdmcp/lib/libXdmcp.6.dylib",
+          "libXdmcp.6.dylib"
+        ]
+      ]
+    },
+    "libxcb-xfixes.0.dylib": {
+      "formula": "libxcb",
+      "source": "libxcb/1.17.0/lib/libxcb-xfixes.0.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/libxcb/1.17.0/lib/libxcb.1.dylib",
+          "libxcb.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxau/lib/libXau.6.dylib",
+          "libXau.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxdmcp/lib/libXdmcp.6.dylib",
+          "libXdmcp.6.dylib"
+        ]
+      ]
+    },
+    "libxcb.1.dylib": {
+      "formula": "libxcb",
+      "source": "libxcb/1.17.0/lib/libxcb.1.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxau/lib/libXau.6.dylib",
+          "libXau.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libxdmcp/lib/libXdmcp.6.dylib",
+          "libXdmcp.6.dylib"
+        ]
+      ]
+    },
+    "libopencore-amrnb.0.dylib": {
+      "formula": "opencore-amr",
+      "source": "opencore-amr/0.1.6/lib/libopencore-amrnb.0.dylib",
+      "dependencies": []
+    },
+    "libopencore-amrwb.0.dylib": {
+      "formula": "opencore-amr",
+      "source": "opencore-amr/0.1.6/lib/libopencore-amrwb.0.dylib",
+      "dependencies": []
+    },
+    "libopenjp2.7.dylib": {
+      "formula": "openjpeg",
+      "source": "openjpeg/2.5.4/lib/libopenjp2.7.dylib",
+      "dependencies": []
+    },
+    "libopus.0.dylib": {
+      "formula": "opus",
+      "source": "opus/1.6.1/lib/libopus.0.dylib",
+      "dependencies": []
+    },
+    "libqrencode.4.dylib": {
+      "formula": "qrencode",
+      "source": "qrencode/4.1.1_1/lib/libqrencode.4.dylib",
+      "dependencies": []
+    },
+    "librav1e.0.8.dylib": {
+      "formula": "rav1e",
+      "source": "rav1e/0.8.1/lib/librav1e.0.8.dylib",
+      "dependencies": []
+    },
+    "librubberband.3.dylib": {
+      "formula": "rubberband",
+      "source": "rubberband/4.0.0/lib/librubberband.3.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libsamplerate/lib/libsamplerate.0.dylib",
+          "libsamplerate.0.dylib"
+        ]
+      ]
+    },
+    "libsnappy.1.dylib": {
+      "formula": "snappy",
+      "source": "snappy/1.3.1/lib/libsnappy.1.dylib",
+      "dependencies": []
+    },
+    "libspeex.1.dylib": {
+      "formula": "speex",
+      "source": "speex/1.2.1/lib/libspeex.1.dylib",
+      "dependencies": []
+    },
+    "libsrt.1.5.dylib": {
+      "formula": "srt",
+      "source": "srt/1.5.7/lib/libsrt.1.5.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/openssl@3/lib/libcrypto.3.dylib",
+          "libcrypto.3.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/openssl@3/lib/libssl.3.dylib",
+          "libssl.3.dylib"
+        ]
+      ]
+    },
+    "libSvtAv1Enc.4.dylib": {
+      "formula": "svt-av1",
+      "source": "svt-av1/4.2.0/lib/libSvtAv1Enc.4.dylib",
+      "dependencies": []
+    },
+    "libtesseract.5.dylib": {
+      "formula": "tesseract",
+      "source": "tesseract/5.5.3/lib/libtesseract.5.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/leptonica/lib/libleptonica.6.dylib",
+          "libleptonica.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libarchive/lib/libarchive.13.dylib",
+          "libarchive.13.dylib"
+        ]
+      ]
+    },
+    "libtheoradec.2.dylib": {
+      "formula": "theora",
+      "source": "theora/1.2.0/lib/libtheoradec.2.dylib",
+      "dependencies": []
+    },
+    "libtheoraenc.2.dylib": {
+      "formula": "theora",
+      "source": "theora/1.2.0/lib/libtheoraenc.2.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libogg/lib/libogg.0.dylib",
+          "libogg.0.dylib"
+        ]
+      ]
+    },
+    "libwebp.7.dylib": {
+      "formula": "webp",
+      "source": "webp/1.6.0/lib/libwebp.7.dylib",
+      "dependencies": [
+        [
+          "@rpath/libsharpyuv.0.dylib",
+          "libsharpyuv.0.dylib"
+        ]
+      ]
+    },
+    "libwebpmux.3.dylib": {
+      "formula": "webp",
+      "source": "webp/1.6.0/lib/libwebpmux.3.dylib",
+      "dependencies": [
+        [
+          "@rpath/libsharpyuv.0.dylib",
+          "libsharpyuv.0.dylib"
+        ],
+        [
+          "@rpath/libwebp.7.dylib",
+          "libwebp.7.dylib"
+        ]
+      ]
+    },
+    "libwhisper.1.dylib": {
+      "formula": "whisper.cpp",
+      "source": "whisper.cpp/1.9.4/lib/libwhisper.1.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/ggml/lib/libggml-base.0.dylib",
+          "libggml-base.0.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/ggml/lib/libggml.0.dylib",
+          "libggml.0.dylib"
+        ]
+      ]
+    },
+    "libx264.165.dylib": {
+      "formula": "x264",
+      "source": "x264/r3222/lib/libx264.165.dylib",
+      "dependencies": []
+    },
+    "libx265.217.dylib": {
+      "formula": "x265",
+      "source": "x265/4.3/lib/libx265.217.dylib",
+      "dependencies": []
+    },
+    "libxvidcore.4.dylib": {
+      "formula": "xvid",
+      "source": "xvid/1.3.7/lib/libxvidcore.4.dylib",
+      "dependencies": []
+    },
+    "liblzma.5.dylib": {
+      "formula": "xz",
+      "source": "xz/5.8.4/lib/liblzma.5.dylib",
+      "dependencies": []
+    },
+    "libzmq.5.dylib": {
+      "formula": "zeromq",
+      "source": "zeromq/4.3.5_2/lib/libzmq.5.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libsodium/lib/libsodium.26.dylib",
+          "libsodium.26.dylib"
+        ]
+      ]
+    },
+    "libzimg.2.dylib": {
+      "formula": "zimg",
+      "source": "zimg/3.0.6/lib/libzimg.2.dylib",
+      "dependencies": []
+    },
+    "libpng16.16.dylib": {
+      "formula": "libpng",
+      "source": "libpng/1.6.58/lib/libpng16.16.dylib",
+      "dependencies": []
+    },
+    "libintl.8.dylib": {
+      "formula": "gettext",
+      "source": "gettext/1.0/lib/libintl.8.dylib",
+      "dependencies": []
+    },
+    "libomp.dylib": {
+      "formula": "libomp",
+      "source": "libomp/23.1.1/lib/libomp.dylib",
+      "dependencies": []
+    },
+    "libgmp.10.dylib": {
+      "formula": "gmp",
+      "source": "gmp/6.3.0/lib/libgmp.10.dylib",
+      "dependencies": []
+    },
+    "libidn2.0.dylib": {
+      "formula": "libidn2",
+      "source": "libidn2/2.3.8/lib/libidn2.0.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/gettext/lib/libintl.8.dylib",
+          "libintl.8.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libunistring/lib/libunistring.5.dylib",
+          "libunistring.5.dylib"
+        ]
+      ]
+    },
+    "libtasn1.6.dylib": {
+      "formula": "libtasn1",
+      "source": "libtasn1/4.21.0/lib/libtasn1.6.dylib",
+      "dependencies": []
+    },
+    "libunistring.5.dylib": {
+      "formula": "libunistring",
+      "source": "libunistring/1.4.2/lib/libunistring.5.dylib",
+      "dependencies": []
+    },
+    "libhogweed.7.dylib": {
+      "formula": "nettle",
+      "source": "nettle/4.0/lib/libhogweed.7.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/nettle/4.0/lib/libnettle.9.dylib",
+          "libnettle.9.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/gmp/lib/libgmp.10.dylib",
+          "libgmp.10.dylib"
+        ]
+      ]
+    },
+    "libnettle.9.dylib": {
+      "formula": "nettle",
+      "source": "nettle/4.0/lib/libnettle.9.dylib",
+      "dependencies": []
+    },
+    "libp11-kit.0.dylib": {
+      "formula": "p11-kit",
+      "source": "p11-kit/0.26.5/lib/libp11-kit.0.dylib",
+      "dependencies": []
+    },
+    "libglib-2.0.0.dylib": {
+      "formula": "glib",
+      "source": "glib/2.90.0/lib/libglib-2.0.0.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/gettext/lib/libintl.8.dylib",
+          "libintl.8.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/pcre2/lib/libpcre2-8.0.dylib",
+          "libpcre2-8.0.dylib"
+        ]
+      ]
+    },
+    "libgraphite2.3.dylib": {
+      "formula": "graphite2",
+      "source": "graphite2/1.3.15/lib/libgraphite2.3.dylib",
+      "dependencies": []
+    },
+    "libbrotlicommon.1.dylib": {
+      "formula": "brotli",
+      "source": "brotli/1.2.0/lib/libbrotlicommon.1.dylib",
+      "dependencies": []
+    },
+    "libbrotlidec.1.dylib": {
+      "formula": "brotli",
+      "source": "brotli/1.2.0/lib/libbrotlidec.1.dylib",
+      "dependencies": [
+        [
+          "@rpath/libbrotlicommon.1.dylib",
+          "libbrotlicommon.1.dylib"
+        ]
+      ]
+    },
+    "libbrotlienc.1.dylib": {
+      "formula": "brotli",
+      "source": "brotli/1.2.0/lib/libbrotlienc.1.dylib",
+      "dependencies": [
+        [
+          "@rpath/libbrotlicommon.1.dylib",
+          "libbrotlicommon.1.dylib"
+        ]
+      ]
+    },
+    "libhwy.1.dylib": {
+      "formula": "highway",
+      "source": "highway/1.4.0/lib/libhwy.1.dylib",
+      "dependencies": []
+    },
+    "libjxl_cms.0.12.dylib": {
+      "formula": "jpeg-xl",
+      "source": "jpeg-xl/0.12.0/lib/libjxl_cms.0.12.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/highway/lib/libhwy.1.dylib",
+          "libhwy.1.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/little-cms2/lib/liblcms2.2.dylib",
+          "liblcms2.2.dylib"
+        ]
+      ]
+    },
+    "libmpg123.0.dylib": {
+      "formula": "mpg123",
+      "source": "mpg123/1.33.7/lib/libmpg123.0.dylib",
+      "dependencies": []
+    },
+    "libb2.1.dylib": {
+      "formula": "libb2",
+      "source": "libb2/0.98.1/lib/libb2.1.dylib",
+      "dependencies": []
+    },
+    "liblz4.1.dylib": {
+      "formula": "lz4",
+      "source": "lz4/1.10.0/lib/liblz4.1.dylib",
+      "dependencies": []
+    },
+    "libzstd.1.dylib": {
+      "formula": "zstd",
+      "source": "zstd/1.5.7_1/lib/libzstd.1.dylib",
+      "dependencies": []
+    },
+    "libfribidi.0.dylib": {
+      "formula": "fribidi",
+      "source": "fribidi/1.0.16/lib/libfribidi.0.dylib",
+      "dependencies": []
+    },
+    "libunibreak.8.dylib": {
+      "formula": "libunibreak",
+      "source": "libunibreak/8.0/lib/libunibreak.8.dylib",
+      "dependencies": []
+    },
+    "libudfread.3.dylib": {
+      "formula": "libudfread",
+      "source": "libudfread/1.2.0/lib/libudfread.3.dylib",
+      "dependencies": []
+    },
+    "liblcms2.2.dylib": {
+      "formula": "little-cms2",
+      "source": "little-cms2/2.19.1/lib/liblcms2.2.dylib",
+      "dependencies": []
+    },
+    "libshaderc_shared.1.dylib": {
+      "formula": "shaderc",
+      "source": "shaderc/2026.4/lib/libshaderc_shared.1.dylib",
+      "dependencies": []
+    },
+    "libvulkan.1.dylib": {
+      "formula": "vulkan-loader",
+      "source": "vulkan-loader/1.4.357.0/lib/libvulkan.1.dylib",
+      "dependencies": []
+    },
+    "libcjson.1.dylib": {
+      "formula": "cjson",
+      "source": "cjson/1.7.19/lib/libcjson.1.dylib",
+      "dependencies": []
+    },
+    "libmbedcrypto.16.dylib": {
+      "formula": "mbedtls@3",
+      "source": "mbedtls@3/3.6.7/lib/libmbedcrypto.16.dylib",
+      "dependencies": []
+    },
+    "libcrypto.3.dylib": {
+      "formula": "openssl@3",
+      "source": "openssl@3/3.6.4/lib/libcrypto.3.dylib",
+      "dependencies": []
+    },
+    "libXau.6.dylib": {
+      "formula": "libxau",
+      "source": "libxau/1.0.12/lib/libXau.6.dylib",
+      "dependencies": []
+    },
+    "libXdmcp.6.dylib": {
+      "formula": "libxdmcp",
+      "source": "libxdmcp/1.1.5/lib/libXdmcp.6.dylib",
+      "dependencies": []
+    },
+    "libssl.3.dylib": {
+      "formula": "openssl@3",
+      "source": "openssl@3/3.6.4/lib/libssl.3.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_CELLAR@@/openssl@3/3.6.4/lib/libcrypto.3.dylib",
+          "libcrypto.3.dylib"
+        ]
+      ]
+    },
+    "libleptonica.6.dylib": {
+      "formula": "leptonica",
+      "source": "leptonica/1.87.0/lib/libleptonica.6.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/giflib/lib/libgif.dylib",
+          "libgif.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-turbo/lib/libjpeg.8.dylib",
+          "libjpeg.8.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libpng/lib/libpng16.16.dylib",
+          "libpng16.16.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/libtiff/lib/libtiff.6.dylib",
+          "libtiff.6.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/openjpeg/lib/libopenjp2.7.dylib",
+          "libopenjp2.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebp.7.dylib",
+          "libwebp.7.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/webp/lib/libwebpmux.3.dylib",
+          "libwebpmux.3.dylib"
+        ]
+      ]
+    },
+    "libsharpyuv.0.dylib": {
+      "formula": "webp",
+      "source": "webp/1.6.0/lib/libsharpyuv.0.dylib",
+      "dependencies": []
+    },
+    "libsodium.26.dylib": {
+      "formula": "libsodium",
+      "source": "libsodium/1.0.22/lib/libsodium.26.dylib",
+      "dependencies": []
+    },
+    "libpcre2-8.0.dylib": {
+      "formula": "pcre2",
+      "source": "pcre2/10.48/lib/libpcre2-8.0.dylib",
+      "dependencies": []
+    },
+    "libgif.dylib": {
+      "formula": "giflib",
+      "source": "giflib/6.1.3/lib/libgif.dylib",
+      "dependencies": []
+    },
+    "libjpeg.8.dylib": {
+      "formula": "jpeg-turbo",
+      "source": "jpeg-turbo/3.2.0/lib/libjpeg.8.dylib",
+      "dependencies": []
+    },
+    "libtiff.6.dylib": {
+      "formula": "libtiff",
+      "source": "libtiff/4.7.2/lib/libtiff.6.dylib",
+      "dependencies": [
+        [
+          "@@HOMEBREW_PREFIX@@/opt/jpeg-turbo/lib/libjpeg.8.dylib",
+          "libjpeg.8.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/xz/lib/liblzma.5.dylib",
+          "liblzma.5.dylib"
+        ],
+        [
+          "@@HOMEBREW_PREFIX@@/opt/zstd/lib/libzstd.1.dylib",
+          "libzstd.1.dylib"
+        ]
+      ]
+    }
+  },
+  "llama_source": {
+    "url": "https://files.pythonhosted.org/packages/c1/2f/46487e949da42b31847853793ddbfd44c7414e94d4364c9a41f91f30af27/llama_cpp_python-0.3.34.tar.gz",
+    "filename": "llama_cpp_python-0.3.34.tar.gz",
+    "digests": {
+      "blake2b_256": "c12f46487e949da42b31847853793ddbfd44c7414e94d4364c9a41f91f30af27",
+      "md5": "3c7c419b67eb33f6bba5cf8e1d5673b4",
+      "sha256": "d849d286d808284f1d3ec1bd6875572430d29d1f9574a010232caa4e9cef0e35"
+    },
+    "size": 71617302
+  },
+  "srt_source": {
+    "url": "https://codeload.github.com/Haivision/srt/tar.gz/refs/tags/v1.5.7",
+    "sha256": "017cd1e437ef2073a4dd10ddf7b55e86bc3d6ebac0393d13bd22f6a57055d32b",
+    "upstream_commit": "899348d8318eb9a3c5a5b6ec43c4a1114288773a",
+    "reason": "Upstream tag archive differs from historical Homebrew source checksum; SRT was rebuilt from the bundled, verified source instead of using the bottle binary."
+  }
+}
