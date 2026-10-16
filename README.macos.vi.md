@@ -1,5 +1,7 @@
 # Aura Studio — Mac Apple Silicon
 
+**Yêu cầu cho gói ZIP hiện tại: Mac Apple Silicon và macOS 27 trở lên.** FFmpeg cùng thư viện HY-MT2 trong app gốc được build với mức tối thiểu macOS 27. Máy dùng macOS cũ hơn cần runtime được build lại cho phiên bản đó.
+
 ## Cài cho đồng nghiệp dùng Mac M3
 
 Tải **Aura-Studio-macOS-Apple-Silicon.zip** tại [release private](https://github.com/truongminhmanq3-ai/HaizFlow-macos-api/releases/tag/v0.1.8-aura-team.2), giải nén toàn bộ rồi chạy **Cai-dat-Aura-Studio.command**. App tự được chép vào `~/Applications/Aura Studio.app`; API DeepSeek/ElevenLabs hiện có được nạp vào Keychain.

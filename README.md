@@ -12,12 +12,14 @@ Mở [trang tải Aura Studio](https://github.com/truongminhmanq3-ai/HaizFlow-ma
 
 | Máy | Gói tải | Cách cài sau khi giải nén |
 | --- | --- | --- |
-| Mac Apple Silicon, gồm M3 | **Aura-Studio-macOS-Apple-Silicon.zip** | Chạy **Cai-dat-Aura-Studio.command** |
+| Mac Apple Silicon, gồm M3; macOS 27+ | **Aura-Studio-macOS-Apple-Silicon.zip** | Chạy **Cai-dat-Aura-Studio.command** |
 | Windows 10/11 x64 | **Aura-Studio-Windows-x64.zip** | Chạy **Cai-dat-Aura-Studio.cmd** |
 
 Không cần clone source, cài Python, Homebrew hay tự build. Giải nén **toàn bộ ZIP**, giữ các thư mục đi kèm và thoát Aura Studio trước khi chạy script cài đặt.
 
-### Mac M3 / Apple Silicon
+### Mac M3 / Apple Silicon (macOS 27+)
+
+Gói Mac hiện tại yêu cầu **macOS 27 trở lên** vì các thư viện native FFmpeg/HY-MT2 được build cho macOS 27.
 
 Script cài app vào `~/Applications/Aura Studio.app`, nạp API chung vào macOS Keychain rồi mở app. Cho phép thao tác Keychain nếu macOS hỏi. Có thể chạy qua Terminal trong thư mục vừa giải nén:
 

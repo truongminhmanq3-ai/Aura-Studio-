@@ -6,7 +6,7 @@ Repo và gói cài giữ **private**. File `team-api-keys.json` chứa cấu hì
 
 Tải đúng gói Mac hoặc Windows tại [release](https://github.com/truongminhmanq3-ai/HaizFlow-macos-api/releases/tag/v0.1.8-aura-team.2), giải nén toàn bộ rồi chạy script cài đặt trong thư mục đó:
 
-- Mac: `Cai-dat-Aura-Studio.command`.
+- Mac Apple Silicon, macOS 27+: `Cai-dat-Aura-Studio.command`.
 - Windows: `Cai-dat-Aura-Studio.cmd`.
 
 Script cài app và nạp key vào Keychain/Credential Manager của tài khoản hiện tại. Không cần nhập từng key, clone source hoặc cài Python. Giữ nguyên các thư mục `team` và `scripts` trong gói ZIP.
