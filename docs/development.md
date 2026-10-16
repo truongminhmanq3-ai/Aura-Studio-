@@ -298,4 +298,4 @@ The installer gate verifies the frozen artifact, calculates real disk requiremen
 
 ## Aura Studio distribution
 
-The current repository ships Mac engines inside the app. The source Windows engine catalog has no published downloads. Before building a Windows release, rebuild and publish engines to this repository and generate fresh pinned manifests. The old Windows third-party source asset is not declared as published here; build and publish the exact source package with the new binaries.
+Private releases provide ready-to-run Mac Apple Silicon and Windows x64 packages, with unchanged shared API setup and prerecorded voice samples. Windows packaging uses scripts/build-team-windows.py; Mac packaging uses scripts/build-macos.py. Component/model terms remain independent.

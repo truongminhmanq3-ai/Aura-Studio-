@@ -108,11 +108,11 @@ pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='HaizFlow', console=False,
           target_arch={platform.machine()!r}, codesign_identity=None)
 coll = COLLECT(exe, a.binaries, a.datas, name='HaizFlow', strip=False, upx=False)
-app = BUNDLE(coll, name='HaizFlow.app', icon={str(ROOT / 'src/haizflow/desktop/assets/branding/haizflow-mark.png')!r},
+app = BUNDLE(coll, name='Aura Studio.app', icon={str(ROOT / 'src/haizflow/desktop/assets/branding/AuraStudio.icns')!r},
              bundle_identifier='dev.haizflow.macos.local', version={VERSION!r},
-             info_plist={{'CFBundleDisplayName': 'HaizFlow', 'CFBundleShortVersionString': {VERSION!r},
+             info_plist={{'CFBundleDisplayName': 'Aura Studio', 'CFBundleName': 'Aura Studio', 'CFBundleShortVersionString': {VERSION!r},
                          'NSHighResolutionCapable': True, 'LSMinimumSystemVersion': '14.0',
-                         'NSMicrophoneUsageDescription': 'HaizFlow sử dụng âm thanh khi bạn chọn công cụ giọng đọc.'}})
+                         'NSMicrophoneUsageDescription': 'Aura Studio sử dụng âm thanh khi bạn chọn công cụ giọng đọc.'}})
 ''')
     return spec
 
@@ -158,7 +158,7 @@ def main():
         parser.error("FFmpeg must include libass and drawtext. Install Homebrew ffmpeg-full.")
     run([sys.executable, "-m", "PyInstaller", "--noconfirm", "--distpath", args.output,
          "--workpath", build / "work-core", core_spec(build, ffmpeg, ffprobe)], env=env)
-    app = args.output / "HaizFlow.app"
+    app = args.output / "Aura Studio.app"
     resources = app / "Contents/Resources"
     for profile, pack_id in (("cpu", "engine-cpu-py313"), ("vision", "engine-vision-onnx")):
         target = resources / "engines" / pack_id / "1"
@@ -191,7 +191,7 @@ def main():
     shutil.copytree(ROOT / "licenses", resources / "licenses", symlinks=True)
     ffmpeg_prefix = Path(ffmpeg).resolve().parents[1]
     native_licenses = resources / "licenses/macos-ffmpeg"
-    native_licenses.mkdir(parents=True)
+    native_licenses.mkdir(parents=True, exist_ok=True)
     for path in ffmpeg_prefix.glob("COPYING*"):
         shutil.copy2(path, native_licenses / path.name)
     for filename in ("LICENSE.md", "INSTALL_RECEIPT.json", "sbom.spdx.json"):

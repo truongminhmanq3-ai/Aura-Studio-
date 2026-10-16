@@ -1,21 +1,24 @@
-# Key dùng chung của team
+# API dùng chung của team
 
-Repo này giữ **private**. `team-api-keys.json` chứa key thật của DeepSeek và ElevenLabs đang lưu trên máy chủ repo, được chia sẻ cho team theo yêu cầu. Gemini/Zernio chưa có key nên không nằm trong file. OmniVoice, Whisper và HY-MT2 dùng model local, không cần key.
+Repo và gói cài giữ **private**. File `team-api-keys.json` chứa cấu hình DeepSeek/ElevenLabs hiện có, được giữ nguyên để bạn và đồng nghiệp cùng dùng. Credit và giới hạn tài khoản được dùng chung.
 
-Trên Mac của đồng nghiệp:
+## Cách cài đơn giản
 
-1. Được cấp quyền repo, đăng nhập GitHub và clone hoặc tải ZIP mã nguồn của nhánh hiện tại.
-2. Đóng Aura Studio. Mở Terminal tại thư mục repo, chạy:
+Tải đúng gói Mac hoặc Windows tại [release](https://github.com/truongminhmanq3-ai/HaizFlow-macos-api/releases/tag/v0.1.8-aura-team.2), giải nén toàn bộ rồi chạy script cài đặt trong thư mục đó:
 
-   ```bash
-   bash scripts/Nap-key-team-Mac.command
-   ```
+- Mac: `Cai-dat-Aura-Studio.command`.
+- Windows: `Cai-dat-Aura-Studio.cmd`.
 
-3. Nếu macOS hỏi quyền Keychain, cho phép thao tác nạp key. Mở lại Aura Studio; các key đã được nạp vào mục Keychain mang tên HaizFlow để tương thích với cấu hình hiện có. Không cần dán từng key, không cần Python/Homebrew và không cần build lại app.
-4. Trong dự án, chọn DeepSeek và ElevenLabs theo nhu cầu. Giọng/model ElevenLabs vẫn chọn trong Cài đặt; credit được dùng chung trên tài khoản của team.
+Script cài app và nạp key vào Keychain/Credential Manager của tài khoản hiện tại. Không cần nhập từng key, clone source hoặc cài Python. Giữ nguyên các thư mục `team` và `scripts` trong gói ZIP.
 
-Script chỉ ghi key của các provider có trong file; không gửi video hoặc gọi API dịch/TTS. File key không được nhúng vào bản app đã phát hành trước đó. Chỉ người có quyền repo mới tải được cấu hình này.
+## Nạp lại trên Mac từ source
 
-Repo hiện chỉ có mã nguồn; các release và tag cũ đã được gỡ. Tạo app theo [hướng dẫn build Mac](../README.macos.vi.md#build-lại-trên-mac), rồi nạp key như trên. API/key của team không thay đổi khi làm mới lịch sử Git.
+Đóng app, mở Terminal trong thư mục repo rồi chạy:
 
-Nếu đã clone repo trước khi lịch sử được làm mới, clone lại vào thư mục mới. Không push lại branch/tag từ bản clone cũ.
+```bash
+bash scripts/Nap-key-team-Mac.command
+```
+
+Cho phép thao tác Keychain khi macOS hỏi, sau đó mở lại app. Tên dịch vụ Keychain vẫn dùng HaizFlow để tương thích cấu hình hiện có.
+
+Script không gọi API dịch/TTS, gửi video hoặc in giá trị key ra màn hình. Chọn giọng/model ElevenLabs trong Cài đặt và chọn DeepSeek/ElevenLabs trong dự án.

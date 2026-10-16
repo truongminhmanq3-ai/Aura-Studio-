@@ -78,13 +78,11 @@ class ResourcePackManifestTests(unittest.TestCase):
             for pack in ("engine-cuda128-py313", "model-demucs-gpu"):
                 self.assertEqual(ResourcePackController._hardware_compatibility(controller, pack)[0], allowed)
 
-    def test_source_manifest_requires_new_publication_for_windows_engines(self):
+    def test_source_manifest_pins_all_public_engines(self):
         manifest = ROOT / "runtime" / "resource-pack-manifest.json"
-        result = verify_manifest.validate_manifest(manifest, strict=False)
+        result = verify_manifest.validate_manifest(manifest, strict=True)
         self.assertEqual(result["engine_packs"], 3)
-        self.assertEqual(result["release_ready"], 0)
-        with self.assertRaisesRegex(RuntimeError, "immutable release URL"):
-            verify_manifest.validate_manifest(manifest, strict=True)
+        self.assertEqual(result["release_ready"], 3)
 
     def test_unpublished_fixture_is_not_public_release_ready(self):
         payload = json.loads((ROOT / "runtime/resource-pack-manifest.json").read_text(encoding="utf-8"))
