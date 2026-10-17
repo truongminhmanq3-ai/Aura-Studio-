@@ -2,13 +2,19 @@
 
 **Dịch, lồng tiếng và biên tập video trên Mac và Windows.**
 
-Aura Studio là app reup video douyin, có thể làm clip thủ công, tự động và đăng hàng loạt, với giao diện Liquid Glass, nhận diện Aura Studio và tích hợp DeepSeek/ElevenLabs cho team.
+Aura Studio là ứng dụng desktop cho quy trình nhận dạng giọng nói, dịch, lồng tiếng, chỉnh phụ đề và xuất video. Dự án tùy biến một nền tảng xử lý video Python/Qt hiện có, tập trung vào tích hợp API, giao diện và đóng gói cho macOS và Windows.
 
-Repo và các gói tải đều **private**. Không kèm API key. Mỗi người tự nhập key của mình trong **Cài đặt → API Key**.
+**Stack:** Python, PySide6/QML, FFmpeg, Whisper, DeepSeek và ElevenLabs.
 
-## Cài cho đồng nghiệp
+### Project overview
 
-Mở [trang tải Aura Studio](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/tag/v0.1.8-aura-team.2) bằng tài khoản GitHub đã được cấp quyền repo, rồi chọn đúng gói:
+A desktop video workflow for transcription, translation, AI dubbing, subtitle editing and batch export. This project adapts an existing Python/Qt codebase with API integrations and packaging for Apple Silicon and Windows. Users provide their own service credentials.
+
+Mã nguồn và các gói phát hành được công khai. Không kèm API key. Mỗi người tự nhập key của mình trong **Cài đặt → API Key**.
+
+## Cài đặt
+
+Mở [trang tải Aura Studio](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/tag/v0.1.8-aura-team.2), rồi chọn đúng gói:
 
 | Máy | Gói tải | Cách cài sau khi giải nén |
 | --- | --- | --- |
@@ -67,7 +73,7 @@ Xem [hướng dẫn API cho team](team/README.vi.md) và [cấu hình API](docs/
 
 ```bash
 git clone https://github.com/truongminhmanq3-ai/Aura-Studio-.git
-cd HaizFlow-macos-api
+cd Aura-Studio-
 ```
 
 - [Build Mac](README.macos.vi.md#build-lại-trên-mac).
@@ -77,4 +83,4 @@ cd HaizFlow-macos-api
 
 ## Thư viện và model
 
-Giấy phép ứng dụng cũ đã được gỡ. Giấy phép độc lập của thư viện, codec, font, icon và model vẫn được giữ: [NOTICE](NOTICE), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), [thư viện Mac](docs/macos-third-party.md) và `licenses/`.
+Giấy phép độc lập của thư viện, codec, font, icon và model vẫn được giữ: [NOTICE](NOTICE), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), [thư viện Mac](docs/macos-third-party.md) và `licenses/`.
