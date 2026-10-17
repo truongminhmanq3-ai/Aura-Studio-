@@ -1,86 +1,82 @@
 # Aura Studio
 
-**Dịch, lồng tiếng và biên tập video trên Mac và Windows.**
+**Video transcription, translation, AI dubbing and editing for macOS and Windows.**
 
-Aura Studio là ứng dụng desktop cho quy trình nhận dạng giọng nói, dịch, lồng tiếng, chỉnh phụ đề và xuất video. Dự án tùy biến một nền tảng xử lý video Python/Qt hiện có, tập trung vào tích hợp API, giao diện và đóng gói cho macOS và Windows.
+Aura Studio is a desktop application for turning source video into translated, dubbed and subtitled output. The project adapts an existing Python/Qt codebase, with a focus on API integration, the desktop interface and packaging for Apple Silicon and Windows.
 
-**Stack:** Python, PySide6/QML, FFmpeg, Whisper, DeepSeek và ElevenLabs.
+**Tech stack:** Python, PySide6/QML, FFmpeg, Whisper, DeepSeek and ElevenLabs.
 
-### Project overview
+The source code and release packages are public. API keys are not included; each user enters their own credentials in **Settings → API Key**.
 
-A desktop video workflow for transcription, translation, AI dubbing, subtitle editing and batch export. This project adapts an existing Python/Qt codebase with API integrations and packaging for Apple Silicon and Windows. Users provide their own service credentials.
+## Features
 
-Mã nguồn và các gói phát hành được công khai. Không kèm API key. Mỗi người tự nhập key của mình trong **Cài đặt → API Key**.
+- Import local video files or download Douyin videos through the built-in browser.
+- Transcribe speech with Whisper; translate with local HY-MT2, Gemini or DeepSeek.
+- Generate speech with local OmniVoice or ElevenLabs, with voice preview samples.
+- Edit subtitles, cover original subtitles, mix audio, add watermarks and export video.
+- Run manual, automatic and batch workflows, with Zernio publishing integration.
 
-## Cài đặt
+## Download and install
 
-Mở [trang tải Aura Studio](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/tag/v0.1.8-aura-team.2), rồi chọn đúng gói:
+Open the [Aura Studio release page](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/tag/v0.1.8-aura-team.2) and choose the package for your system:
 
-| Máy | Gói tải | Cách cài sau khi giải nén |
+| System | Download | After extraction |
 | --- | --- | --- |
-| Mac Apple Silicon, gồm M3; macOS 26+ | [Aura-Studio-macOS26-Apple-Silicon.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-macOS26-Apple-Silicon.zip) | Chạy **Cai-dat-Aura-Studio.command** |
-| Mac Apple Silicon, gồm M3; macOS 27+ | [Aura-Studio-macOS-Apple-Silicon.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-macOS-Apple-Silicon.zip) | Chạy **Cai-dat-Aura-Studio.command** |
-| Windows 10/11 x64 | [Aura-Studio-Windows-x64.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-Windows-x64.zip) | Chạy **Cai-dat-Aura-Studio.cmd** |
+| Apple Silicon Mac, including M3; macOS 26+ | [Aura-Studio-macOS26-Apple-Silicon.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-macOS26-Apple-Silicon.zip) | Run **Cai-dat-Aura-Studio.command** |
+| Apple Silicon Mac, including M3; macOS 27+ | [Aura-Studio-macOS-Apple-Silicon.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-macOS-Apple-Silicon.zip) | Run **Cai-dat-Aura-Studio.command** |
+| Windows 10/11 x64 | [Aura-Studio-Windows-x64.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-Windows-x64.zip) | Run **Cai-dat-Aura-Studio.cmd** |
 
-Không cần clone source, cài Python, Homebrew hay tự build. Giải nén **toàn bộ ZIP**, giữ các thư mục đi kèm và thoát Aura Studio trước khi chạy script cài đặt.
+The release packages do not require a source checkout, Python, Homebrew or a local build. Extract the **entire ZIP**, keep its accompanying folders, and quit Aura Studio before running the installer.
 
-### Mac M3 / Apple Silicon (macOS 26 trở lên)
+### Apple Silicon Macs
 
-Máy dùng **macOS 26** chọn gói có `macOS26` trong tên. Gói này thay runtime FFmpeg và build lại thư viện llama/SRT với deployment target 26.0; không chỉ sửa nhãn phiên bản. Bản Mac cũ cho macOS 27+ vẫn có sẵn.
+For **macOS 26**, choose the package with `macOS26` in its filename. This package replaces the FFmpeg runtime and rebuilds the llama/SRT libraries with a macOS 26.0 deployment target. The earlier macOS 27+ package remains available.
 
-Bản 26 đã qua kiểm tra kiến trúc/mức tối thiểu của 1.340 binary, giao diện, CPU/OCR, Chromium và xuất video có âm thanh/phụ đề trên macOS 27.2, có kiểm tra chặn truy cập Homebrew. **Chưa chạy trực tiếp trên máy macOS 26.**
+Validation of the macOS 26 package covered architecture and minimum operating system requirements for 1,340 binaries, the interface, CPU/OCR engines, Chromium, and video export with audio and subtitles on macOS 27.2. Checks also blocked access to Homebrew. **The package has not been tested directly on a macOS 26 machine.**
 
-Script cài app vào `~/Applications/Aura Studio.app` rồi mở app. Sau đó tự nhập key trong **Cài đặt → API Key**. Có thể chạy qua Terminal trong thư mục vừa giải nén:
+The installer places the application at `~/Applications/Aura Studio.app` and opens it. Then enter your service credentials in **Settings → API Key**. You can also run the installer from Terminal inside the extracted folder:
 
 ```bash
 bash Cai-dat-Aura-Studio.command
 ```
 
-Nếu đã có app tại vị trí đó, bản trước được giữ làm bản sao lưu. Dữ liệu dự án nằm riêng và không bị xoá. App là bản nội bộ ký ad hoc; macOS có thể yêu cầu cho phép mở lần đầu.
+If an application already exists at that location, the installer keeps the previous version as a backup. Project data is stored separately and is not deleted. The application is ad hoc signed; macOS may ask you to allow it to open on first launch.
 
 ### Windows
 
-Chạy `Cai-dat-Aura-Studio.cmd` trong thư mục giải nén. Script cài app cho tài khoản Windows hiện tại rồi mở Aura Studio. Sau đó tự nhập key trong **Cài đặt → API Key**. Không cần quyền quản trị hoặc Python. Bản Windows chưa có chữ ký Authenticode.
+Run `Cai-dat-Aura-Studio.cmd` from the extracted folder. The script installs Aura Studio for the current Windows account and opens it. Then enter your credentials in **Settings → API Key**. Administrator access and Python are not required. The Windows build does not have an Authenticode signature.
 
-### Dùng lần đầu
+## First run
 
-1. Vào **Cài đặt → Gói tài nguyên**, tải Whisper và các model local cần dùng.
-2. Tạo dự án, nhập video và chọn ngôn ngữ đích.
-3. Trong **Cài đặt → API Key**, tự nhập key DeepSeek/ElevenLabs hoặc dịch vụ cần dùng. Sau đó chọn model dịch, công cụ giọng đọc và giọng của bạn.
-4. Kiểm tra phụ đề, giọng đọc và âm thanh trước khi xuất video.
+1. Open **Settings → Resource Packs** and download Whisper and any local models you need.
+2. Create a project, import a video and choose the target language.
+3. Open **Settings → API Key** and enter credentials for DeepSeek, ElevenLabs or the services you plan to use. Then choose the translation model, speech engine and voice.
+4. Review the subtitles, generated speech and audio mix before exporting.
 
-Model weights tải riêng. Dùng DeepSeek không cần HY-MT2 cho bước dịch; dùng ElevenLabs không cần OmniVoice cho bước tạo giọng. Whisper vẫn cần cho nhận dạng. Credit, số dư và giới hạn dịch vụ tính trên tài khoản API mà mỗi người tự cấu hình.
+Model weights are downloaded separately. DeepSeek translation does not require HY-MT2, and ElevenLabs speech generation does not require OmniVoice. Whisper is still required for transcription. Usage charges, balances and service limits apply to each user's configured API account.
 
-## Chức năng
+## API credentials and user data
 
-- Nhập video từ máy hoặc tải Douyin bằng trình duyệt tích hợp.
-- Nhận dạng Whisper; dịch bằng HY-MT2 local, Gemini hoặc DeepSeek.
-- Tạo giọng OmniVoice local hoặc ElevenLabs; giữ các mẫu giọng nghe thử.
-- Chỉnh phụ đề, che phụ đề gốc, trộn âm thanh, watermark và xuất video.
-- Xử lý tự động, thủ công, hàng loạt và tích hợp đăng bài Zernio.
+The repository and installation packages contain no API keys or shared-key import files. The application retains the credential settings screen and integrations for DeepSeek, ElevenLabs, Gemini and Zernio. Users enter their own keys, which are stored in macOS Keychain or Windows Credential Manager. The installer does not automatically write credentials to the secure store or call external APIs.
 
-## API và dữ liệu
+The internal name `HaizFlow` remains in package names, executables, data paths and credential-store entries for compatibility with existing configurations. On macOS, application data is stored at `~/Library/Application Support/HaizFlow`.
 
-Repo và gói cài không chứa key hoặc file nạp key dùng chung. Giữ đầy đủ màn hình nhập key và các tích hợp DeepSeek, ElevenLabs, Gemini, Zernio. Mỗi người tự nhập key trong **Cài đặt → API Key**; app lưu key bằng Keychain/Credential Manager. Bộ cài không tự ghi key vào kho bảo mật hoặc gọi API.
+User project data, personal videos, Douyin login sessions and user model weights are not included. Users handle Douyin login and CAPTCHA steps themselves in the application's browser.
 
-Tên nội bộ `HaizFlow` trong package, executable, đường dẫn dữ liệu và mục Keychain/Credential Manager được giữ để tương thích cấu hình hiện có. Trên Mac, dữ liệu ứng dụng nằm tại `~/Library/Application Support/HaizFlow`.
+See the [team API guide](team/README.vi.md) and [API configuration guide](docs/API-CONFIG.vi.md), both in Vietnamese.
 
-Không kèm dữ liệu dự án, video cá nhân, phiên đăng nhập Douyin hoặc model weights của người dùng. Đăng nhập/captcha Douyin do người dùng thao tác trong trình duyệt của app.
-
-Xem [hướng dẫn API cho team](team/README.vi.md) và [cấu hình API](docs/API-CONFIG.vi.md).
-
-## Mã nguồn và build
+## Source code and builds
 
 ```bash
 git clone https://github.com/truongminhmanq3-ai/Aura-Studio-.git
 cd Aura-Studio-
 ```
 
-- [Build Mac](README.macos.vi.md#build-lại-trên-mac).
-- `scripts/build-team-windows.py`: đóng gói Core Windows cùng runtime đã kiểm checksum.
-- `src/haizflow/desktop/`: giao diện và điều khiển desktop.
-- `src/haizflow/services/`, `src/haizflow/pipeline/`: dịch, giọng đọc và xử lý video.
+- [macOS build instructions](README.macos.vi.md#build-lại-trên-mac), in Vietnamese.
+- `scripts/build-team-windows.py`: packages the Windows core with checksum-verified runtimes.
+- `src/haizflow/desktop/`: desktop interface and controllers.
+- `src/haizflow/services/` and `src/haizflow/pipeline/`: translation, speech generation and video processing.
 
-## Thư viện và model
+## Third-party components and models
 
-Giấy phép độc lập của thư viện, codec, font, icon và model vẫn được giữ: [NOTICE](NOTICE), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), [thư viện Mac](docs/macos-third-party.md) và `licenses/`.
+Independent licenses for libraries, codecs, fonts, icons and models are retained. See [NOTICE](NOTICE), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), the [macOS component notes](docs/macos-third-party.md) and the `licenses/` directory.
