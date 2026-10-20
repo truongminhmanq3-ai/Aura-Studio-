@@ -94,6 +94,7 @@ def engine_environment() -> dict[str, str]:
                      "HAIZFLOW_INSTALL_ROOT", "HAIZFLOW_RESOURCE_ROOT", "HAIZFLOW_SMOKE_TEST"):
             environment.pop(name, None)
         environment["HAIZFLOW_ENGINE_APP_ROOT"] = str(root)
+        environment["HAIZFLOW_RESOURCE_ROOT"] = str(resource_storage_dir())
     return environment
 
 
@@ -110,7 +111,10 @@ def app_data_dir() -> Path:
             return Path(override).expanduser().resolve()
         import pwd
 
-        return Path(pwd.getpwuid(os.getuid()).pw_dir) / "Library" / "Application Support" / APP_NAME
+        base = Path(pwd.getpwuid(os.getuid()).pw_dir) / "Library" / "Application Support"
+        if (base / "Aura Studio").is_dir():
+            return base / "Aura Studio"
+        return base / APP_NAME
     if not runtime_overrides_allowed():
         return install_root() / "runtime"
     override = os.getenv("AURA_STUDIO_HOME") or os.getenv("HAIZFLOW_HOME") or os.getenv("APP_DATA_DIR")
@@ -170,7 +174,7 @@ def resource_storage_dir() -> Path:
     safely fall back to the installation runtime directory.
     """
     override = os.getenv("HAIZFLOW_RESOURCE_ROOT")
-    if override and runtime_overrides_allowed():
+    if override and (runtime_overrides_allowed() or os.getenv("HAIZFLOW_ENGINE_APP_ROOT")):
         candidate = Path(override).expanduser()
         if candidate.is_absolute() and not str(candidate).startswith("\\\\"):
             return candidate.resolve()
