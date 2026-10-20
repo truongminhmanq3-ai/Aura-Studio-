@@ -171,12 +171,12 @@ if sys.platform == "darwin":
     # variables already contain all model/runtime caches under app_data_dir.
     for name in ("HOME", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "TMP", "TEMP", "TMPDIR"):
         _RUNTIME_ENVIRONMENT.pop(name, None)
-    _RUNTIME_ENVIRONMENT["PYANNOTE_METRICS_ENABLED"] = "0"
+    os.environ["PYANNOTE_METRICS_ENABLED"] = "0"
 os.environ.update(_RUNTIME_ENVIRONMENT)
 
 # Project-owned data is created inside the selected project. This global path
 # remains only as a read-once migration location for older installations.
-for directory in (
+_DIRECTORIES_TO_ENSURE = (
     RUNTIME_DATA_DIR,
     CACHE_DIR,
     LOGS_DIR,
@@ -187,9 +187,10 @@ for directory in (
     PIP_CACHE_DIR,
     UV_CACHE_DIR,
     TMP_DIR,
-    *_RUNTIME_ENVIRONMENT.values(),
+    *(v for v in _RUNTIME_ENVIRONMENT.values() if os.path.isabs(str(v))),
     *PORTABLE_PROFILE_SHELL_DIRS,
-):
+)
+for directory in _DIRECTORIES_TO_ENSURE:
     os.makedirs(directory, exist_ok=True)
 
 LEGACY_VIDEO_WORKSPACES_DIR = STORAGE_DIR
