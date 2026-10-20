@@ -110,13 +110,16 @@ class DouyinSession:
 
 
 def _base_params(profile):
+    is_mac = profile.platform.lower().startswith("mac")
+    os_name = "Mac OS X" if is_mac else "Windows"
+    os_version = "10.15.7" if is_mac else "10"
     return {
         "device_platform": "webapp", "aid": "6383", "channel": "channel_pc_web",
         "pc_client_type": "1", "version_code": "290100", "version_name": "29.1.0",
         "cookie_enabled": "true", "screen_width": str(profile.width), "screen_height": str(profile.height),
         "browser_language": profile.language, "browser_platform": profile.platform,
         "browser_name": "Chrome", "browser_version": profile.version, "browser_online": "true",
-        "engine_name": "Blink", "engine_version": profile.version, "os_name": "Windows", "os_version": "10",
+        "engine_name": "Blink", "engine_version": profile.version, "os_name": os_name, "os_version": os_version,
         "cpu_core_num": str(profile.cores), "device_memory": str(profile.memory), "platform": "PC",
         "downlink": "10", "effective_type": "4g", "round_trip_time": "0", "update_version_code": "170400",
     }

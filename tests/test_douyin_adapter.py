@@ -8,7 +8,7 @@ from urllib.parse import parse_qs, urlsplit
 
 import pytest
 
-from haizflow.services.douyin_adapter import DouyinAdapter, DouyinSession
+from haizflow.services.douyin_adapter import DouyinAdapter, DouyinSession, _base_params
 from haizflow.services.douyin_classification import DouyinError, Outcome, classify
 from haizflow.services.douyin_signing import DETAIL_PATH, POSTS_PATH, DouyinSigner, SignedRequest
 from haizflow.services.douyin_transport import BrowserProfile, DouyinTransport, Response, validate_douyin_address
@@ -728,3 +728,18 @@ def test_failed_native_probe_never_parks_browser_or_commits_candidate():
     backend.park.assert_not_called()
     backend.close.assert_called_once()
     assert adapter.session.transport is old and not adapter.session.native_verified
+
+
+def test_base_params_matches_mac_and_windows_platforms():
+    mac_profile = BrowserProfile(platform="MacIntel")
+    params_mac = _base_params(mac_profile)
+    assert params_mac["browser_platform"] == "MacIntel"
+    assert params_mac["os_name"] == "Mac OS X"
+    assert params_mac["os_version"] == "10.15.7"
+
+    win_profile = BrowserProfile(platform="Win32")
+    params_win = _base_params(win_profile)
+    assert params_win["browser_platform"] == "Win32"
+    assert params_win["os_name"] == "Windows"
+    assert params_win["os_version"] == "10"
+

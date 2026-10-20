@@ -205,14 +205,21 @@ class DouyinBrowserSession:
             await self._context.add_cookies(cookies)
         self._page = self._context.pages[0] if self._context.pages else await self._context.new_page()
         await self._page.add_init_script(CAPTURE_INIT_SCRIPT)
-        await self._page.goto("https://www.douyin.com/", wait_until="domcontentloaded", timeout=20000)
+        await self._page.goto("https://www.douyin.com/", wait_until="domcontentloaded", timeout=30000)
 
     async def _challenge(self) -> bool | None:
         try:
+            if hasattr(self._page, "title"):
+                title = (await self._page.title() or "").lower()
+                if any(marker in title for marker in ("验证码", "captcha", "verify", "安全验证")):
+                    return True
+            page_url = (getattr(self._page, "url", "") or "").lower()
+            if "verifycenter" in page_url or "captcha" in page_url:
+                return True
             body = (await self._page.locator("body").inner_text(timeout=1500))[:4096].lower()
         except Exception as exc:
             from playwright.async_api import TimeoutError as BrowserTimeoutError
-            if isinstance(exc, BrowserTimeoutError):
+            if isinstance(exc, BrowserTimeoutError) or type(exc).__module__.startswith("playwright."):
                 # A redirect/loading document is not evidence of no CAPTCHA.
                 # The caller waits without signing or dismissing anything.
                 return None
@@ -220,11 +227,15 @@ class DouyinBrowserSession:
         for frame in self._page.frames:
             if frame == self._page.main_frame:
                 continue
-            if "captcha" in frame.url.lower() or "verifycenter" in frame.url.lower():
-                element = await frame.frame_element()
-                bounds = await element.bounding_box()
+            frame_url = (getattr(frame, "url", "") or "").lower()
+            if "captcha" in frame_url or "verifycenter" in frame_url:
+                try:
+                    element = await frame.frame_element() if hasattr(frame, "frame_element") else None
+                    bounds = await element.bounding_box() if element and hasattr(element, "bounding_box") else None
+                except Exception:
+                    bounds = None
                 # A hidden security SDK iframe is not an active human challenge.
-                if bounds and bounds["width"] > 20 and bounds["height"] > 20:
+                if bounds and bounds.get("width", 0) > 20 and bounds.get("height", 0) > 20:
                     return True
         return any(marker in body for marker in (
             "请完成验证", "安全验证", "拖动滑块", "验证后继续", "complete verification", "verify you are human"))
@@ -313,8 +324,17 @@ class DouyinBrowserSession:
             if challenge:
                 if not human:
                     raise DouyinError(Outcome.CHALLENGE)
-                if not waiting and status_callback:
-                    status_callback("Complete verification in the Douyin window.")
+                if not waiting:
+                    if status_callback:
+                        status_callback("Complete verification in the Douyin window.")
+                    with suppress(Exception):
+                        if hasattr(self._page, "bring_to_front"):
+                            await self._page.bring_to_front()
+                        if sys.platform == "darwin":
+                            import subprocess
+                            subprocess.run(
+                                ["osascript", "-e", 'tell application "Google Chrome for Testing" to activate'],
+                                capture_output=True, check=False)
                 waiting = True
                 if time.monotonic() >= human_deadline:
                     raise RuntimeError("Creating the Douyin session timed out. Try again later.")
@@ -356,7 +376,7 @@ class DouyinBrowserSession:
                 if not self._context:
                     await self._launch(cancel_event=cancel_event)
                 elif attempt > 1:
-                    await self._page.reload(wait_until="domcontentloaded", timeout=20000)
+                    await self._page.reload(wait_until="domcontentloaded", timeout=30000)
                 _, state = await self._ready(DETAIL_PATH, {"aweme_id": "0"}, cancel_event, status_callback, human=True)
                 self._arm_idle()
                 return state

@@ -26,6 +26,7 @@ def guest(*, cookies=None, challenge=False):
     absent = SimpleNamespace(count=AsyncMock(return_value=0))
     page = SimpleNamespace(
         goto=AsyncMock(), reload=AsyncMock(), add_init_script=AsyncMock(),
+        title=AsyncMock(return_value="抖音"), url="https://www.douyin.com/", bring_to_front=AsyncMock(),
         locator=Mock(side_effect=lambda selector: body if selector == "body" else absent),
         evaluate=AsyncMock(), main_frame=frame, frames=[frame])
     if challenge:
@@ -505,3 +506,21 @@ def test_park_closes_window_and_driver_but_keeps_owned_profile_for_explicit_refr
             page.reload.assert_awaited_once()
         finally:
             backend.close()
+
+
+def test_challenge_detects_title_captcha_and_brings_window_to_front():
+    driver, context, page = guest()
+    page.title = AsyncMock(return_value="验证码中间页")
+    statuses = []
+
+    def progress(value):
+        statuses.append(value)
+        # simulate human completing verification:
+        page.title = AsyncMock(return_value="抖音-记录美好生活")
+
+    with patch("haizflow.services.douyin_browser._driver", return_value=driver):
+        state = create_anonymous_state(status_callback=progress)
+        state["backend"].close()
+    assert statuses == ["Complete verification in the Douyin window.", "Checking the Douyin session"]
+    page.bring_to_front.assert_awaited()
+
