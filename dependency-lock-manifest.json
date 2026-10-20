@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "target": "windows-x86_64-python-3.13",
+  "generator": "uv==0.11.19",
+  "inputs": {
+    "pyproject.toml": "0fa4a6aa318642807ce254477b15675294ff19242a083621cbc27a1d5848d820",
+    "requirements-build.in": "8b8985be9f6c46e539f5686a2f2a11136447e70c8c34db65dc590cd35f7e36fb"
+  },
+  "lock_file": "requirements-lock-py313-win64.txt",
+  "lock_sha256": "94a3ab913e001f4527fa3ce35a605801467fece16f02dfd7fa873548dc626638"
+}

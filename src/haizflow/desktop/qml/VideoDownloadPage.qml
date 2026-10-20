@@ -1,0 +1,175 @@
+import QtQuick
+import QtQuick.Controls.Basic
+import QtQuick.Layouts
+import "."
+
+Item {
+    id: root
+
+    required property var downloader
+
+    Connections {
+        target: root.downloader
+        function onWorkspaceChanged() {
+            videoLink.text = String(root.downloader.workspaceState.videoUrl || root.downloader.videoPreviewUrl || "");
+        }
+    }
+
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: Theme.space16
+
+        ScrollView {
+            id: videoScroll
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            clip: true
+            ScrollBar.vertical.policy: ScrollBar.AsNeeded
+
+            ColumnLayout {
+                width: videoScroll.availableWidth
+                spacing: Theme.space16
+
+                AppSurface {
+                    Layout.fillWidth: true
+                    padding: Theme.space16
+
+                    SectionHeader {
+                        Layout.fillWidth: true
+                        title: qsTr("Liên kết video")
+                    }
+
+                    AppTextField {
+                        id: videoLink
+                        Layout.fillWidth: true
+                        placeholderText: qsTr("Dán liên kết video")
+                        selectByMouse: true
+                        accessibleName: qsTr("Liên kết video")
+                        enabled: !root.downloader.videoPreviewBusy
+                        text: String(root.downloader.workspaceState.videoUrl || root.downloader.videoPreviewUrl || "")
+                        onTextEdited: {
+                            root.downloader.clearVideoPreview();
+                            root.downloader.saveWorkspaceState({videoUrl: text});
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        StudioButton {
+                            text: qsTr("Kiểm tra")
+                            variant: "secondary"
+                            enabled: videoLink.text.trim().length > 0 && !root.downloader.videoPreviewBusy
+                                && douyinAction.permitsRequest
+                            onClicked: root.downloader.inspectVideo(videoLink.text.trim())
+                        }
+                        StudioButton {
+                            visible: root.downloader.videoPreviewBusy
+                            text: qsTr("Hủy")
+                            variant: "danger"
+                            onClicked: root.downloader.cancelVideoPreview()
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            visible: root.downloader.videoPreviewStatus.length > 0
+                            text: I18n.runtimeStatus(root.downloader.videoPreviewStatus)
+                            color: root.downloader.videoPreviewReady ? Theme.success : Theme.textMuted
+                            wrapMode: Text.WordWrap
+                            textFormat: Text.PlainText
+                        }
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 112
+                        visible: root.downloader.videoPreviewReady
+                        radius: Theme.radiusSmall
+                        color: Theme.surfaceElevated
+                        border.width: 1
+                        border.color: Theme.outline
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: Theme.space12
+                            spacing: Theme.space12
+
+                            Rectangle {
+                                Layout.preferredWidth: 132
+                                Layout.preferredHeight: 76
+                                radius: Theme.radiusTiny
+                                color: Theme.surfaceStrong
+                                clip: true
+
+                                Image {
+                                    id: previewThumbnail
+                                    anchors.fill: parent
+                                    source: root.downloader.videoPreviewThumbnail
+                                    sourceSize.width: 264
+                                    sourceSize.height: 152
+                                    asynchronous: true
+                                    fillMode: Image.PreserveAspectCrop
+                                    visible: status === Image.Ready
+                                }
+                                ThumbnailFallback {
+                                    anchors.fill: parent
+                                    visible: root.downloader.videoPreviewThumbnail.length === 0 || previewThumbnail.status === Image.Error
+                                }
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: Theme.space4
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: root.downloader.videoPreviewTitle
+                                    color: Theme.text
+                                    font.pixelSize: Theme.body
+                                    font.weight: Font.DemiBold
+                                    elide: Text.ElideRight
+                                    textFormat: Text.PlainText
+                                }
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: [root.downloader.videoPreviewPlatform, root.downloader.videoPreviewUploader, root.downloader.videoPreviewDuration].filter(function(value) { return value.length > 0 }).join(" | ")
+                                    color: Theme.textMuted
+                                    font.pixelSize: Theme.caption
+                                    elide: Text.ElideRight
+                                    textFormat: Text.PlainText
+                                }
+                            }
+                        }
+                    }
+
+                    DownloadDestinationRow {
+
+                        Layout.fillWidth: true
+                        directory: root.downloader.videoOutputDirectory
+                        managed: root.downloader.outputManaged
+                        onChooseRequested: root.downloader.chooseVideoOutputDirectory()
+                    }
+
+                    DouyinSessionAction {
+                        id: douyinAction
+                        Layout.fillWidth: true
+                        url: videoLink.text
+                        visible: requiresSession
+                        operationBusy: root.downloader.videoPreviewBusy || root.downloader.hasWork
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Item { Layout.fillWidth: true }
+                        StudioButton {
+                            text: qsTr("Tải video")
+                            variant: "primary"
+                            enabled: root.downloader.videoPreviewReady && root.downloader.videoOutputDirectory.length > 0
+                                && douyinAction.permitsRequest
+                            onClicked: root.downloader.downloadVideo(root.downloader.videoPreviewUrl)
+                        }
+                    }
+                }
+
+                Item { Layout.fillHeight: true }
+            }
+        }
+    }
+}

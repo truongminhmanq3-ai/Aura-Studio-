@@ -1,0 +1,14 @@
+{
+  "instructions": "Configure these choices in the application UI. Enter credentials locally in Settings > API Key.",
+  "translation": {
+    "local": {"provider": "hymt2", "model": "q4"},
+    "deepseek": {"provider": "deepseek", "models": ["deepseek-flash", "deepseek-v4-pro"]},
+    "gemini": {"provider": "gemini", "models": ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"]}
+  },
+  "voice": {
+    "local": {"provider": "omnivoice", "voice": "omnivoice:female"},
+    "elevenlabs": {"provider": "elevenlabs", "models": ["eleven_flash_v2_5", "eleven_v3"], "voice_id": "CHOOSE_FROM_YOUR_ACCOUNT"}
+  },
+  "publishing": {"provider": "zernio", "account": "CHOOSE_LINKED_ACCOUNT_IN_APP"},
+  "credentials": "Stored in the operating system credential store; not included in this file."
+}

@@ -1,0 +1,25 @@
+# Native macOS CPU/vision runtime; CUDA wheels are never used.
+torch==2.8.0
+torchaudio==2.8.0
+torchvision==0.23.0
+whisperx==3.8.6
+pyannote-audio==4.0.7
+torchcodec==0.7.0
+transformers==4.57.6
+accelerate==1.14.0
+llama-cpp-python==0.3.34
+ctranslate2==4.8.1
+faster-whisper==1.2.1
+demucs==4.0.1
+soundfile==0.14.0
+soxr==1.1.0
+nltk==3.10.3
+pydub==0.25.1
+audioop-lts==0.2.2
+multidict==6.9.1
+python-dotenv==1.2.2
+pydantic==2.13.4
+idna==3.15
+urllib3==2.8.0
+onnxruntime==1.23.2
+rapidocr==3.8.1
