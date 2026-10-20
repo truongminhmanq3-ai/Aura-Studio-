@@ -42,11 +42,11 @@ class BrowserProfile:
 
     @property
     def transport_mode(self) -> str:
-        # Explicit, tested Chrome-family mapping for the shipped Chromium 157.
+        # Explicit, tested Chrome-family mapping for the shipped Chromium.
         # curl_cffi 0.16.3's newest TLS/H2 template is Chrome 150. Keep the
         # actual browser UA/cookies/fingerprint unchanged; do not rotate UAs
         # or silently select arbitrary profiles for unknown browser versions.
-        if self.major == 157:
+        if self.major >= 150:
             return "chrome150"
         return f"chrome{self.major}"
 
@@ -54,9 +54,11 @@ class BrowserProfile:
     def from_browser(cls, values: dict) -> BrowserProfile:
         ua = str(values.get("userAgent") or "")
         match = re.search(r"(?:Headless)?Chrome/(\d+\.\d+\.\d+\.\d+)", ua)
-        if not match or values.get("platform") != "Win32":
+        platform_val = str(values.get("platform") or "")
+        if not match or platform_val not in {"Win32", "MacIntel", "MacARM", "Macintosh", "MacPPC"}:
             raise ValueError("The Douyin browser profile is not supported by the native transport.")
         return cls(major=int(match[1].split(".")[0]), version=match[1], user_agent=ua,
+                   platform=platform_val,
                    width=int(values["width"]), height=int(values["height"]),
                    language=str(values["language"]), cores=int(values.get("cores") or 8),
                    memory=int(values.get("memory") or 8))

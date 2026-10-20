@@ -63,8 +63,8 @@ def test_owned_profile_sdk_and_browser_are_reused_without_personal_profile():
             assert signed.headers["uifid"] == "guest-only"
             options = driver.launch_persistent_context_async.call_args.kwargs
             assert options["headless"] is False and options["chromium_sandbox"] is True
-            assert Path(options["executable_path"]).name == "chrome.exe"
-            assert "1714059" in Path(options["executable_path"]).parts
+            assert Path(options["executable_path"]).name in {"chrome.exe", "Google Chrome for Testing"}
+            assert any(rev in Path(options["executable_path"]).parts for rev in ("1714059", "1243-mac-arm64", "1243-mac-x64"))
             assert options["timezone_id"] == "Asia/Shanghai"
             assert not any("fingerprint" in arg for arg in options["args"])
             assert not any("no-sandbox" in arg or "disable-web-security" in arg for arg in options["args"])
