@@ -21,6 +21,7 @@ Rectangle {
 
     readonly property var navItemsModel: [
         { key: "home", label: qsTr("Trang chủ"), icon: "home" },
+        { key: "research", label: qsTr("Nghiên cứu"), icon: "search" },
         { key: "single", label: qsTr("Tự động"), icon: "play" },
         { key: "manual", label: qsTr("Thủ công"), icon: "edit" },
         { key: "batch", label: qsTr("Hàng loạt"), icon: "projects" },

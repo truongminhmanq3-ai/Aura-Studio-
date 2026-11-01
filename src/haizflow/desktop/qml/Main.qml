@@ -22,6 +22,7 @@ ApplicationWindow {
     bottomPadding: 0
 
     readonly property string routeHome: "home"
+    readonly property string routeResearch: "research"
     readonly property string routeProjects: "projects"
     readonly property string routeSettings: "settings"
     readonly property string routeApiKeys: "api-keys"
@@ -92,6 +93,8 @@ ApplicationWindow {
     onCurrentRouteChanged: syncEditHistoryScope()
 
     function navigationSection() {
+        if (currentRoute === routeResearch)
+            return "research";
         if (currentRoute === routeProjects)
             return "home";
         if (currentRoute === routeSingleProjects)
@@ -551,7 +554,9 @@ ApplicationWindow {
             currentSection: root.navigationSection()
             onSectionRequested: function (section) {
                 AppController.refreshVideos();
-                if (section === "single")
+                if (section === "research")
+                    root.navigate(root.routeResearch);
+                else if (section === "single")
                     root.navigate(root.routeSingleProjects);
                 else if (section === "manual")
                     root.navigate(root.routeManualProjects);

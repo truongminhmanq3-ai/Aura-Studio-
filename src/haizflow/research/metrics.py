@@ -88,3 +88,4 @@ def compute_median_interactions(posts: Sequence[PostItem]) -> int:
         return 1
     totals = [p.like_count + p.comment_count + p.collect_count + p.share_count for p in posts]
     return int(statistics.median(totals)) if totals else 1
+

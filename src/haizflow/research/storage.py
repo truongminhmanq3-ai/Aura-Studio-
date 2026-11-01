@@ -314,3 +314,4 @@ class ResearchStorage:
             search_keyword=r["search_keyword"] or "",
             crawled_at=datetime.fromisoformat(r["crawled_at"]) if r["crawled_at"] else datetime.now(timezone.utc),
         )
+

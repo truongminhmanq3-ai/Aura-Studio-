@@ -187,3 +187,4 @@ class XHSClient:
             num = float(re.sub(r"[^\d.]", "", s) or 0)
             return int(num * 10000)
         return int(re.sub(r"[^\d]", "", s) or 0)
+

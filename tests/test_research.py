@@ -217,3 +217,4 @@ def test_xhs_client_parsing_helpers():
     explore_url = "https://www.xiaohongshu.com/explore/65e94b2a0000000001031f0e"
     assert client.extract_note_id(explore_url) == "65e94b2a0000000001031f0e"
     assert client.extract_note_id("65e94b2a0000000001031f0e") == "65e94b2a0000000001031f0e"
+

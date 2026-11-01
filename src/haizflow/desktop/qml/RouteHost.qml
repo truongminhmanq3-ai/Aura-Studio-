@@ -39,7 +39,8 @@ StackLayout {
             "projects": 12,
             "settings": 13,
             "api-keys": 13,
-            "packages": 13
+            "packages": 13,
+            "research": 14
         };
         return routes[route] === undefined ? 0 : routes[route];
     }
@@ -322,5 +323,11 @@ StackLayout {
         Layout.fillHeight: true
         Layout.margins: 0
         onNavigateRequested: function(route) { root.navigateRequested(route); }
+    }
+
+    ResearchPage {
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        Layout.margins: 0
     }
 }

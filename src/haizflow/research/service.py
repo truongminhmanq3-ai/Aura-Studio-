@@ -106,3 +106,4 @@ class ResearchService:
             min_utility=min_utility,
             limit=limit,
         )
+

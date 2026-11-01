@@ -89,3 +89,4 @@ def parse_douyin_aweme(detail: dict[str, Any], search_keyword: str = "") -> Post
         search_keyword=search_keyword,
     )
     return enrich_post_metrics(post)
+

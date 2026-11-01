@@ -75,6 +75,7 @@ from haizflow.desktop.processing_lifecycle_controller import ProcessingLifecycle
 from haizflow.desktop.project_commands_controller import ProjectCommandsController
 from haizflow.desktop.project_import_controller import ProjectImportController
 from haizflow.desktop.project_workspace_controller import ProjectWorkspaceController
+from haizflow.desktop.research_controller import ResearchController
 from haizflow.desktop.resource_pack_controller import ResourcePackController
 from haizflow.desktop.runtime_device_controller import RuntimeDeviceController
 from haizflow.desktop.settings_controller import SettingsController
@@ -426,6 +427,7 @@ class HaizFlowController(QObject):
         self._catalog_media = CatalogMediaController(self)
         self._diagnostics = DiagnosticsController(self)
         self._runtime_device = RuntimeDeviceController(self)
+        self._research_controller = ResearchController(self)
         settings = desktop_settings.load_settings()
         self._settings_theme = settings["theme"]
         self._settings_language = settings["language"]
@@ -1007,6 +1009,10 @@ class HaizFlowController(QObject):
     @Property(QObject, constant=True)
     def downloadProjectSourceModel(self):
         return self.download_project_sources
+
+    @Property(QObject, constant=True)
+    def researchController(self):
+        return self._research_controller
 
     @Property(int, notify=downloadProjectSourcesChanged)
     def downloadProjectSourceSelectedCount(self):
@@ -6666,6 +6672,10 @@ class HaizFlowController(QObject):
     @Slot(str)
     def copyText(self, text: str) -> None:
         QGuiApplication.clipboard().setText(str(text or ""))
+
+    @Slot(str)
+    def copyToClipboard(self, text: str) -> None:
+        self.copyText(text)
 
     @Slot()
     def deleteCurrentProject(self):
