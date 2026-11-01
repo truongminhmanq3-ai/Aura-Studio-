@@ -5,9 +5,10 @@ import logging
 import threading
 from typing import Any
 
-from PySide6.QtCore import QObject, Property, Signal, Slot
+from PySide6.QtCore import QObject, Property, Signal, Slot, QTimer
 
 from haizflow.research.models import PostItem, ResearchMemory
+from haizflow.research.scout import ResearchScout
 from haizflow.research.service import ResearchService
 
 logger = logging.getLogger(__name__)
@@ -57,6 +58,7 @@ class ResearchController(QObject):
         super().__init__(host)
         self._host = host
         self._service = ResearchService()
+        self._scout = ResearchScout()
         self._posts: list[dict[str, Any]] = []
         self._selected_post: dict[str, Any] = {}
         self._current_decision: dict[str, Any] = {}
@@ -157,34 +159,58 @@ class ResearchController(QObject):
     @Slot(str, str)
     def searchKeyword(self, keyword: str, platform: str) -> None:
         """Search or collect posts for a keyword asynchronously."""
+        kw = keyword.strip()
+        if not kw:
+            return
+
         def run_search():
-            self._set_busy(True, f"Đang quét dữ liệu cho '{keyword}'...")
+            QTimer.singleShot(0, lambda: self._set_busy(True, f"Đang quét dữ liệu cho '{kw}'..."))
             try:
-                # In phase 1 preview, load relevant keyword items from corpus or sample generator
-                self._reload_posts()
-                self._set_busy(False, f"Đã quét xong. Tìm thấy {len(self._posts)} bài viết.")
+                new_posts, new_comments = self._scout.scout(kw)
+                if new_posts:
+                    self._service.storage.save_posts(new_posts)
+                if new_comments:
+                    self._service.storage.save_comments(new_comments)
+
+                def on_done():
+                    self._reload_posts()
+                    self._set_busy(False, f"Đã quét xong. Tìm thấy {len(new_posts)} bài viết xu hướng.")
+                    if new_posts:
+                        self.selectPost(new_posts[0].id)
+                        # Auto evaluate the top post
+                        self.evaluateSelectedPost()
+
+                QTimer.singleShot(0, on_done)
             except Exception as exc:
-                logger.error(f"Search failed: {exc}")
-                self._set_busy(False, f"Lỗi: {exc}")
+                logger.error(f"Search failed: {exc}", exc_info=True)
+                err_msg = str(exc)
+                QTimer.singleShot(0, lambda: self._set_busy(False, f"Lỗi quét dữ liệu: {err_msg}"))
 
         threading.Thread(target=run_search, daemon=True).start()
 
     @Slot(str)
     def importUrl(self, raw_url: str) -> None:
         """Inspect and add a single Douyin or Xiaohongshu link."""
+        url = raw_url.strip()
+        if not url:
+            return
+
         def run_import():
-            self._set_busy(True, "Đang phân giải liên kết...")
+            QTimer.singleShot(0, lambda: self._set_busy(True, "Đang phân giải liên kết..."))
             try:
-                post = self._service.inspect_and_store_url(raw_url)
+                post = self._service.inspect_and_store_url(url)
                 if post:
-                    self._reload_posts()
-                    self.selectPost(post.id)
-                    self._set_busy(False, "Đã nạp bài viết thành công!")
+                    def on_success():
+                        self._reload_posts()
+                        self.selectPost(post.id)
+                        self._set_busy(False, "Đã nạp bài viết thành công!")
+                    QTimer.singleShot(0, on_success)
                 else:
-                    self._set_busy(False, "Không thể phân giải bài viết. Kiểm tra lại đường dẫn.")
+                    QTimer.singleShot(0, lambda: self._set_busy(False, "Không thể phân giải bài viết. Kiểm tra lại đường dẫn."))
             except Exception as exc:
-                logger.error(f"Import failed: {exc}")
-                self._set_busy(False, f"Lỗi: {exc}")
+                logger.error(f"Import failed: {exc}", exc_info=True)
+                err_msg = str(exc)
+                QTimer.singleShot(0, lambda: self._set_busy(False, f"Lỗi: {err_msg}"))
 
         threading.Thread(target=run_import, daemon=True).start()
 
@@ -197,10 +223,10 @@ class ResearchController(QObject):
         post_id = self._selected_post["id"]
 
         def run_eval():
-            self._set_busy(True, "AI Agent đang đọc transcript, bình luận và ra quyết định...")
+            QTimer.singleShot(0, lambda: self._set_busy(True, "AI Agent đang đọc transcript, bình luận và ra quyết định..."))
             try:
                 decision = self._service.evaluate_post(post_id)
-                self._current_decision = {
+                dec_map = {
                     "content_id": decision.content_id,
                     "verdict": decision.verdict,
                     "score": decision.score,
@@ -212,11 +238,15 @@ class ResearchController(QObject):
                     "hook_formula": decision.hook_analysis.get("formula", ""),
                     "has_decision": True,
                 }
-                self.decisionChanged.emit()
-                self._set_busy(False, "Đã hoàn thành đánh giá AI!")
+                def on_eval_done():
+                    self._current_decision = dec_map
+                    self.decisionChanged.emit()
+                    self._set_busy(False, "Đã hoàn thành đánh giá AI!")
+                QTimer.singleShot(0, on_eval_done)
             except Exception as exc:
-                logger.error(f"Evaluation failed: {exc}")
-                self._set_busy(False, f"Lỗi đánh giá AI: {exc}")
+                logger.error(f"Evaluation failed: {exc}", exc_info=True)
+                err_msg = str(exc)
+                QTimer.singleShot(0, lambda: self._set_busy(False, f"Lỗi đánh giá AI: {err_msg}"))
 
         threading.Thread(target=run_eval, daemon=True).start()
 
