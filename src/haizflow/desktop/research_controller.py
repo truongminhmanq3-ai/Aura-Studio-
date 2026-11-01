@@ -53,6 +53,7 @@ class ResearchController(QObject):
     busyChanged = Signal()
     statusMessageChanged = Signal()
     activeFilterChanged = Signal()
+    taskDispatched = Signal(object)
 
     def __init__(self, host: Any) -> None:
         super().__init__(host)
@@ -66,8 +67,18 @@ class ResearchController(QObject):
         self._status_message = ""
         self._active_filter = "all"
 
+        # Safe cross-thread invocation back to Qt main GUI thread
+        self.taskDispatched.connect(self._run_task)
+
         # Load initial posts from local corpus DB
         self._reload_posts()
+
+    @Slot(object)
+    def _run_task(self, fn: Any) -> None:
+        try:
+            fn()
+        except Exception as exc:
+            logger.error("Error in dispatched research task: %s", exc, exc_info=True)
 
     # ------------------ Properties ------------------
 
@@ -184,12 +195,12 @@ class ResearchController(QObject):
                     if new_posts:
                         self.selectPost(new_posts[0].id)
 
-                QTimer.singleShot(0, on_done)
+                self.taskDispatched.emit(on_done)
             except Exception as exc:
                 logger.error(f"Search failed: {exc}", exc_info=True)
                 err_msg = str(exc)
                 print(f"[RESEARCH] searchKeyword error: {err_msg}", flush=True)
-                QTimer.singleShot(0, lambda: self._set_busy(False, f"Lỗi quét dữ liệu: {err_msg}"))
+                self.taskDispatched.emit(lambda: self._set_busy(False, f"Lỗi quét dữ liệu: {err_msg}"))
 
         threading.Thread(target=run_search, daemon=True).start()
 
@@ -212,13 +223,13 @@ class ResearchController(QObject):
                         self._reload_posts()
                         self.selectPost(post.id)
                         self._set_busy(False, "Đã nạp bài viết thành công!")
-                    QTimer.singleShot(0, on_success)
+                    self.taskDispatched.emit(on_success)
                 else:
-                    QTimer.singleShot(0, lambda: self._set_busy(False, "Không thể phân giải bài viết. Kiểm tra lại đường dẫn."))
+                    self.taskDispatched.emit(lambda: self._set_busy(False, "Không thể phân giải bài viết. Kiểm tra lại đường dẫn."))
             except Exception as exc:
                 logger.error(f"Import failed: {exc}", exc_info=True)
                 err_msg = str(exc)
-                QTimer.singleShot(0, lambda: self._set_busy(False, f"Lỗi: {err_msg}"))
+                self.taskDispatched.emit(lambda: self._set_busy(False, f"Lỗi: {err_msg}"))
 
         threading.Thread(target=run_import, daemon=True).start()
 
@@ -252,11 +263,11 @@ class ResearchController(QObject):
                     self._current_decision = dec_map
                     self.decisionChanged.emit()
                     self._set_busy(False, "Đã hoàn thành đánh giá AI!")
-                QTimer.singleShot(0, on_eval_done)
+                self.taskDispatched.emit(on_eval_done)
             except Exception as exc:
                 logger.error(f"Evaluation failed: {exc}", exc_info=True)
                 err_msg = str(exc)
-                QTimer.singleShot(0, lambda: self._set_busy(False, f"Lỗi đánh giá AI: {err_msg}"))
+                self.taskDispatched.emit(lambda: self._set_busy(False, f"Lỗi đánh giá AI: {err_msg}"))
 
         threading.Thread(target=run_eval, daemon=True).start()
 

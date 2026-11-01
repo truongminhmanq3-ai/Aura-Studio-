@@ -81,7 +81,7 @@ class ResearchScout:
             "messages": [{"role": "user", "content": prompt}],
             "response_format": {"type": "json_object"},
             "temperature": 0.3,
-            "max_tokens": 1600,
+            "max_tokens": 4096,
         }
         req = request.Request(
             "https://api.deepseek.com/chat/completions",
