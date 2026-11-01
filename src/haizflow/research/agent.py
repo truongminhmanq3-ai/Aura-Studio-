@@ -173,7 +173,7 @@ Hãy phân tích toàn diện và trả về JSON chính xác theo yêu cầu.
         from haizflow.services import secure_credentials
         api_key = secure_credentials.read_secret(f"HaizFlow/Gemini/APIKey/{key_entry['id']}")
         
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
         body = {
             "contents": [
                 {

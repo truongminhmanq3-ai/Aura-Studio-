@@ -183,8 +183,6 @@ class ResearchController(QObject):
                     self._set_busy(False, status_text)
                     if new_posts:
                         self.selectPost(new_posts[0].id)
-                        # Auto evaluate the top post
-                        self.evaluateSelectedPost()
 
                 QTimer.singleShot(0, on_done)
             except Exception as exc:

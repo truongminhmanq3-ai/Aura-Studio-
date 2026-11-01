@@ -18,14 +18,13 @@ logger = logging.getLogger(__name__)
 
 
 SCOUT_PROMPT = """Bạn là Chuyên gia Tình báo Dữ liệu Mạng xã hội Trung Quốc (China Social Intelligence Scout).
-Nhiệm vụ của bạn là trích xuất và tái hiện 5-6 bài đăng/video nổi bật nhất (3 Douyin, 2-3 Xiaohongshu) đang viral hoặc là hình mẫu chuyển đổi thành công nhất tại Trung Quốc cho từ khóa/chủ đề: '{keyword}'.
-
-Yêu cầu dữ liệu:
-- Ít nhất 1 video Douyin dạng Outlier bùng nổ (view/tương tác vượt xa số follower).
-- Ít nhất 1 bài Xiaohongshu dạng Cẩm nang/Checklist hữu dụng (Saves cao hơn Likes).
+Nhiệm vụ: Trích xuất 4 bài đăng/video nổi bật nhất (2 Douyin, 2 Xiaohongshu) đang viral hoặc chuyển đổi mạnh nhất cho từ khóa: '{keyword}'.
+Yêu cầu:
+- 1 video Douyin Outlier bùng nổ (view vượt xa follower) và 1 video Douyin chuyển đổi cao.
+- 1 bài Xiaohongshu Cẩm nang/Checklist (Saves cao hơn Likes) và 1 bài review thực tế.
 - Tiêu đề song ngữ: [Tiêu đề tiếng Trung] - Ý nghĩa tiếng Việt.
 - Lời thoại transcript then chốt thể hiện rõ Hook 3 giây đầu.
-- 3 bình luận người xem thực tế (thể hiện nỗi đau, thắc mắc, hỏi mua).
+- 2 bình luận người xem thực tế (thể hiện nỗi đau, thắc mắc, hỏi mua).
 
 Trả về ĐÚNG cấu trúc JSON sau:
 {
@@ -41,7 +40,7 @@ Trả về ĐÚNG cấu trúc JSON sau:
       "comment_count": 4200,
       "collect_count": 52000,
       "share_count": 18000,
-      "duration": 48,
+      "duration": 45,
       "ip_location": "Chiết Giang",
       "hashtags": ["chủ đề 1", "chủ đề 2"],
       "transcript": "Lời thoại kịch bản then chốt của video...",
@@ -81,7 +80,8 @@ class ResearchScout:
             "model": "deepseek-chat",
             "messages": [{"role": "user", "content": prompt}],
             "response_format": {"type": "json_object"},
-            "temperature": 0.4,
+            "temperature": 0.3,
+            "max_tokens": 1600,
         }
         req = request.Request(
             "https://api.deepseek.com/chat/completions",
@@ -101,7 +101,7 @@ class ResearchScout:
         api_key = secure_credentials.read_secret(f"HaizFlow/Gemini/APIKey/{key_entry['id']}")
         
         prompt = SCOUT_PROMPT.replace("{keyword}", keyword)
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
         body = {
             "contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {"response_mime_type": "application/json", "temperature": 0.4},
