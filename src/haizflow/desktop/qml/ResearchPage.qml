@@ -11,8 +11,8 @@ Item {
     readonly property var controller: AppController.researchController
     readonly property var selected: controller ? controller.selectedPost : ({})
     readonly property var decision: controller ? controller.currentDecision : ({})
-    readonly property bool hasSelected: selected && selected.id !== undefined && selected.id.length > 0
-    readonly property bool hasDecision: decision && decision.has_decision
+    readonly property bool hasSelected: Boolean(selected && selected.id !== undefined && selected.id.length > 0)
+    readonly property bool hasDecision: Boolean(decision && decision.has_decision)
 
     ColumnLayout {
         anchors.fill: parent
@@ -30,14 +30,14 @@ Item {
                     text: qsTr("Nghiên cứu Thị trường & Giám đốc Nội dung AI")
                     color: Theme.text
                     font.family: Theme.fontFamily
-                    font.pixelSize: TypeScale.title2
+                    font.pixelSize: TypeScale.title
                     font.weight: Font.Bold
                 }
                 Text {
                     text: qsTr("Quét xu hướng Douyin & RedNote, khai thác nỗi đau từ bình luận và ra quyết định bằng AI")
                     color: Theme.textMuted
                     font.family: Theme.fontFamily
-                    font.pixelSize: TypeScale.caption
+                    font.pixelSize: TypeScale.metadata
                 }
             }
 
@@ -45,7 +45,7 @@ Item {
 
             // Busy indicator
             RowLayout {
-                visible: root.controller ? root.controller.busy : false
+                visible: Boolean(root.controller && root.controller.busy)
                 spacing: 8
                 BusyIndicator {
                     running: true
@@ -56,7 +56,7 @@ Item {
                     text: root.controller ? root.controller.statusMessage : ""
                     color: Theme.interactive
                     font.family: Theme.fontFamily
-                    font.pixelSize: TypeScale.caption
+                    font.pixelSize: TypeScale.metadata
                 }
             }
         }
@@ -142,10 +142,11 @@ Item {
             Layout.fillHeight: true
             spacing: 16
 
-            // Left Column: Discovered Posts List (60%)
+            // Left Column: Discovered Posts List
             Rectangle {
-                Layout.preferredWidth: parent.width * 0.56
+                Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.preferredWidth: 480
                 radius: 20
                 color: "transparent"
                 border.width: 1
@@ -164,7 +165,7 @@ Item {
                         id: postCard
                         required property var modelData
                         required property int index
-                        readonly property bool isSelected: root.selected && root.selected.id === modelData.id
+                        readonly property bool isSelected: Boolean(root.selected && root.selected.id === modelData.id)
 
                         width: postListView.width
                         height: 98
@@ -223,7 +224,7 @@ Item {
 
                                     // Outlier pill
                                     Rectangle {
-                                        visible: postCard.modelData.is_outlier
+                                        visible: Boolean(postCard.modelData.is_outlier)
                                         Layout.preferredHeight: 20
                                         Layout.preferredWidth: 84
                                         radius: 6
@@ -240,7 +241,7 @@ Item {
 
                                     // Utility pill
                                     Rectangle {
-                                        visible: postCard.modelData.is_useful
+                                        visible: Boolean(postCard.modelData.is_useful)
                                         Layout.preferredHeight: 20
                                         Layout.preferredWidth: 80
                                         radius: 6
@@ -258,7 +259,7 @@ Item {
 
                                 Text {
                                     text: "@" + postCard.modelData.author_name + " • " + (postCard.modelData.ip_location ? postCard.modelData.ip_location : "TQ")
-                                    font.pixelSize: TypeScale.caption
+                                    font.pixelSize: TypeScale.metadata
                                     color: Theme.textMuted
                                 }
 
@@ -293,10 +294,11 @@ Item {
                 }
             }
 
-            // Right Column: AI Decision Card (44%)
+            // Right Column: AI Decision Card
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.preferredWidth: 420
                 radius: 20
                 color: "transparent"
                 border.width: 1
@@ -319,7 +321,7 @@ Item {
                             Text {
                                 text: qsTr("Quyết định Giám đốc Nội dung AI")
                                 font.bold: true
-                                font.pixelSize: TypeScale.title3
+                                font.pixelSize: TypeScale.section
                                 color: Theme.text
                             }
                             Item { Layout.fillWidth: true }
@@ -345,7 +347,7 @@ Item {
                             }
                             Text {
                                 text: "AI Agent sẽ phân tích transcript, bình luận và đề xuất công thức kịch bản cho bạn."
-                                font.pixelSize: TypeScale.caption
+                                font.pixelSize: TypeScale.metadata
                                 color: Theme.textSubtle
                                 Layout.alignment: Qt.AlignHCenter
                             }
@@ -365,7 +367,7 @@ Item {
                                 anchors.margins: 10
                                 spacing: 4
                                 Text {
-                                    text: root.selected ? root.selected.title : ""
+                                    text: (root.selected && root.selected.title) ? root.selected.title : ""
                                     font.bold: true
                                     font.pixelSize: TypeScale.body
                                     color: Theme.text
@@ -375,7 +377,7 @@ Item {
                                 RowLayout {
                                     spacing: 12
                                     Text {
-                                        text: "Link: " + (root.selected ? root.selected.url : "")
+                                        text: "Link: " + ((root.selected && root.selected.url) ? root.selected.url : "")
                                         font.pixelSize: 11
                                         color: Theme.textMuted
                                         elide: Text.ElideRight
@@ -421,7 +423,7 @@ Item {
                                     }
                                     Item { Layout.fillWidth: true }
                                     Text {
-                                        text: "Điểm tiềm năng: " + root.decision.score + " / 100"
+                                        text: "Điểm tiềm năng: " + (root.decision.score || 0) + " / 100"
                                         font.bold: true
                                         font.pixelSize: 14
                                         color: Theme.text
@@ -441,7 +443,7 @@ Item {
                                     anchors.fill: parent
                                     anchors.margins: 10
                                     text: root.decision.summary ? root.decision.summary : ""
-                                    font.pixelSize: TypeScale.caption
+                                    font.pixelSize: TypeScale.metadata
                                     color: Theme.text
                                     wrapMode: Text.WordWrap
                                 }
@@ -454,7 +456,7 @@ Item {
                                 Text {
                                     text: qsTr("🎯 3 Câu Hook tiếng Việt đề xuất (3 giây đầu):")
                                     font.bold: true
-                                    font.pixelSize: TypeScale.caption
+                                    font.pixelSize: TypeScale.metadata
                                     color: Theme.interactive
                                 }
                                 Repeater {
@@ -497,7 +499,7 @@ Item {
                                 Text {
                                     text: qsTr("💡 Khai thác Nỗi đau & Nhu cầu từ Bình luận:")
                                     font.bold: true
-                                    font.pixelSize: TypeScale.caption
+                                    font.pixelSize: TypeScale.metadata
                                     color: "#F59E0B"
                                 }
                                 Repeater {
@@ -515,13 +517,13 @@ Item {
 
                             // Adaptation notes
                             ColumnLayout {
-                                visible: root.decision.adaptation_notes !== undefined && root.decision.adaptation_notes.length > 0
+                                visible: Boolean(root.decision.adaptation_notes && root.decision.adaptation_notes.length > 0)
                                 Layout.fillWidth: true
                                 spacing: 4
                                 Text {
                                     text: qsTr("📝 Lưu ý khi Việt hóa kịch bản:")
                                     font.bold: true
-                                    font.pixelSize: TypeScale.caption
+                                    font.pixelSize: TypeScale.metadata
                                     color: Theme.text
                                 }
                                 Text {
@@ -549,7 +551,7 @@ Item {
                                         Layout.fillWidth: true
                                         text: qsTr("Sẵn sàng dựng video này bằng Aura Studio?")
                                         font.bold: true
-                                        font.pixelSize: TypeScale.caption
+                                        font.pixelSize: TypeScale.metadata
                                         color: Theme.text
                                     }
                                     StudioButton {
@@ -558,7 +560,6 @@ Item {
                                         onClicked: {
                                             if (root.selected && root.selected.url) {
                                                 AppController.copyToClipboard(root.selected.url);
-                                                // Navigate to Single Projects so user can paste and render
                                                 root.controller.selectPost(root.selected.id);
                                             }
                                         }

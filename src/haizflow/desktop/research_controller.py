@@ -219,3 +219,4 @@ class ResearchController(QObject):
                 self._set_busy(False, f"Lỗi đánh giá AI: {exc}")
 
         threading.Thread(target=run_eval, daemon=True).start()
+
