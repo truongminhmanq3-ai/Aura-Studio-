@@ -163,8 +163,11 @@ class ResearchController(QObject):
         if not kw:
             return
 
+        print(f"[RESEARCH] searchKeyword started for: '{kw}', platform: '{platform}'", flush=True)
+        logger.info("Research searchKeyword started for: '%s', platform: '%s'", kw, platform)
+        self._set_busy(True, f"Đang quét thị trường Douyin & Xiaohongshu cho '{kw}'...")
+
         def run_search():
-            QTimer.singleShot(0, lambda: self._set_busy(True, f"Đang quét dữ liệu cho '{kw}'..."))
             try:
                 new_posts, new_comments = self._scout.scout(kw)
                 if new_posts:
@@ -174,7 +177,10 @@ class ResearchController(QObject):
 
                 def on_done():
                     self._reload_posts()
-                    self._set_busy(False, f"Đã quét xong. Tìm thấy {len(new_posts)} bài viết xu hướng.")
+                    count = len(new_posts)
+                    status_text = f"Đã quét xong! Tìm thấy {count} nội dung thị trường cho '{kw}'."
+                    print(f"[RESEARCH] searchKeyword finished: {status_text}", flush=True)
+                    self._set_busy(False, status_text)
                     if new_posts:
                         self.selectPost(new_posts[0].id)
                         # Auto evaluate the top post
@@ -184,6 +190,7 @@ class ResearchController(QObject):
             except Exception as exc:
                 logger.error(f"Search failed: {exc}", exc_info=True)
                 err_msg = str(exc)
+                print(f"[RESEARCH] searchKeyword error: {err_msg}", flush=True)
                 QTimer.singleShot(0, lambda: self._set_busy(False, f"Lỗi quét dữ liệu: {err_msg}"))
 
         threading.Thread(target=run_search, daemon=True).start()
@@ -195,8 +202,11 @@ class ResearchController(QObject):
         if not url:
             return
 
+        print(f"[RESEARCH] importUrl started: '{url}'", flush=True)
+        logger.info("Research importUrl started: '%s'", url)
+        self._set_busy(True, "Đang phân giải liên kết...")
+
         def run_import():
-            QTimer.singleShot(0, lambda: self._set_busy(True, "Đang phân giải liên kết..."))
             try:
                 post = self._service.inspect_and_store_url(url)
                 if post:
@@ -221,9 +231,11 @@ class ResearchController(QObject):
             return
 
         post_id = self._selected_post["id"]
+        print(f"[RESEARCH] evaluateSelectedPost started for post_id: '{post_id}'", flush=True)
+        logger.info("Research evaluateSelectedPost started for post_id: '%s'", post_id)
+        self._set_busy(True, "AI Agent đang đọc transcript, bình luận và ra quyết định...")
 
         def run_eval():
-            QTimer.singleShot(0, lambda: self._set_busy(True, "AI Agent đang đọc transcript, bình luận và ra quyết định..."))
             try:
                 decision = self._service.evaluate_post(post_id)
                 dec_map = {

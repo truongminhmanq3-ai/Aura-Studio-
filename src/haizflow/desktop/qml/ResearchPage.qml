@@ -12,6 +12,21 @@ Item {
     readonly property bool hasSelected: Boolean(selected && selected.id !== undefined && selected.id.length > 0)
     readonly property bool hasDecision: Boolean(decision && decision.has_decision)
 
+    function doSearch() {
+        const q = searchInput.text.trim();
+        console.log("[RESEARCH_UI] doSearch called with:", q, "controller:", root.controller);
+        if (!q) return;
+        if (!root.controller) {
+            console.error("[RESEARCH_UI] Error: root.controller is missing!");
+            return;
+        }
+        if (q.startsWith("http://") || q.startsWith("https://")) {
+            root.controller.importUrl(q);
+        } else {
+            root.controller.searchKeyword(q, "all");
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: UiMetrics.pageMargin
@@ -81,26 +96,20 @@ Item {
                 AppTextField {
                     id: searchInput
                     Layout.fillWidth: true
-                    placeholderText: qsTr("Nhập từ khóa (vd: dạy chó con, cắm trại) hoặc dán link Douyin / Xiaohongshu...")
+                    placeholderText: qsTr("Nhập từ khóa (vd: cắm trại, podcast chữa lành...) hoặc dán link Douyin / Xiaohongshu...")
                     text: ""
-                    function triggerSearch() {
-                        const q = text.trim();
-                        if (q.startsWith("http://") || q.startsWith("https://")) {
-                            if (root.controller) root.controller.importUrl(q);
-                        } else if (q.length > 0) {
-                            if (root.controller) root.controller.searchKeyword(q, "all");
-                        }
-                    }
-                    onAccepted: triggerSearch()
-                    Keys.onReturnPressed: function(event) { triggerSearch(); event.accepted = true; }
-                    Keys.onEnterPressed: function(event) { triggerSearch(); event.accepted = true; }
+                    onAccepted: root.doSearch()
+                    Keys.onReturnPressed: function(event) { root.doSearch(); event.accepted = true; }
+                    Keys.onEnterPressed: function(event) { root.doSearch(); event.accepted = true; }
                 }
 
                 StudioButton {
-                    text: qsTr("Khám phá & Quét")
+                    id: searchBtn
+                    text: root.controller && root.controller.busy ? qsTr("Đang quét...") : qsTr("Khám phá & Quét")
                     variant: "primary"
-                    iconName: "search"
-                    onClicked: searchInput.triggerSearch()
+                    iconName: root.controller && root.controller.busy ? "" : "search"
+                    enabled: Boolean(root.controller && !root.controller.busy)
+                    onClicked: root.doSearch()
                 }
 
                 Rectangle {
@@ -127,6 +136,48 @@ Item {
                         variant: root.controller && root.controller.activeFilter === "useful" ? "primary" : "secondary"
                         onClicked: root.controller.setFilter("useful")
                     }
+                }
+            }
+        }
+
+        // Real-time Status / Feedback Banner
+        Rectangle {
+            id: statusBar
+            Layout.fillWidth: true
+            Layout.preferredHeight: 38
+            radius: Theme.radiusTiny
+            visible: Boolean(root.controller && root.controller.statusMessage.length > 0)
+            color: root.controller && root.controller.busy
+                   ? "#1A3B82F6"
+                   : (root.controller && root.controller.statusMessage.indexOf("Lỗi") !== -1 ? "#1AEF4444" : "#1A10B981")
+            border.width: 1
+            border.color: root.controller && root.controller.busy
+                          ? "#503B82F6"
+                          : (root.controller && root.controller.statusMessage.indexOf("Lỗi") !== -1 ? "#50EF4444" : "#5010B981")
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 14
+                anchors.rightMargin: 14
+                spacing: 10
+
+                BusyIndicator {
+                    running: Boolean(root.controller && root.controller.busy)
+                    visible: running
+                    Layout.preferredWidth: 16
+                    Layout.preferredHeight: 16
+                }
+
+                Text {
+                    text: root.controller ? root.controller.statusMessage : ""
+                    color: root.controller && root.controller.busy
+                           ? "#2563EB"
+                           : (root.controller && root.controller.statusMessage.indexOf("Lỗi") !== -1 ? Theme.danger : "#059669")
+                    font.family: Theme.fontFamily
+                    font.pixelSize: TypeScale.metadata
+                    font.weight: Font.Medium
+                    Layout.fillWidth: true
+                    elide: Text.ElideRight
                 }
             }
         }
