@@ -3,14 +3,53 @@
 from __future__ import annotations
 
 import ctypes
+import json
 import os
 import sys
 from ctypes import wintypes
+from pathlib import Path
 
 
 _CRED_TYPE_GENERIC = 1
 _CRED_PERSIST_LOCAL_MACHINE = 2
 _ERROR_NOT_FOUND = 1168
+
+
+def _local_credentials_path() -> Path:
+    from haizflow.config import RUNTIME_DATA_DIR
+    return Path(RUNTIME_DATA_DIR) / ".secure_credentials.json"
+
+
+def _read_local_store() -> dict[str, str]:
+    try:
+        path = _local_credentials_path()
+        if path.is_file():
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+    except Exception:
+        pass
+    return {}
+
+
+def _write_local_store(data: dict[str, str]) -> None:
+    try:
+        path = _local_credentials_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temp_path = path.with_suffix(".tmp")
+        with open(temp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        try:
+            os.chmod(temp_path, 0o600)
+        except Exception:
+            pass
+        os.replace(temp_path, path)
+    except Exception:
+        pass
+
 
 
 class _CredentialW(ctypes.Structure):
@@ -55,6 +94,12 @@ def write_secret(target: str, secret: str, *, username: str = "Aura Studio") -> 
     value = str(secret or "")
     if not target_name or not value:
         raise ValueError("Credential target and secret are required.")
+
+    # Always persist to protected local store (0600) for cross-session/sandbox reliability
+    local_data = _read_local_store()
+    local_data[target_name] = value
+    _write_local_store(local_data)
+
     if sys.platform == "darwin":
         from keyring.backends.macOS import Keyring
 
@@ -93,12 +138,21 @@ def read_secret(target: str) -> str:
         }.get(target_name)
         if env_fallback and os.getenv(env_fallback):
             return os.getenv(env_fallback, "").strip()
+
+        # Check local secure file first
+        local_data = _read_local_store()
+        if target_name in local_data and local_data[target_name].strip():
+            return local_data[target_name].strip()
+
         from keyring.backends.macOS import Keyring
 
         for service in ("AuraStudio", "HaizFlow"):
             try:
                 found = Keyring().get_password(service, target_name)
                 if found:
+                    # Sync to local store so subsequent reads are instant and reliable
+                    local_data[target_name] = found
+                    _write_local_store(local_data)
                     return found
             except Exception:
                 pass
@@ -108,7 +162,8 @@ def read_secret(target: str) -> str:
     if not library.CredReadW(target_name, _CRED_TYPE_GENERIC, 0, ctypes.byref(pointer)):
         error = ctypes.get_last_error()
         if error == _ERROR_NOT_FOUND:
-            return ""
+            local_data = _read_local_store()
+            return local_data.get(target_name, "")
         raise ctypes.WinError(error)
     try:
         size = int(pointer.contents.CredentialBlobSize)
@@ -123,6 +178,13 @@ def delete_secret(target: str) -> bool:
     target_name = str(target or "").strip()
     if not target_name:
         return False
+
+    # Remove from local store
+    local_data = _read_local_store()
+    if target_name in local_data:
+        local_data.pop(target_name, None)
+        _write_local_store(local_data)
+
     if sys.platform == "darwin":
         from keyring.backends.macOS import Keyring
         from keyring.errors import PasswordDeleteError

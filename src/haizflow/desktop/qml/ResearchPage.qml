@@ -444,15 +444,15 @@ Item {
                         Rectangle {
                             visible: root.hasSelected
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 70
+                            Layout.preferredHeight: 82
                             radius: 12
                             color: "#1209090B"
                             border.color: "#22FFFFFF"
 
                             ColumnLayout {
                                 anchors.fill: parent
-                                anchors.margins: 10
-                                spacing: 4
+                                anchors.margins: 12
+                                spacing: 6
                                 Text {
                                     text: (root.selected && root.selected.title) ? root.selected.title : ""
                                     font.bold: true
@@ -462,14 +462,60 @@ Item {
                                     Layout.fillWidth: true
                                 }
                                 RowLayout {
-                                    spacing: 12
-                                    Text {
-                                        text: "Link: " + ((root.selected && root.selected.url) ? root.selected.url : "")
-                                        font.pixelSize: 11
-                                        color: Theme.textMuted
-                                        elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                    spacing: 10
+
+                                    Rectangle {
                                         Layout.fillWidth: true
+                                        Layout.preferredHeight: 30
+                                        radius: 6
+                                        color: "#0F000000"
+                                        border.width: 1
+                                        border.color: "#1A000000"
+
+                                        RowLayout {
+                                            anchors.fill: parent
+                                            anchors.leftMargin: 8
+                                            anchors.rightMargin: 8
+                                            spacing: 6
+
+                                            Text {
+                                                text: "🔗"
+                                                font.pixelSize: 11
+                                            }
+
+                                            Text {
+                                                id: linkLabel
+                                                text: ((root.selected && root.selected.url) ? root.selected.url : "")
+                                                font.pixelSize: 11
+                                                color: "#2563EB"
+                                                font.underline: true
+                                                elide: Text.ElideRight
+                                                Layout.fillWidth: true
+
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        if (root.selected && root.selected.url) {
+                                                            Qt.openUrlExternally(root.selected.url);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
+
+                                    StudioButton {
+                                        text: qsTr("🌐 Mở web kiểm tra")
+                                        variant: "primary"
+                                        onClicked: {
+                                            if (root.selected && root.selected.url) {
+                                                Qt.openUrlExternally(root.selected.url);
+                                            }
+                                        }
+                                    }
+
                                     StudioButton {
                                         text: qsTr("Sao chép link")
                                         variant: "secondary"

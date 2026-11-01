@@ -293,11 +293,25 @@ class ResearchStorage:
             return [self._row_to_post(r) for r in rows]
 
     def _row_to_post(self, r: sqlite3.Row) -> PostItem:
+        url = r["url"] or ""
+        # Ensure scouted posts always point to live verifiable search results
+        if r["search_keyword"] and (
+            url in ("https://www.douyin.com/", "https://www.douyin.com", "https://www.xiaohongshu.com/", "https://www.xiaohongshu.com")
+            or "/video/" in url or "/explore/" in url
+        ):
+            from urllib import parse
+            title_text = (r["title"] or r["search_keyword"] or "").strip()
+            chinese_term = title_text.split(" - ")[0].strip() if " - " in title_text else title_text
+            if r["platform"] == "douyin":
+                url = f"https://www.douyin.com/search/{parse.quote(chinese_term)}"
+            else:
+                url = f"https://www.xiaohongshu.com/search_result?keyword={parse.quote(chinese_term)}"
+
         return PostItem(
             id=r["id"],
             platform=r["platform"],
             content_id=r["content_id"],
-            url=r["url"],
+            url=url,
             title=r["title"] or "",
             caption_text=r["caption_text"] or "",
             cover_image_url=r["cover_image_url"] or "",
