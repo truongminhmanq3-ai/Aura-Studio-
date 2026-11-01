@@ -188,6 +188,153 @@ Item {
             }
         }
 
+        // Trending Keywords & Niche Explorer Bar
+        Rectangle {
+            id: trendingSection
+            Layout.fillWidth: true
+            Layout.preferredHeight: 74
+            radius: 14
+            color: "#08000000"
+            border.width: 1
+            border.color: "#18000000"
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 8
+                spacing: 6
+
+                // Category selector bar
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+
+                    Text {
+                        text: qsTr("🔥 Xu hướng hôm nay:")
+                        font.family: Theme.fontFamily
+                        font.bold: true
+                        font.pixelSize: 12
+                        color: Theme.text
+                    }
+
+                    // Categories
+                    Repeater {
+                        model: [
+                            { id: "all", label: "Tất cả" },
+                            { id: "pets", label: "🐶 Thú cưng" },
+                            { id: "home", label: "🏠 Gia dụng" },
+                            { id: "camping", label: "🏕️ Cắm trại" },
+                            { id: "food", label: "🍳 Nấu ăn" },
+                            { id: "beauty", label: "💄 Làm đẹp" },
+                            { id: "douyin_hot", label: "📊 Douyin Hot" }
+                        ]
+
+                        Rectangle {
+                            id: catChip
+                            required property var modelData
+                            readonly property bool isSelected: Boolean(root.controller && root.controller.trendingCategory === modelData.id)
+                            Layout.preferredHeight: 22
+                            Layout.preferredWidth: catText.implicitWidth + 14
+                            radius: 6
+                            color: isSelected ? Theme.interactive : (catMouse.containsMouse ? "#20000000" : "transparent")
+                            border.width: 1
+                            border.color: isSelected ? Theme.interactive : "#22000000"
+
+                            Text {
+                                id: catText
+                                anchors.centerIn: parent
+                                text: catChip.modelData.label
+                                font.pixelSize: 11
+                                font.weight: catChip.isSelected ? Font.Bold : Font.Normal
+                                color: catChip.isSelected ? Theme.textOnAccent : Theme.textMuted
+                            }
+
+                            MouseArea {
+                                id: catMouse
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                hoverEnabled: true
+                                onClicked: {
+                                    if (root.controller) {
+                                        root.controller.setTrendingCategory(catChip.modelData.id);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    // Button to open Top 50 Hot Search Dialog
+                    StudioButton {
+                        text: qsTr("📊 Top 50 Hot Search Douyin")
+                        variant: "secondary"
+                        onClicked: {
+                            if (root.controller) {
+                                root.controller.loadDouyinHotBoard();
+                            }
+                            hotBoardPopup.open();
+                        }
+                    }
+                }
+
+                // Horizontal Flickable of Clickable Trending Keyword Chips
+                Flickable {
+                    id: tagFlickable
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    contentWidth: tagRow.implicitWidth
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    RowLayout {
+                        id: tagRow
+                        spacing: 8
+                        height: parent.height
+
+                        Repeater {
+                            model: root.controller ? root.controller.trendingKeywords : []
+
+                            Rectangle {
+                                id: tagChip
+                                required property var modelData
+                                Layout.preferredHeight: 26
+                                Layout.preferredWidth: tagChipText.implicitWidth + 18
+                                radius: 8
+                                color: chipMouse.containsMouse ? "#2563EB" : "#10000000"
+                                border.width: 1
+                                border.color: chipMouse.containsMouse ? "#2563EB" : "#1C000000"
+
+                                Text {
+                                    id: tagChipText
+                                    anchors.centerIn: parent
+                                    text: tagChip.modelData.label || tagChip.modelData.keyword
+                                    font.pixelSize: 11
+                                    font.bold: chipMouse.containsMouse
+                                    color: chipMouse.containsMouse ? "#FFFFFF" : Theme.text
+                                }
+
+                                MouseArea {
+                                    id: chipMouse
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    hoverEnabled: true
+                                    onClicked: {
+                                        const kw = tagChip.modelData.keyword;
+                                        if (kw) {
+                                            searchInput.text = kw;
+                                            if (root.controller) {
+                                                root.controller.searchKeyword(kw, "all");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Two-Column Work Area
         RowLayout {
             Layout.fillWidth: true
@@ -696,6 +843,138 @@ Item {
                                                 root.controller.selectPost(root.selected.id);
                                             }
                                         }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Popup Top 50 Douyin Hot Search
+    Popup {
+        id: hotBoardPopup
+        anchors.centerIn: parent
+        width: Math.min(root.width * 0.85, 640)
+        height: Math.min(root.height * 0.85, 580)
+        modal: true
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        background: Rectangle {
+            radius: 18
+            color: "#FFFFFF"
+            border.width: 1
+            border.color: "#33000000"
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 18
+            spacing: 12
+
+            RowLayout {
+                Layout.fillWidth: true
+                Text {
+                    text: qsTr("📊 Bảng Xếp Hạng Douyin Hot Search Thời Gian Thực (Top 50)")
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 15
+                    font.bold: true
+                    color: Theme.text
+                }
+                Item { Layout.fillWidth: true }
+                StudioButton {
+                    text: "✕ Đóng"
+                    variant: "secondary"
+                    onClicked: hotBoardPopup.close()
+                }
+            }
+
+            Text {
+                text: qsTr("Click vào bất kỳ từ khóa nào để Aura Studio tự động phân tích và bắt trend ngay lập tức:")
+                font.pixelSize: 12
+                color: Theme.textMuted
+                Layout.fillWidth: true
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                radius: 12
+                color: "#08000000"
+                border.width: 1
+                border.color: "#14000000"
+                clip: true
+
+                ListView {
+                    id: hotListView
+                    anchors.fill: parent
+                    anchors.margins: 8
+                    spacing: 6
+                    model: root.controller ? root.controller.douyinHotBoard : []
+                    clip: true
+
+                    delegate: Rectangle {
+                        id: hotItemRow
+                        required property var modelData
+                        required property int index
+                        width: hotListView.width
+                        height: 38
+                        radius: 8
+                        color: hotItemMouse.containsMouse ? "#182563EB" : "transparent"
+                        border.width: hotItemMouse.containsMouse ? 1 : 0
+                        border.color: "#402563EB"
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
+                            spacing: 10
+
+                            Rectangle {
+                                Layout.preferredWidth: 26
+                                Layout.preferredHeight: 22
+                                radius: 4
+                                color: hotItemRow.index === 0 ? "#FF3B30" : (hotItemRow.index === 1 ? "#FF9500" : (hotItemRow.index === 2 ? "#FFCC00" : "#E5E5EA"))
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: String(hotItemRow.index + 1)
+                                    font.bold: true
+                                    font.pixelSize: 11
+                                    color: hotItemRow.index < 3 ? "#FFFFFF" : "#666666"
+                                }
+                            }
+
+                            Text {
+                                text: hotItemRow.modelData.keyword || ""
+                                font.pixelSize: 13
+                                font.bold: hotItemRow.index < 3
+                                color: Theme.text
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                text: "🔥 " + (hotItemRow.modelData.hot_value || "")
+                                font.pixelSize: 11
+                                color: "#FF3B30"
+                            }
+                        }
+
+                        MouseArea {
+                            id: hotItemMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                const kw = hotItemRow.modelData.keyword;
+                                if (kw) {
+                                    searchInput.text = kw;
+                                    hotBoardPopup.close();
+                                    if (root.controller) {
+                                        root.controller.searchKeyword(kw, "all");
                                     }
                                 }
                             }

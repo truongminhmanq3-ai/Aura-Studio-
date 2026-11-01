@@ -7,6 +7,7 @@ from typing import Any
 
 from PySide6.QtCore import QObject, Property, Signal, Slot, QTimer
 
+from haizflow.research.hot_trends import fetch_douyin_hot_board, get_trending_keywords
 from haizflow.research.models import PostItem, ResearchMemory
 from haizflow.research.scout import ResearchScout
 from haizflow.research.service import ResearchService
@@ -54,6 +55,9 @@ class ResearchController(QObject):
     statusMessageChanged = Signal()
     activeFilterChanged = Signal()
     taskDispatched = Signal(object)
+    trendingKeywordsChanged = Signal()
+    trendingCategoryChanged = Signal()
+    douyinHotBoardChanged = Signal()
 
     def __init__(self, host: Any) -> None:
         super().__init__(host)
@@ -67,11 +71,27 @@ class ResearchController(QObject):
         self._status_message = ""
         self._active_filter = "all"
 
+        self._trending_category = "all"
+        self._trending_keywords = get_trending_keywords("all")
+        self._douyin_hot_board: list[dict[str, Any]] = []
+
         # Safe cross-thread invocation back to Qt main GUI thread
         self.taskDispatched.connect(self._run_task)
 
         # Load initial posts from local corpus DB
         self._reload_posts()
+
+        # Load fresh live Douyin hot trends in background
+        self._load_trends_async()
+
+    def _load_trends_async(self) -> None:
+        def worker():
+            fresh_trends = get_trending_keywords(self._trending_category)
+            def on_done():
+                self._trending_keywords = fresh_trends
+                self.trendingKeywordsChanged.emit()
+            self.taskDispatched.emit(on_done)
+        threading.Thread(target=worker, daemon=True).start()
 
     @Slot(object)
     def _run_task(self, fn: Any) -> None:
@@ -109,6 +129,18 @@ class ResearchController(QObject):
     @Property(int, notify=postsChanged)
     def postCount(self) -> int:
         return len(self._posts)
+
+    @Property("QVariantList", notify=trendingKeywordsChanged)
+    def trendingKeywords(self) -> list[dict[str, Any]]:
+        return self._trending_keywords
+
+    @Property(str, notify=trendingCategoryChanged)
+    def trendingCategory(self) -> str:
+        return self._trending_category
+
+    @Property("QVariantList", notify=douyinHotBoardChanged)
+    def douyinHotBoard(self) -> list[dict[str, Any]]:
+        return self._douyin_hot_board
 
     # ------------------ Helpers ------------------
 
@@ -297,4 +329,40 @@ class ResearchController(QObject):
         self.decisionChanged.emit()
         self._reload_posts()
         self._set_busy(False, "Đã xóa toàn bộ lịch sử nghiên cứu.")
+
+    @Slot(str)
+    def setTrendingCategory(self, category: str) -> None:
+        """Switch trending category and update keywords asynchronously."""
+        cat = category.strip() or "all"
+        if cat != self._trending_category:
+            self._trending_category = cat
+            self.trendingCategoryChanged.emit()
+
+            def load():
+                kw_list = get_trending_keywords(cat)
+                def on_done():
+                    self._trending_keywords = kw_list
+                    self.trendingKeywordsChanged.emit()
+                self.taskDispatched.emit(on_done)
+
+            threading.Thread(target=load, daemon=True).start()
+
+    @Slot()
+    def loadDouyinHotBoard(self) -> None:
+        """Fetch top 50 Douyin live hot search board in background."""
+        self._set_busy(True, "Đang tải Bảng Xếp Hạng Douyin Hot Search thời gian thực...")
+
+        def load():
+            try:
+                hot_list = fetch_douyin_hot_board(limit=50)
+                def on_done():
+                    self._douyin_hot_board = hot_list
+                    self.douyinHotBoardChanged.emit()
+                    self._set_busy(False, f"Đã cập nhật {len(hot_list)} từ khóa Douyin Hot Search hôm nay!")
+                self.taskDispatched.emit(on_done)
+            except Exception as exc:
+                logger.error("Failed to load Douyin hot board: %s", exc)
+                self.taskDispatched.emit(lambda: self._set_busy(False, f"Lỗi tải Hot Search: {exc}"))
+
+        threading.Thread(target=load, daemon=True).start()
 
