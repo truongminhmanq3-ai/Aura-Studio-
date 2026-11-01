@@ -245,6 +245,12 @@ Module {
             isReadonly: true
         }
         Property {
+            name: "researchController"
+            type: "QObject"
+            read: "researchController"
+            isReadonly: true
+        }
+        Property {
             name: "downloadProjectSourceSelectedCount"
             type: "int"
             read: "downloadProjectSourceSelectedCount"
@@ -1798,6 +1804,10 @@ Module {
         }
         Method { name: "retryModelSetup" }
         Method { name: "cancelModelSetup" }
+        Method {
+            name: "copyToClipboard"
+            Parameter { name: "text"; type: "QString" }
+        }
         Method {
             name: "voiceOptionsForLanguage"
             type: "QVariantList"

@@ -1,5 +1,3 @@
-pragma ComponentBehavior: Bound
-
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
@@ -85,27 +83,24 @@ Item {
                     Layout.fillWidth: true
                     placeholderText: qsTr("Nhập từ khóa (vd: dạy chó con, cắm trại) hoặc dán link Douyin / Xiaohongshu...")
                     text: ""
-                    onAccepted: {
-                        if (text.startsWith("http://") || text.startsWith("https://")) {
-                            root.controller.importUrl(text);
-                        } else if (text.trim().length > 0) {
-                            root.controller.searchKeyword(text.trim(), "all");
+                    function triggerSearch() {
+                        const q = text.trim();
+                        if (q.startsWith("http://") || q.startsWith("https://")) {
+                            if (root.controller) root.controller.importUrl(q);
+                        } else if (q.length > 0) {
+                            if (root.controller) root.controller.searchKeyword(q, "all");
                         }
                     }
+                    onAccepted: triggerSearch()
+                    Keys.onReturnPressed: function(event) { triggerSearch(); event.accepted = true; }
+                    Keys.onEnterPressed: function(event) { triggerSearch(); event.accepted = true; }
                 }
 
                 StudioButton {
                     text: qsTr("Khám phá & Quét")
                     variant: "primary"
                     iconName: "search"
-                    onClicked: {
-                        const q = searchInput.text.trim();
-                        if (q.startsWith("http://") || q.startsWith("https://")) {
-                            root.controller.importUrl(q);
-                        } else if (q.length > 0) {
-                            root.controller.searchKeyword(q, "all");
-                        }
-                    }
+                    onClicked: searchInput.triggerSearch()
                 }
 
                 Rectangle {

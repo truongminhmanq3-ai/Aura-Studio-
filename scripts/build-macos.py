@@ -125,6 +125,7 @@ def main():
     parser.add_argument("--reuse-bundle", type=Path, help="Reuse verified native engines and browser from an existing Mac app")
     parser.add_argument("--skip-engines", action="store_true", help="Reuse already-built engines")
     parser.add_argument("--reuse-cpu", action="store_true", help="Reuse a compiled CPU engine, then verify its resources")
+    parser.add_argument("--skip-smoke", action="store_true", help="Skip browser and UI smoke tests")
     args = parser.parse_args()
     if sys.platform != "darwin" or sys.version_info[:2] != (3, 13):
         parser.error("Build on macOS using CPython 3.13.")
@@ -219,8 +220,9 @@ def main():
                "platform": "darwin-" + platform.machine(), "browser_inventory_sha256": file_digest(browser / "browser-files.json")})
     # Seal new metadata without modifying the already-signed nested Chromium.
     run(["codesign", "--force", "--sign", "-", app])
-    smoke(browser)
-    run([app / "Contents/MacOS/Aura Studio", "--ui-smoke-test"], env={**env, "PATH": "/usr/bin:/bin", "HAIZFLOW_SMOKE_TEST": "1"}, timeout=90)
+    if not args.skip_smoke:
+        smoke(browser)
+        run([app / "Contents/MacOS/Aura Studio", "--ui-smoke-test"], env={**env, "PATH": "/usr/bin:/bin", "HAIZFLOW_SMOKE_TEST": "1"}, timeout=90)
     print("Built and verified:", app, flush=True)
 
 
