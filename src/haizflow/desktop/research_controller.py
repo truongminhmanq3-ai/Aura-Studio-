@@ -262,3 +262,30 @@ class ResearchController(QObject):
 
         threading.Thread(target=run_eval, daemon=True).start()
 
+    @Slot(str)
+    def deletePost(self, post_id: str) -> None:
+        """Delete a single post from the corpus."""
+        if not post_id:
+            return
+        logger.info("Deleting research post: %s", post_id)
+        self._service.delete_post(post_id)
+        if self._selected_post and self._selected_post.get("id") == post_id:
+            self._selected_post = {}
+            self._current_decision = {"has_decision": False}
+            self.selectedPostChanged.emit()
+            self.decisionChanged.emit()
+        self._reload_posts()
+        self._set_busy(False, "Đã xóa bài viết khỏi lịch sử.")
+
+    @Slot()
+    def clearAllPosts(self) -> None:
+        """Clear all stored research posts and decisions."""
+        logger.info("Clearing all research posts")
+        self._service.clear_all()
+        self._selected_post = {}
+        self._current_decision = {"has_decision": False}
+        self.selectedPostChanged.emit()
+        self.decisionChanged.emit()
+        self._reload_posts()
+        self._set_busy(False, "Đã xóa toàn bộ lịch sử nghiên cứu.")
+

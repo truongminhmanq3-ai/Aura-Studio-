@@ -136,6 +136,12 @@ Item {
                         variant: root.controller && root.controller.activeFilter === "useful" ? "primary" : "secondary"
                         onClicked: root.controller.setFilter("useful")
                     }
+                    StudioButton {
+                        text: qsTr("🗑 Xóa lịch sử")
+                        variant: "secondary"
+                        visible: Boolean(root.controller && root.controller.postCount > 0)
+                        onClicked: if (root.controller) root.controller.clearAllPosts()
+                    }
                 }
             }
         }
@@ -336,6 +342,35 @@ Item {
                                 }
                             }
                         }
+
+                        // Quick Delete Button on Card
+                        Rectangle {
+                            anchors.top: parent.top
+                            anchors.right: parent.right
+                            anchors.margins: 6
+                            width: 20
+                            height: 20
+                            radius: 10
+                            color: deleteBtnMouse.containsMouse ? "#FFEBEA" : "transparent"
+                            visible: cardMouse.containsMouse || postCard.isSelected
+                            z: 2
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "✕"
+                                font.pixelSize: 11
+                                font.bold: true
+                                color: deleteBtnMouse.containsMouse ? Theme.danger : Theme.textSubtle
+                            }
+
+                            MouseArea {
+                                id: deleteBtnMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: if (root.controller) root.controller.deletePost(postCard.modelData.id)
+                            }
+                        }
                     }
                 }
             }
@@ -371,6 +406,12 @@ Item {
                                 color: Theme.text
                             }
                             Item { Layout.fillWidth: true }
+                            StudioButton {
+                                text: qsTr("Xóa bài này")
+                                variant: "secondary"
+                                visible: root.hasSelected
+                                onClicked: if (root.controller && root.hasSelected) root.controller.deletePost(root.selected.id)
+                            }
                             StudioButton {
                                 text: qsTr("🤖 Đánh giá bằng AI")
                                 variant: "primary"

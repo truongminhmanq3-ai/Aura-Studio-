@@ -60,6 +60,12 @@ class ResearchService:
     def store_comments(self, comments: Sequence[CommentItem]) -> None:
         self.storage.save_comments(comments)
 
+    def delete_post(self, post_id: str) -> bool:
+        return self.storage.delete_post(post_id)
+
+    def clear_all(self) -> None:
+        self.storage.clear_all()
+
     def evaluate_post(
         self,
         post_or_id: str | PostItem,

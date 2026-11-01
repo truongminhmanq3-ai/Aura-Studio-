@@ -204,6 +204,25 @@ class ResearchStorage:
                 return None
             return self._row_to_post(row)
 
+    def delete_post(self, post_id: str) -> bool:
+        """Delete a post and its associated comments and decision."""
+        with self._lock, self._connect() as conn:
+            row = conn.execute("SELECT content_id FROM posts WHERE id = ? OR content_id = ?", (post_id, post_id)).fetchone()
+            if not row:
+                return False
+            content_id = row["content_id"]
+            conn.execute("DELETE FROM comments WHERE post_id = ? OR post_id = ?", (post_id, content_id))
+            conn.execute("DELETE FROM decisions WHERE content_id = ?", (content_id,))
+            conn.execute("DELETE FROM posts WHERE id = ? OR content_id = ?", (post_id, content_id))
+            return True
+
+    def clear_all(self) -> None:
+        """Clear all posts, comments, and decisions from research corpus."""
+        with self._lock, self._connect() as conn:
+            conn.execute("DELETE FROM comments")
+            conn.execute("DELETE FROM decisions")
+            conn.execute("DELETE FROM posts")
+
     def get_comments_for_post(self, post_id: str, limit: int = 50) -> list[CommentItem]:
         with self._lock, self._connect() as conn:
             rows = conn.execute(
