@@ -221,9 +221,24 @@ def _vieneu_voices_by_segment(
         name = str(item.get("speaker_voice") or "")
         gender_of.setdefault(speaker, "female" if ("female" in name or name in _FEMALE_SPEAKER_VOICES) else "male")
 
-    primary_is_female = _is_female_vieneu_voice(default_voice)
-    female_pool = [default_voice] if primary_is_female else ["Trúc Ly", "Thùy Dung", "Quỳnh Anh", "Mai Anh"]
-    male_pool = [default_voice] if not primary_is_female else ["Hải Đăng", "Thái Sơn", "Minh Triết", "Thiện Minh"]
+    if "|" in default_voice:
+        parts = default_voice.split("|", 1)
+        p0, p1 = parts[0].strip(), parts[1].strip()
+        if _is_female_vieneu_voice(p0):
+            chosen_female, chosen_male = p0, p1
+        elif _is_female_vieneu_voice(p1):
+            chosen_female, chosen_male = p1, p0
+        else:
+            chosen_female, chosen_male = p0, p1
+    elif _is_female_vieneu_voice(default_voice):
+        chosen_female = default_voice
+        chosen_male = "Hải Đăng"
+    else:
+        chosen_male = default_voice
+        chosen_female = "Trúc Ly"
+
+    female_pool = [chosen_female] + [v for v in ["Trúc Ly", "Thùy Dung", "Quỳnh Anh", "Mai Anh", "Ngọc Trân", "Đoan Trang"] if v != chosen_female]
+    male_pool = [chosen_male] + [v for v in ["Hải Đăng", "Thái Sơn", "Minh Triết", "Thiện Minh", "Quang Sơn", "Đức Trí"] if v != chosen_male]
 
     assigned, used = {}, set()
     for speaker in sorted(gender_of):

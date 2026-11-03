@@ -26,6 +26,10 @@ GridLayout {
     property int ttsProviderIndex: 0
     property string ttsVoice: ""
     property var ttsVoiceOptions: []
+    property var femaleVoiceOptions: []
+    property var maleVoiceOptions: []
+    property string femaleVoice: "Trúc Ly"
+    property string maleVoice: "Hải Đăng"
     property string voicePreviewSource: ""
     property string voicePreviewState: "idle"
     property string speakerMode: "single"
@@ -46,6 +50,8 @@ GridLayout {
     signal targetLanguageEdited(string value)
     signal ttsProviderEdited(string value)
     signal ttsVoiceEdited(string value)
+    signal femaleVoiceEdited(string value)
+    signal maleVoiceEdited(string value)
     signal ttsVoicePreviewRequested(string value)
     signal cloneVoiceRequested()
     signal speakerModeEdited(string value)
@@ -187,11 +193,13 @@ GridLayout {
             }
             SettingLabel {
                 Layout.fillWidth: true
-                text: root.speakerMode === "multiple" ? qsTr("Giọng đọc chính (nhân vật chính)") : qsTr("Giọng đọc")
+                visible: root.speakerMode !== "multiple"
+                text: qsTr("Giọng đọc")
                 helpText: qsTr("25 giọng đọc chuẩn Bắc, Trung, Nam cùng tính năng nhân bản giọng đọc từ mẫu âm thanh của bạn.")
             }
             VoicePicker {
                 Layout.fillWidth: true
+                visible: root.speakerMode !== "multiple"
                 enabled: root.editable
                 model: root.ttsVoiceOptions
                 currentValue: root.ttsVoice
@@ -204,6 +212,48 @@ GridLayout {
                 }
                 onPreviewRequested: function(voice) { root.ttsVoicePreviewRequested(voice) }
                 onCloneRequested: root.cloneVoiceRequested()
+            }
+            SettingLabel {
+                Layout.fillWidth: true
+                visible: root.speakerMode === "multiple"
+                text: qsTr("Giọng Nữ (nhân vật Nữ)")
+                helpText: qsTr("Chọn giọng đọc cho các câu thoại của nhân vật nữ trong video.")
+            }
+            VoicePicker {
+                Layout.fillWidth: true
+                visible: root.speakerMode === "multiple"
+                enabled: root.editable
+                model: root.femaleVoiceOptions && root.femaleVoiceOptions.length > 0 ? root.femaleVoiceOptions : root.ttsVoiceOptions
+                currentValue: root.femaleVoice
+                allowMultipleSpeakers: false
+                allowVoiceClone: false
+                previewSource: root.voicePreviewSource
+                previewState: root.voicePreviewState
+                onSelected: function(voice) {
+                    root.femaleVoiceEdited(voice);
+                }
+                onPreviewRequested: function(voice) { root.ttsVoicePreviewRequested(voice) }
+            }
+            SettingLabel {
+                Layout.fillWidth: true
+                visible: root.speakerMode === "multiple"
+                text: qsTr("Giọng Nam (nhân vật Nam)")
+                helpText: qsTr("Chọn giọng đọc cho các câu thoại của nhân vật nam trong video.")
+            }
+            VoicePicker {
+                Layout.fillWidth: true
+                visible: root.speakerMode === "multiple"
+                enabled: root.editable
+                model: root.maleVoiceOptions && root.maleVoiceOptions.length > 0 ? root.maleVoiceOptions : root.ttsVoiceOptions
+                currentValue: root.maleVoice
+                allowMultipleSpeakers: false
+                allowVoiceClone: false
+                previewSource: root.voicePreviewSource
+                previewState: root.voicePreviewState
+                onSelected: function(voice) {
+                    root.maleVoiceEdited(voice);
+                }
+                onPreviewRequested: function(voice) { root.ttsVoicePreviewRequested(voice) }
             }
             Rectangle {
                 Layout.fillWidth: true
@@ -228,7 +278,7 @@ GridLayout {
 
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("AI tự động nhận diện câu của Nam và Nữ trong video gốc. Nhân vật Nữ sẽ lồng giọng Nữ (Trúc Ly), nhân vật Nam sẽ lồng giọng Nam (Hải Đăng).")
+                        text: qsTr("AI tự động nhận diện câu của Nam và Nữ trong video gốc. Nhân vật Nữ sẽ lồng giọng %1, nhân vật Nam sẽ lồng giọng %2.").arg(root.femaleVoice || "Trúc Ly").arg(root.maleVoice || "Hải Đăng")
                         color: Theme.text
                         font.family: Theme.fontFamily
                         font.pixelSize: TypeScale.caption

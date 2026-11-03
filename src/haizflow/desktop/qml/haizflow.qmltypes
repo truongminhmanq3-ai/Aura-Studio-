@@ -801,6 +801,38 @@ Module {
             isReadonly: true
         }
         Property {
+            name: "femaleVoiceOptions"
+            type: "QVariantList"
+            read: "femaleVoiceOptions"
+            notify: "ttsVoiceOptionsChanged"
+            index: 301
+            isReadonly: true
+        }
+        Property {
+            name: "maleVoiceOptions"
+            type: "QVariantList"
+            read: "maleVoiceOptions"
+            notify: "ttsVoiceOptionsChanged"
+            index: 302
+            isReadonly: true
+        }
+        Property {
+            name: "femaleVoice"
+            type: "QString"
+            read: "femaleVoice"
+            write: "femaleVoice"
+            notify: "ttsVoiceChanged"
+            index: 303
+        }
+        Property {
+            name: "maleVoice"
+            type: "QString"
+            read: "maleVoice"
+            write: "maleVoice"
+            notify: "ttsVoiceChanged"
+            index: 304
+        }
+        Property {
             name: "ttsVoiceIndex"
             type: "int"
             read: "ttsVoiceIndex"

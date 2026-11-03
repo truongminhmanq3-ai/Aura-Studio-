@@ -238,6 +238,7 @@ def voice_options_for_language(language_code: str, ui_language: str, provider: s
             "label": label,
             "category": cat,
             "categoryLabel": category_labels.get(cat, cat),
+            "gender": "female" if ("(Nữ" in label or "Nữ" in label) else ("male" if ("(Nam" in label or "Nam" in label) else "other"),
         }
         for voice, label, cat in VIENEU_TTS_VOICES
     ]

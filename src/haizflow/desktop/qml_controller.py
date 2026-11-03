@@ -1560,7 +1560,63 @@ class HaizFlowController(QObject):
         )
         if self._speaker_mode != normalized:
             self._speaker_mode = normalized
+            if normalized == "single" and "|" in self._tts_voice:
+                self._tts_voice = self._tts_voice.split("|")[0].strip()
+                self.ttsVoiceChanged.emit()
+            elif normalized == "multiple" and self._tts_provider == "vieneu" and "|" not in self._tts_voice:
+                from haizflow.pipeline.tts import _is_female_vieneu_voice
+                f = self._tts_voice if _is_female_vieneu_voice(self._tts_voice) else "Trúc Ly"
+                m = self._tts_voice if not _is_female_vieneu_voice(self._tts_voice) else "Hải Đăng"
+                self._tts_voice = f"{f}|{m}"
+                self.ttsVoiceChanged.emit()
             self.speakerModeChanged.emit()
+
+    @Property("QVariantList", notify=ttsVoiceOptionsChanged)
+    def femaleVoiceOptions(self):
+        from haizflow.pipeline.tts import _FEMALE_VIENEU_VOICES
+        return [
+            item for item in self.ttsVoiceOptions
+            if item.get("voice") in _FEMALE_VIENEU_VOICES or item.get("gender") == "female"
+        ]
+
+    @Property("QVariantList", notify=ttsVoiceOptionsChanged)
+    def maleVoiceOptions(self):
+        from haizflow.pipeline.tts import _MALE_VIENEU_VOICES
+        return [
+            item for item in self.ttsVoiceOptions
+            if item.get("voice") in _MALE_VIENEU_VOICES or item.get("gender") == "male"
+        ]
+
+    @Property(str, notify=ttsVoiceChanged)
+    def femaleVoice(self):
+        from haizflow.pipeline.tts import _is_female_vieneu_voice
+        if "|" in self._tts_voice:
+            return self._tts_voice.split("|")[0].strip()
+        if _is_female_vieneu_voice(self._tts_voice):
+            return self._tts_voice
+        return "Trúc Ly"
+
+    @femaleVoice.setter
+    def femaleVoice(self, value):
+        new_female = str(value or "Trúc Ly").strip()
+        current_male = self.maleVoice
+        self.ttsVoice = f"{new_female}|{current_male}"
+
+    @Property(str, notify=ttsVoiceChanged)
+    def maleVoice(self):
+        from haizflow.pipeline.tts import _is_female_vieneu_voice
+        if "|" in self._tts_voice:
+            parts = self._tts_voice.split("|", 1)
+            return parts[1].strip() if len(parts) > 1 else "Hải Đăng"
+        if not _is_female_vieneu_voice(self._tts_voice):
+            return self._tts_voice
+        return "Hải Đăng"
+
+    @maleVoice.setter
+    def maleVoice(self, value):
+        new_male = str(value or "Hải Đăng").strip()
+        current_female = self.femaleVoice
+        self.ttsVoice = f"{current_female}|{new_male}"
 
     @Property("QVariantList", notify=ttsVoiceOptionsChanged)
     def ttsVoiceOptions(self):
@@ -7543,6 +7599,13 @@ class HaizFlowController(QObject):
         except TypeError:
             options = self._voice_options_for_language(language_code)
         supported_voices = [item["voice"] for item in options]
+        if "|" in str(voice):
+            parts = str(voice).split("|", 1)
+            f = parts[0].strip()
+            m = parts[1].strip()
+            f = f if f in supported_voices else "Trúc Ly"
+            m = m if m in supported_voices else "Hải Đăng"
+            return f"{f}|{m}"
         if voice in supported_voices:
             return voice
         return supported_voices[0] if supported_voices else ""

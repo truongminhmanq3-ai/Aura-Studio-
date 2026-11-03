@@ -42,6 +42,10 @@ InspectorPanel {
             ttsProviderIndex: AppController.ttsProviderIndex
             ttsVoice: AppController.ttsVoice
             ttsVoiceOptions: AppController.ttsVoiceOptions
+            femaleVoice: AppController.femaleVoice
+            maleVoice: AppController.maleVoice
+            femaleVoiceOptions: AppController.femaleVoiceOptions
+            maleVoiceOptions: AppController.maleVoiceOptions
             voicePreviewSource: AppController.audioPreviewSource
             voicePreviewState: AppController.audioPreviewState
             speakerMode: AppController.speakerMode
@@ -70,6 +74,8 @@ InspectorPanel {
             onTargetLanguageEdited: function(value) { AppController.targetLanguage = value; root.scheduleVideoSettingsSave() }
             onTtsProviderEdited: function(value) { AppController.ttsProvider = value; root.scheduleVideoSettingsSave() }
             onTtsVoiceEdited: function(value) { AppController.ttsVoice = value; root.scheduleVideoSettingsSave() }
+            onFemaleVoiceEdited: function(value) { AppController.femaleVoice = value; root.scheduleVideoSettingsSave() }
+            onMaleVoiceEdited: function(value) { AppController.maleVoice = value; root.scheduleVideoSettingsSave() }
             onTtsVoicePreviewRequested: function(value) {
                 AppController.previewVoiceSample(AppController.ttsProvider, value, AppController.targetLanguage)
             }

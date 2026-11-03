@@ -53,6 +53,8 @@ class AudioPreviewController:
         video = video_store.get_video(selected_video_id) if selected_video_id else None
         files = dict((video.files if video else {}) or {})
         effective_voice = str(getattr(host, "_tts_voice", "") if voice is None else voice)
+        if "|" in effective_voice:
+            effective_voice = effective_voice.split("|")[0].strip()
         effective_provider = str(getattr(host, "_tts_provider", "omnivoice") if provider is None else provider)
         effective_language = str(
             getattr(host, "_target_language", "en") if target_language is None else target_language

@@ -35,6 +35,8 @@ def get_vieneu_engine(mode: str = "v3turbo", backend: str = "onnx"):
 def normalize_vieneu_voice(voice: str) -> str:
     """Normalize voice identifier to a valid VieNeu voice or clone."""
     voice_str = str(voice or "").strip()
+    if "|" in voice_str:
+        voice_str = voice_str.split("|")[0].strip()
     if voice_str in {"vieneu:clone", "clone", "my_voice", "omnivoice:clone"}:
         return "vieneu:clone"
     if voice_str.startswith("vieneu:"):
