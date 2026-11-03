@@ -24,7 +24,7 @@ if [ "$#" -ne 0 ]; then
  echo 'Chạy: bash Cai-dat-Aura-Studio.command' >&2
  exit 1
 fi
-if /usr/bin/pgrep -x HaizFlow >/dev/null 2>&1; then
+if /usr/bin/pgrep -x HaizFlow >/dev/null 2>&1 || /usr/bin/pgrep -x "Aura Studio" >/dev/null 2>&1 || /usr/bin/pgrep -f "Aura Studio.app" >/dev/null 2>&1; then
  echo 'Hãy thoát Aura Studio đang mở rồi chạy lại script cài đặt.' >&2
  exit 1
 fi
@@ -34,6 +34,7 @@ staging_root=$(mktemp -d "$install_root/.aura-install.XXXXXX")
 cleanup() { rm -rf -- "$staging_root"; }
 trap cleanup EXIT
 /usr/bin/ditto "$app_source" "$staging_root/Aura Studio.app"
+/usr/bin/xattr -cr "$staging_root/Aura Studio.app" 2>/dev/null || true
 /usr/bin/codesign --verify --deep --strict "$staging_root/Aura Studio.app"
 target_app="$install_root/Aura Studio.app"
 if [ -e "$target_app" ]; then
@@ -42,6 +43,7 @@ if [ -e "$target_app" ]; then
  echo "Bản app trước được giữ tại: $backup_app"
 fi
 mv "$staging_root/Aura Studio.app" "$target_app"
+/usr/bin/xattr -cr "$target_app" 2>/dev/null || true
 echo "Đã cài Aura Studio tại: $target_app"
-echo 'Mở Cài đặt → API Key để tự nhập key của bạn. Model local tải trong Cài đặt → Gói tài nguyên khi cần.'
+echo 'Mở Cài đặt → API Key để tự nhập key của bạn.'
 /usr/bin/open "$target_app"
