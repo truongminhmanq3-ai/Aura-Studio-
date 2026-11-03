@@ -127,7 +127,7 @@ StackLayout {
     }
 
     Loader {
-        id: manualWorkspaceLoader
+        id: singleWorkspaceLoader
         Layout.fillWidth: true
         Layout.fillHeight: true
         Layout.margins: 0
@@ -136,7 +136,7 @@ StackLayout {
         sourceComponent: Component {
             CreateVideoPage {
                 onRequestReviewTranslation: root.reviewTranslationRequested()
-                onRequestUrlImport: root.urlImportRequested("single")
+                onRequestUrlImport: root.urlImportRequested("single", "")
                 onRequestDownloadProjectImport: root.downloadProjectImportRequested("single")
             }
         }
@@ -159,6 +159,7 @@ StackLayout {
     }
 
     Loader {
+        id: manualWorkspaceLoader
         Layout.fillWidth: true
         Layout.fillHeight: true
         Layout.leftMargin: UiMetrics.pageMargin
@@ -169,7 +170,7 @@ StackLayout {
         asynchronous: true
         sourceComponent: Component {
             ManualWorkspace {
-                onRequestUrlImport: root.urlImportRequested("manual")
+                onRequestUrlImport: root.urlImportRequested("manual", "")
                 onRequestDownloadProjectImport: root.downloadProjectImportRequested("manual")
             }
         }
@@ -210,7 +211,7 @@ StackLayout {
         sourceComponent: Component {
             BatchPage {
                 onRequestBatchSettings: root.batchSettingsRequested()
-                onRequestUrlImport: root.urlImportRequested("batch")
+                onRequestUrlImport: root.urlImportRequested("batch", "")
                 onRequestDownloadProjectImport: root.downloadProjectImportRequested("batch")
                 onOpenVideoDetail: root.workspaceRequested("batch-workspace", "batch-video")
             }
@@ -226,7 +227,7 @@ StackLayout {
         sourceComponent: Component {
             CreateVideoPage {
                 onRequestReviewTranslation: root.reviewTranslationRequested()
-                onRequestUrlImport: root.urlImportRequested("batch")
+                onRequestUrlImport: root.urlImportRequested("batch", "")
                 onRequestDownloadProjectImport: root.downloadProjectImportRequested("single")
             }
         }
