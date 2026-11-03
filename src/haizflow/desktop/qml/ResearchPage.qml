@@ -6,11 +6,78 @@ import "."
 Item {
     id: root
 
+    signal requestUrlImport(string mode, string initialUrl)
+    signal requestNavigate(string route)
+    signal requestNewProject(string projectType, string returnRoute)
+    signal requestNotification(string title, string message)
+
     readonly property var controller: AppController.researchController
     readonly property var selected: controller ? controller.selectedPost : ({})
     readonly property var decision: controller ? controller.currentDecision : ({})
     readonly property bool hasSelected: Boolean(selected && selected.id !== undefined && selected.id.length > 0)
     readonly property bool hasDecision: Boolean(decision && decision.has_decision)
+
+    function startVideoProduction() {
+        let bestUrl = "";
+        let clip = "";
+        try {
+            clip = AppController.clipboardText().trim();
+        } catch (e) {
+            clip = "";
+        }
+
+        const isDirect = function(u) {
+            if (!u || typeof u !== "string") return false;
+            const s = u.trim();
+            return s.indexOf("/video/") >= 0 ||
+                   s.indexOf("v.douyin.com/") >= 0 ||
+                   s.indexOf("tiktok.com/") >= 0 ||
+                   s.indexOf("youtube.com/") >= 0 ||
+                   s.indexOf("youtu.be/") >= 0;
+        };
+
+        if (clip && isDirect(clip)) {
+            bestUrl = clip;
+        } else if (root.selected && root.selected.url && isDirect(root.selected.url)) {
+            bestUrl = root.selected.url;
+        } else if (root.selected && root.selected.url) {
+            bestUrl = root.selected.url;
+        } else if (clip) {
+            bestUrl = clip;
+        }
+
+        if (!clip || !isDirect(clip)) {
+            if (root.selected && root.selected.url) {
+                AppController.copyToClipboard(root.selected.url);
+            }
+        }
+
+        if (AppController.hasOpenProject) {
+            const destRoute = (AppController.projectType === "manual") ? "manual-workspace" : "single-workspace";
+            root.requestNavigate(destRoute);
+            root.requestUrlImport("single", bestUrl);
+            root.requestNotification(qsTr("Aura Studio · Chuyển sang Dựng video"), qsTr("Đang mở hộp thoại tải và nhập video."));
+        } else {
+            AppController.prepareProjectCreationDirectory();
+            let projName = "";
+            if (root.selected && root.selected.title) {
+                projName = root.selected.title.split(" - ")[0].trim()
+                    .replace(/[\\/:*?"<>|#]/g, "")
+                    .slice(0, 32)
+                    .trim();
+            }
+            if (!projName) {
+                projName = qsTr("Dự án nghiên cứu");
+            }
+
+            if (AppController.prepareProject(projName, AppController.projectDirectory, "single")) {
+                root.requestUrlImport("single", bestUrl);
+                root.requestNotification(qsTr("Aura Studio · Đã tạo dự án mới"), qsTr("Dự án '%1' đã sẵn sàng. Dán link video để bắt đầu dựng!").arg(projName));
+            } else {
+                root.requestNewProject("single", "research");
+            }
+        }
+    }
 
     function doSearch() {
         const q = searchInput.text.trim();
@@ -815,34 +882,33 @@ Item {
                                 }
                             }
 
-                            // 1-Click Action to Video Pipeline
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 52
-                                radius: 12
-                                color: "#2209090B"
-                                border.color: Theme.interactive
+                        }
 
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.margins: 8
-                                    spacing: 12
-                                    Text {
-                                        Layout.fillWidth: true
-                                        text: qsTr("Sẵn sàng dựng video này bằng Aura Studio?")
-                                        font.bold: true
-                                        font.pixelSize: TypeScale.metadata
-                                        color: Theme.text
-                                    }
-                                    StudioButton {
-                                        text: qsTr("🎬 Dán link & Bắt đầu Dựng")
-                                        variant: "primary"
-                                        onClicked: {
-                                            if (root.selected && root.selected.url) {
-                                                AppController.copyToClipboard(root.selected.url);
-                                                root.controller.selectPost(root.selected.id);
-                                            }
-                                        }
+                        // 1-Click Action to Video Pipeline
+                        Rectangle {
+                            visible: root.hasSelected
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 52
+                            radius: 12
+                            color: "#2209090B"
+                            border.color: Theme.interactive
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.margins: 8
+                                spacing: 12
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: qsTr("Sẵn sàng dựng video này bằng Aura Studio?")
+                                    font.bold: true
+                                    font.pixelSize: TypeScale.metadata
+                                    color: Theme.text
+                                }
+                                StudioButton {
+                                    text: qsTr("🎬 Dán link & Bắt đầu Dựng")
+                                    variant: "primary"
+                                    onClicked: {
+                                        root.startVideoProduction();
                                     }
                                 }
                             }

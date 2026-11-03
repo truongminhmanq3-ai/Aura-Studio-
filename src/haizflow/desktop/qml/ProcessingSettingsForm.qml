@@ -157,10 +157,12 @@ GridLayout {
             SettingLabel {
                 Layout.fillWidth: true
                 text: qsTr("Công cụ giọng đọc")
+                visible: root.ttsProviderOptions && root.ttsProviderOptions.length > 1
             }
             StudioComboBox {
                 Layout.fillWidth: true
                 enabled: root.editable
+                visible: root.ttsProviderOptions && root.ttsProviderOptions.length > 1
                 model: root.ttsProviderOptions
                 textRole: "label"
                 valueRole: "provider"
@@ -170,22 +172,19 @@ GridLayout {
             SettingLabel {
                 Layout.fillWidth: true
                 text: qsTr("Giọng đọc")
-                helpText: root.ttsProvider === "elevenlabs"
-                    ? qsTr("Dán API key và tải giọng trong Cài đặt → API key → ElevenLabs. Nội dung được gửi đến ElevenLabs và dùng credit tài khoản. Nhận diện nhiều người nói sẽ gán mỗi người một giọng khác nhau trong tài khoản ElevenLabs của bạn.")
-                    : qsTr("Nhận diện nhiều người nói chọn giọng thư viện ổn định cho từng người; kết quả có thể cần chỉnh lại. Giọng nhân bản dùng mẫu do bạn cung cấp.")
+                helpText: qsTr("25 giọng đọc chuẩn Bắc, Trung, Nam cùng tính năng nhân bản giọng đọc từ mẫu âm thanh của bạn.")
             }
             VoicePicker {
                 Layout.fillWidth: true
                 enabled: root.editable
                 model: root.ttsVoiceOptions
-                currentValue: root.speakerMode === "multiple" ? "omnivoice:multiple" : root.ttsVoice
-                allowMultipleSpeakers: root.ttsProvider.indexOf("omnivoice") === 0 || root.ttsProvider === "elevenlabs"
-                allowVoiceClone: root.showCloneAction && root.ttsProvider.indexOf("omnivoice") === 0
+                currentValue: root.ttsVoice
+                allowMultipleSpeakers: false
+                allowVoiceClone: true
                 previewSource: root.voicePreviewSource
                 previewState: root.voicePreviewState
                 onSelected: function(voice) {
-                    root.speakerModeEdited(voice === "omnivoice:multiple" ? "multiple" : "single");
-                    root.ttsVoiceEdited(voice === "omnivoice:multiple" ? root.multipleFallbackVoice() : voice);
+                    root.ttsVoiceEdited(voice);
                 }
                 onPreviewRequested: function(voice) { root.ttsVoicePreviewRequested(voice) }
                 onCloneRequested: root.cloneVoiceRequested()

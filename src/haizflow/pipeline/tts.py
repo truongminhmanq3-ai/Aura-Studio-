@@ -10,12 +10,12 @@ from haizflow.services.video_store import get_video, log_to_video
 
 def resolve_tts_provider(provider: str, target_language: str) -> str:
     """Read retired provider values without calling an online TTS service."""
-    normalized = str(provider or "omnivoice").strip().lower()
+    normalized = str(provider or "vieneu").strip().lower()
     if normalized == "elevenlabs":
         return "elevenlabs"
-    if normalized in {"omnivoice", "omnivoice-gpu", "auto", "vieneu", "edge"}:
-        return "omnivoice"
-    raise ValueError(f"Unsupported TTS provider: {provider}")
+    if normalized in {"vieneu", "omnivoice", "omnivoice-gpu", "auto", "edge"} or target_language == "vi":
+        return "vieneu"
+    return "vieneu"
 
 
 def normalize_voice(voice: str) -> str:
@@ -178,6 +178,13 @@ def generate_voice_parts(
                               target_language=target_language, process_registry_id=process_registry_id,
                               segment_indices=segment_indices, status_callback=status_callback,
                               voice_by_index=voice_by_index)
+    if backend == "vieneu":
+        from haizflow.pipeline.vieneu_tts import generate_parts
+        return generate_parts(
+            segments_json_path, voice_parts_dir, voice, video_id, progress_callback,
+            target_language=target_language, process_registry_id=process_registry_id,
+            segment_indices=segment_indices, status_callback=status_callback,
+        )
     voice = normalize_voice(voice)
     from haizflow.pipeline.omnivoice_tts import synthesize_batch_to_mp3
     device = "gpu" if provider.endswith("-gpu") else "cpu"
@@ -349,13 +356,25 @@ def generate_single_voice(
     voice: str,
     video_id: str,
     *,
-    provider: str = "omnivoice",
+    provider: str = "vieneu",
     target_language: str = "vi",
 ):
     """Create and verify a complete local narration file."""
-    if resolve_tts_provider(provider, target_language) == "elevenlabs":
+    backend = resolve_tts_provider(provider, target_language)
+    if backend == "elevenlabs":
         from haizflow.pipeline.elevenlabs_tts import generate_single
         return generate_single(text, output_path, voice, video_id, target_language=target_language)
+    if backend == "vieneu":
+        from haizflow.pipeline.vieneu_tts import synthesize_segment, normalize_vieneu_voice
+        current_video = get_video(video_id)
+        current_files = dict((current_video.files if current_video else {}) or {})
+        reference_path = str(current_files.get("voice_reference") or "")
+        return synthesize_segment(
+            text=text,
+            output_mp3_path=output_path,
+            voice=normalize_vieneu_voice(voice),
+            ref_audio_path=reference_path if voice == "vieneu:clone" else None,
+        )
     device = "gpu" if provider.endswith("-gpu") else "cpu"
     voice = normalize_voice(voice)
     from haizflow.pipeline.omnivoice_tts import synthesize_to_mp3

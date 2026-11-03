@@ -93,12 +93,12 @@ datas = [(str({str(ROOT / 'src/haizflow/desktop/qml')!r}), 'haizflow/desktop/qml
          (str({str(ROOT / 'src/haizflow/desktop/assets')!r}), 'haizflow/desktop/assets'),
          (str({str(ROOT / 'src/haizflow/desktop/translations')!r}), 'haizflow/desktop/translations'),
          (str({str(ROOT / 'src/haizflow/assets/fonts')!r}), 'haizflow/assets/fonts')]
-datas += collect_data_files('certifi') + collect_data_files('playwright')
-datas += copy_metadata('playwright') + copy_metadata('haizflow')
-hidden = collect_submodules('haizflow') + collect_submodules('yt_dlp') + ['keyring.backends.macOS', 'psutil']
+datas += collect_data_files('certifi') + collect_data_files('playwright') + collect_data_files('vieneu') + collect_data_files('sea_g2p')
+datas += copy_metadata('playwright') + copy_metadata('haizflow') + copy_metadata('vieneu') + copy_metadata('sea_g2p')
+hidden = collect_submodules('haizflow') + collect_submodules('yt_dlp') + collect_submodules('vieneu', filter=lambda n: 'serve' not in n) + collect_submodules('sea_g2p') + ['keyring.backends.macOS', 'psutil', 'soxr', 'kaldi_native_fbank', 'soundfile']
 excluded = ['torch', 'torchaudio', 'torchvision', 'whisperx', 'pyannote', 'torchcodec',
             'transformers', 'accelerate', 'llama_cpp', 'ctranslate2', 'faster_whisper', 'demucs',
-            'rapidocr', 'soundfile', 'av', 'scipy', 'sklearn', 'matplotlib', 'pandas', 'IPython', 'pytest',
+            'rapidocr', 'av', 'matplotlib', 'IPython', 'pytest',
             'PySide6.QtWebEngineCore', 'PySide6.QtWebEngineQuick', 'PySide6.QtWebEngineWidgets',
             'PySide6.QtQuick3D', 'PySide6.QtPdf', 'PySide6.QtPdfWidgets', 'PySide6.QtCharts']
 a = Analysis([{str(ROOT / 'haizflow_desktop.py')!r}], pathex=[{str(ROOT / 'src')!r}],
@@ -182,6 +182,21 @@ def main():
     sys.path.insert(0, str(ROOT / "src"))
     from haizflow.services.douyin_component import write_inventory, file_digest, smoke, REVISION, PACK_ID
     # Signing happens before inventory: it changes Mach-O and signature resources.
+    # Protect against dyld collisions between bundled sklearn libomp and ffmpeg/ffprobe
+    for bin_name in ("ffmpeg", "ffprobe"):
+        target = app / "Contents/Frameworks/bin" / bin_name
+        if target.parent.is_dir():
+            target.write_text(f"""#!/bin/sh
+unset DYLD_LIBRARY_PATH
+unset DYLD_FALLBACK_LIBRARY_PATH
+unset DYLD_FRAMEWORK_PATH
+if [ -x /opt/homebrew/bin/{bin_name} ]; then
+    exec /opt/homebrew/bin/{bin_name} "$@"
+elif [ -x /usr/local/bin/{bin_name} ]; then
+    exec /usr/local/bin/{bin_name} "$@"
+fi
+""", encoding="utf-8")
+            target.chmod(0o755)
     run(["codesign", "--force", "--deep", "--sign", "-", app])
     write_inventory(browser)
     write_json(browser / "complete.json", {"pack_id": PACK_ID, "version": REVISION,
@@ -191,6 +206,11 @@ def main():
     if (ROOT / "LICENSE").is_file():
         shutil.copy2(ROOT / "LICENSE", resources / "LICENSE")
     shutil.copytree(ROOT / "licenses", resources / "licenses", symlinks=True)
+    sea_g2p_bin = ROOT / ".venv/lib/python3.13/site-packages/sea_g2p/sea_g2p.bin"
+    if sea_g2p_bin.is_file():
+        for dest in (app / "Contents/Frameworks/sea_g2p", resources / "sea_g2p"):
+            dest.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(sea_g2p_bin, dest / "sea_g2p.bin")
     ffmpeg_prefix = Path(ffmpeg).resolve().parents[1]
     native_licenses = resources / "licenses/macos-ffmpeg"
     native_licenses.mkdir(parents=True, exist_ok=True)
@@ -213,6 +233,32 @@ def main():
     write_json(resources / "BUILD-INFO.json", {"application": "HaizFlow", "version": VERSION,
                "platform": "darwin-" + platform.machine(), "build": "local macOS port; unofficial"})
     (app / "Contents/MacOS/BUILD-INFO.json").symlink_to("../Resources/BUILD-INFO.json")
+    macos_bin = app / "Contents/MacOS/bin"
+    if macos_bin.is_symlink() or macos_bin.exists():
+        if macos_bin.is_symlink():
+            macos_bin.unlink()
+        else:
+            shutil.rmtree(macos_bin)
+    homebrew_bin = Path("/opt/homebrew/bin")
+    if homebrew_bin.is_dir():
+        macos_bin.symlink_to(homebrew_bin)
+    else:
+        macos_bin.symlink_to("../Frameworks/bin")
+    # Protect against dyld collisions between bundled sklearn libomp and ffmpeg/ffprobe
+    for bin_name in ("ffmpeg", "ffprobe"):
+        target = app / "Contents/Frameworks/bin" / bin_name
+        if target.parent.is_dir():
+            target.write_text(f"""#!/bin/sh
+unset DYLD_LIBRARY_PATH
+unset DYLD_FALLBACK_LIBRARY_PATH
+unset DYLD_FRAMEWORK_PATH
+if [ -x /opt/homebrew/bin/{bin_name} ]; then
+    exec /opt/homebrew/bin/{bin_name} "$@"
+elif [ -x /usr/local/bin/{bin_name} ]; then
+    exec /usr/local/bin/{bin_name} "$@"
+fi
+""", encoding="utf-8")
+            target.chmod(0o755)
     run(["codesign", "--force", "--deep", "--sign", "-", app])
     # Codesign changes browser resources: publish the final checksum inventory.
     write_inventory(browser)

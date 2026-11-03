@@ -8,7 +8,7 @@ SUBTITLE_FONT_FAMILY = "Bangers"
 WorkflowMode = Literal["A", "review"]
 TranslatorProvider = Literal["hymt2", "gemini", "deepseek"]
 TranslationModel = Literal["auto", "q4", "full", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3.8-flash", "deepseek-flash", "deepseek-v4-pro"]
-TTSProvider = Literal["elevenlabs", "omnivoice", "omnivoice-gpu"]
+TTSProvider = Literal["elevenlabs", "omnivoice", "omnivoice-gpu", "vieneu"]
 SpeechRecognitionModel = Literal["small", "small-cpu", "small-gpu", "large-v3-turbo"]
 OutputFormat = Literal["keep_ratio", "tiktok_9_16_crop", "blur_background_9_16"]
 ProjectType = Literal["single", "manual", "batch"]
@@ -84,8 +84,8 @@ class VideoConfig(BaseModel):
     translator_provider: TranslatorProvider = "hymt2"
     speech_recognition_model: SpeechRecognitionModel = "small"
     translation_model: TranslationModel = "auto"
-    tts_provider: TTSProvider = "omnivoice"
-    tts_voice: str = "omnivoice:female"
+    tts_provider: TTSProvider = "vieneu"
+    tts_voice: str = "Hải Đăng"
     speaker_mode: SpeakerMode = "single"
     subtitle_style: SubtitleStyle = Field(default_factory=SubtitleStyle)
     subtitle_layout_override: bool = False
@@ -135,7 +135,7 @@ class VideoInfo(BaseModel):
     translator_provider: TranslatorProvider = "hymt2"
     speech_recognition_model: SpeechRecognitionModel = "small"
     translation_model: TranslationModel = "auto"
-    tts_provider: TTSProvider = "omnivoice"
+    tts_provider: TTSProvider = "vieneu"
     tts_voice: str
     speaker_mode: SpeakerMode = "single"
     subtitle_style: SubtitleStyle

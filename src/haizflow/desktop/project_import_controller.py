@@ -979,10 +979,11 @@ class ProjectImportController:
         if not video or host._processing_queue.contains(video_id) or not os.path.isfile(path):
             return False
         provider = str(provider or host._tts_provider)
-        if provider not in {"omnivoice", "omnivoice-gpu"}:
+        if provider not in {"omnivoice", "omnivoice-gpu", "vieneu"}:
             return False
         previous = (host._tts_provider, host._tts_voice)
-        host._tts_provider, host._tts_voice = provider, "omnivoice:clone"
+        clone_voice = "vieneu:clone" if provider == "vieneu" else "omnivoice:clone"
+        host._tts_provider, host._tts_voice = provider, clone_voice
         # Saves the owner's configuration synchronously and removes an older
         # captured draft which could otherwise overwrite it after navigation.
         if not host.persistVideoSettingsFor(video_id):

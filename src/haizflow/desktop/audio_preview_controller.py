@@ -148,12 +148,23 @@ class AudioPreviewController:
             from haizflow.services.elevenlabs import voice_options
             return next((item.get("previewUrl", "") for item in voice_options() if item["voice"] == voice), "")
 
+        if provider == "vieneu":
+            if voice in {"vieneu:clone", "omnivoice:clone"}:
+                selected = video_store.get_video(selected_video_id) if selected_video_id else None
+                reference = str(((selected.files if selected else {}) or {}).get("voice_reference") or "")
+                return reference if self._valid_media(reference) else ""
+            packaged = self._packaged_sample_path(provider, voice, language)
+            if packaged:
+                return packaged
+            from haizflow.pipeline.vieneu_tts import get_sample_preview_path
+            return get_sample_preview_path(voice)
+
         packaged = self._packaged_sample_path(provider, voice, language)
         if packaged:
             return packaged
 
         selected = video_store.get_video(selected_video_id) if selected_video_id else None
-        if voice == "omnivoice:clone":
+        if voice in {"omnivoice:clone", "vieneu:clone"}:
             reference = str(((selected.files if selected else {}) or {}).get("voice_reference") or "")
             return reference if self._valid_media(reference) else ""
 
@@ -220,7 +231,12 @@ class AudioPreviewController:
     def _packaged_sample_path(cls, provider: str, voice: str, language: str) -> str:
         safe_voice = re.sub(r"[^a-zA-Z0-9._-]+", "_", voice).strip("_")
         candidates = [
+            cls._PACKAGED_SAMPLE_DIR / provider / voice / f"{language}.mp3",
+            cls._PACKAGED_SAMPLE_DIR / provider / voice / "vi.mp3",
+            cls._PACKAGED_SAMPLE_DIR / provider / f"{voice}.mp3",
             cls._PACKAGED_SAMPLE_DIR / provider / safe_voice / f"{language}.mp3",
+            cls._PACKAGED_SAMPLE_DIR / provider / safe_voice / "vi.mp3",
+            cls._PACKAGED_SAMPLE_DIR / provider / f"{safe_voice}.mp3",
         ]
         for candidate in candidates:
             if cls._valid_media(str(candidate)):

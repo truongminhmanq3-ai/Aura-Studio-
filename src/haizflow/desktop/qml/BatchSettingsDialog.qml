@@ -18,7 +18,7 @@ FloatingToolDialog {
     property string draftTargetLanguage: "vi"
     property string draftSpeechRecognitionModel: "small"
     property string draftTranslationModel: "auto"
-    property string draftTtsProvider: "omnivoice"
+    property string draftTtsProvider: "vieneu"
     property string draftTtsVoice: ""
     property string draftSpeakerMode: "single"
     property bool draftEnableAudioSeparation: true
@@ -126,7 +126,7 @@ FloatingToolDialog {
         draftTargetLanguage = settings.targetLanguage || "vi"
         draftSpeechRecognitionModel = settings.speechRecognitionModel || "small"
         draftTranslationModel = settings.translationModel || "auto"
-        draftTtsProvider = settings.ttsProvider || "omnivoice"
+        draftTtsProvider = settings.ttsProvider || "vieneu"
         draftTtsVoice = normalizedDraftVoice(draftTargetLanguage, draftTtsProvider, settings.ttsVoice || "")
         draftSpeakerMode = (draftTtsProvider.indexOf("omnivoice") === 0 || draftTtsProvider === "elevenlabs") && settings.speakerMode === "multiple"
             ? "multiple" : "single"

@@ -142,3 +142,4 @@ def get_trending_keywords(category: str = "all", limit: int = 15) -> list[dict[s
         return combined[:limit]
 
     return items[:limit]
+

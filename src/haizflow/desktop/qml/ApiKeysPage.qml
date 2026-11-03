@@ -60,7 +60,7 @@ Item {
         NavigationTabs {
             objectName: "apiKeyProviderSelector"
             options: [{ label: "Gemini", value: "gemini" }, { label: "Zernio", value: "zernio" },
-                      { label: "ElevenLabs", value: "elevenlabs" }, { label: "DeepSeek", value: "deepseek" }]
+                      { label: "DeepSeek", value: "deepseek" }]
             currentValue: root.provider
             onActivated: function(value) { root.provider = value; }
         }

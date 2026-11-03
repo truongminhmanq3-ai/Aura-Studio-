@@ -129,20 +129,38 @@ FloatingToolDialog {
     expandedWidth: 1100
     expandedHeight: 760
     toolTitle: qsTr("Chỉnh phụ đề")
-    toolSubtitle: layoutLocked ? qsTr("Phụ đề được căn theo vùng che khi xử lý") : qsTr("Kéo hai bên để đổi số từ · Kéo góc để đổi cỡ")
+    toolSubtitle: layoutLocked 
+        ? qsTr("Chế độ căn ô che: Màu sắc & viền tùy chỉnh tự do · Vị trí khóa theo ô che") 
+        : qsTr("Chế độ tự do: Kéo hai bên để đổi số từ · Kéo góc để đổi cỡ & vị trí")
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: Theme.space16
         spacing: Theme.space12
 
-        StudioCheckBox {
-            objectName: "subtitleAutoCoverCheck"
+        ColumnLayout {
             Layout.fillWidth: true
             visible: root.coverEnabled
-            text: qsTr("Tự động căn chỉnh phụ đề vào ô che")
-            checked: root.autoAlignToCover
-            onToggled: root.autoAlignmentEdited(checked)
+            spacing: 2
+
+            StudioCheckBox {
+                objectName: "subtitleAutoCoverCheck"
+                Layout.fillWidth: true
+                text: qsTr("Tự động căn vị trí và cỡ chữ vào ô che tiếng Trung")
+                checked: root.autoAlignToCover
+                onToggled: root.autoAlignmentEdited(checked)
+            }
+
+            Text {
+                text: root.autoAlignToCover 
+                    ? qsTr("💡 Vị trí và cỡ chữ được tự động khóa vừa khít ô che. Bạn vẫn có thể thoải mái chọn màu sắc, viền và kiểu chữ ở cột bên phải.")
+                    : qsTr("💡 Chế độ tự do: Bạn có thể kéo góc hoặc kéo cạnh khung chữ trên màn hình để đặt vị trí tùy thích.")
+                font.pixelSize: TypeScale.caption
+                color: root.autoAlignToCover ? Theme.interactive : Theme.textMuted
+                Layout.leftMargin: 28
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
         }
 
         RowLayout {
@@ -230,7 +248,7 @@ FloatingToolDialog {
                     style: Object.assign({}, root.draftAppearance, {
                         font_size: root.draftFontSize
                     })
-                    enabled: !root.layoutLocked
+                    enabled: true
                     onChangeRequested: function (patch) {
                         root.editAppearance(patch);
                     }

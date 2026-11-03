@@ -30,7 +30,7 @@ InspectorPanel {
             editable: AppController.canEditSelectedVideo
             cpuOnly: AppController.cpuOnly
             hasSource: AppController.videoPath.length > 0
-            showCloneAction: AppController.ttsProvider.indexOf("omnivoice") === 0
+            showCloneAction: AppController.ttsProvider.indexOf("omnivoice") === 0 || AppController.ttsProvider === "vieneu"
             speechRecognitionModel: AppController.speechRecognitionModel
             translationModel: AppController.translationModel
             speechRecognitionOptions: AppController.speechRecognitionModelOptions

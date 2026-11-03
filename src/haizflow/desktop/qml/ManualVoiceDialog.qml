@@ -93,9 +93,13 @@ AppDialog {
             columnSpacing: Theme.space12
             rowSpacing: Theme.space8
 
-            SettingLabel { text: qsTr("Công cụ") }
+            SettingLabel {
+                text: qsTr("Công cụ")
+                visible: AppController.ttsProviderOptions && AppController.ttsProviderOptions.length > 1
+            }
             StudioComboBox {
                 Layout.fillWidth: true
+                visible: AppController.ttsProviderOptions && AppController.ttsProviderOptions.length > 1
                 model: AppController.ttsProviderOptions
                 textRole: "label"
                 valueRole: "provider"
@@ -116,39 +120,22 @@ AppDialog {
             SettingLabel {
                 Layout.fillWidth: true
                 text: qsTr("Giọng đọc")
-                helpText: qsTr("Nhận diện nhiều người nói chọn giọng thư viện ổn định cho từng người; kết quả có thể cần chỉnh lại. Giọng nhân bản dùng mẫu do bạn cung cấp.")
-            }
-
-            Text {
-                Layout.fillWidth: true
-                text: root.draftProvider === "elevenlabs"
-                    ? qsTr("ElevenLabs dùng API key trong Cài đặt → API key và credit của tài khoản. Chọn giọng đã có trên ElevenLabs.")
-                    : AppController.processingDevice === "gpu" && root.draftProvider === "omnivoice"
-                    ? qsTr("Máy đang dùng GPU. OmniVoice GPU thường xử lý nhanh hơn; bạn vẫn có thể chọn CPU.")
-                    : qsTr("Chế độ CPU: đổi bộ xử lý trong Cài đặt → Chung để sử dụng OmniVoice GPU.")
-                visible: root.draftProvider === "elevenlabs" || AppController.processingDevice !== "gpu" || root.draftProvider === "omnivoice"
-                color: Theme.textMuted
-                font.pixelSize: TypeScale.metadata
-                wrapMode: Text.Wrap
-                textFormat: Text.PlainText
+                helpText: qsTr("25 giọng đọc chuẩn Bắc, Trung, Nam cùng tính năng nhân bản giọng đọc từ mẫu âm thanh của bạn.")
             }
 
             VoicePicker {
                 id: voicePicker
                 Layout.fillWidth: true
                 model: root.voiceModel
-                currentValue: root.draftSpeakerMode === "multiple" ? "omnivoice:multiple" : root.draftVoice
-                allowMultipleSpeakers: root.draftProvider.indexOf("omnivoice") === 0 || root.draftProvider === "elevenlabs"
-                allowVoiceClone: root.draftProvider.indexOf("omnivoice") === 0
+                currentValue: root.draftVoice
+                allowMultipleSpeakers: false
+                allowVoiceClone: true
                 onCloneRequested: root.cloneRequested()
                 previewEnabled: true
                 previewSource: AppController.audioPreviewSource
                 previewState: AppController.audioPreviewState
                 onSelected: function(voice) {
-                    root.draftSpeakerMode = voice === "omnivoice:multiple" ? "multiple" : "single";
-                    root.draftVoice = voice === "omnivoice:multiple"
-                        ? (root.draftProvider === "elevenlabs" ? root.firstAvailableVoice(root.voiceModel) : "omnivoice:female")
-                        : voice;
+                    root.draftVoice = voice;
                 }
                 onPreviewRequested: function(voice) {
                     AppController.previewVoiceSample(

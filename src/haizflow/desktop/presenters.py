@@ -195,43 +195,52 @@ def format_memory_size(value: int) -> str:
     return f"{value / (1024**3):.1f} GB"
 
 
-def voice_options_for_language(language_code: str, ui_language: str, provider: str = "omnivoice"):
-    if provider == "elevenlabs":
-        from haizflow.services.elevenlabs import voice_options
-        return voice_options()
-    options = []
-    for item in OMNIVOICE_TTS_VOICES:
-        voice, label = item[:2]
-        category = item[2] if len(item) > 2 else "natural"
-        options.append(
-            {
-                "voice": voice,
-                "label": localized_voice_label(label, ui_language),
-                "category": category,
-                "categoryLabel": (
-                    {
-                        "natural": "Tự nhiên",
-                        "narration": "Kể chuyện",
-                        "style": "Phong cách",
-                        "entertainment": "Giải trí",
-                    }
-                    if ui_language == "vi"
-                    else {
-                        "natural": "Natural",
-                        "narration": "Narration",
-                        "style": "Styles",
-                        "entertainment": "Entertainment",
-                    }
-                ).get(category, category),
-            }
-        )
-    options.append({
-        "voice": "omnivoice:clone",
-        "label": "Giọng nhân bản của tôi" if ui_language == "vi" else "My cloned voice",
-        "category": "reference",
-        "categoryLabel": "Giọng của tôi" if ui_language == "vi" else "My voice",
-    })
-    return options
+VIENEU_TTS_VOICES = [
+    ("vieneu:clone", "Giọng nhân bản (Voice Clone)", "reference"),
+    ("Hải Đăng", "Hải Đăng (Nam · Bắc · Tự nhiên)", "natural"),
+    ("Trúc Ly", "Trúc Ly (Nữ · Bắc · Tự nhiên)", "natural"),
+    ("Thùy Dung", "Thùy Dung (Nữ · Nam · Tin tức)", "narration"),
+    ("Thái Sơn", "Thái Sơn (Nam · Nam · Kể chuyện)", "narration"),
+    ("Quang Sơn", "Quang Sơn (Nam · Trung · Tự nhiên)", "natural"),
+    ("Ngọc Trân", "Ngọc Trân (Nữ · Trung · Tự nhiên)", "natural"),
+    ("Thiện Minh", "Thiện Minh (Nam · Bắc · Kể chuyện)", "narration"),
+    ("Mai Anh", "Mai Anh (Nữ · Bắc · Tin tức)", "narration"),
+    ("Mỹ Duyên", "Mỹ Duyên (Nữ · Nam · Đọc truyện)", "narration"),
+    ("Quỳnh Anh", "Quỳnh Anh (Nữ · Bắc · Đọc truyện)", "narration"),
+    ("Đức Trí", "Đức Trí (Nam · Nam · Đọc truyện)", "narration"),
+    ("Kim Thanh", "Kim Thanh (Nữ · Nam · Đọc truyện)", "narration"),
+    ("Đoan Trang", "Đoan Trang (Nữ · Bắc · Tự nhiên)", "natural"),
+    ("Thục Đoan", "Thục Đoan (Nữ · Nam · Kể chuyện)", "narration"),
+    ("Minh Triết", "Minh Triết (Nam · Nam · Tin tức)", "narration"),
+    ("Ngọc Huyền", "Ngọc Huyền (Nữ · Bắc · Tự nhiên)", "natural"),
+    ("Minh Đức", "Minh Đức (Nam · Bắc · Tin tức)", "narration"),
+    ("Phạm Tuyên", "Phạm Tuyên (Nam · Bắc · Tự nhiên)", "natural"),
+    ("Xuân Vĩnh", "Xuân Vĩnh (Nam · Bắc · Tự nhiên)", "natural"),
+    ("Thanh Bình", "Thanh Bình (Nam · Bắc · Kể chuyện)", "narration"),
+    ("Ngọc Linh", "Ngọc Linh (Nữ · Bắc · Kể chuyện)", "narration"),
+    ("Thiền Tâm Đức", "Thiền Tâm Đức (Nam · Bắc · Kể chuyện)", "narration"),
+    ("Adam", "Adam (Nam · Nam · Tự nhiên)", "entertainment"),
+    ("Adam bựa", "Adam bựa (Nam · Bắc · Hài hước)", "entertainment"),
+    ("Quốc Tuấn", "Quốc Tuấn (Nam · Bắc · Tự nhiên)", "natural"),
+]
+
+
+def voice_options_for_language(language_code: str, ui_language: str, provider: str = "vieneu"):
+    category_labels = {
+        "natural": "Tự nhiên" if ui_language == "vi" else "Natural",
+        "narration": "Kể chuyện" if ui_language == "vi" else "Narration",
+        "entertainment": "Giải trí" if ui_language == "vi" else "Entertainment",
+        "reference": "Giọng của tôi" if ui_language == "vi" else "My voice",
+    }
+    return [
+        {
+            "voice": voice,
+            "label": label,
+            "category": cat,
+            "categoryLabel": category_labels.get(cat, cat),
+        }
+        for voice, label, cat in VIENEU_TTS_VOICES
+    ]
 
 
 def localized_voice_label(label: str, ui_language: str) -> str:

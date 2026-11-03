@@ -274,8 +274,8 @@ class HaizFlowController(QObject):
         self._target_language = "vi"
         self._speech_recognition_model = "small"
         self._translation_model = "auto"
-        self._tts_provider = "omnivoice"
-        self._tts_voice = "omnivoice:female"
+        self._tts_provider = "vieneu"
+        self._tts_voice = "Hải Đăng"
         self._speaker_mode = "single"
         self._enable_audio_separation = True
         self._original_volume = 60
@@ -1599,7 +1599,7 @@ class HaizFlowController(QObject):
         return [
             {
                 **item,
-                "available": item.get("voice") != "omnivoice:clone",
+                "available": not str(item.get("voice", "")).endswith(":clone"),
                 "previewAvailable": self._audio_preview.has_voice_sample(
                     "omnivoice", item.get("voice", ""), language
                 ),
@@ -1621,7 +1621,7 @@ class HaizFlowController(QObject):
         return [
             {
                 **item,
-                "available": item.get("voice") != "omnivoice:clone",
+                "available": not str(item.get("voice", "")).endswith(":clone"),
                 "previewAvailable": self._audio_preview.has_voice_sample(
                     effective_provider, item.get("voice", ""), str(language_code or "vi")
                 ),
@@ -1638,7 +1638,7 @@ class HaizFlowController(QObject):
             {
                 **item,
                 "available": (
-                    item.get("voice") != "omnivoice:clone" or reference_available
+                    not str(item.get("voice", "")).endswith(":clone") or reference_available
                 ),
                 "previewAvailable": self._audio_preview.has_voice_sample(
                     effective_provider,
@@ -1647,10 +1647,7 @@ class HaizFlowController(QObject):
                     selected_video_id=str(self._selected_video_id or ""),
                 ),
             }
-            for item in self._voice_options_for_language(
-                self._target_language,
-                effective_provider,
-            )
+            for item in self._voice_options_for_language(self._target_language, effective_provider)
         ]
 
     @Property(int, notify=ttsVoiceOptionsChanged)
@@ -4655,7 +4652,7 @@ class HaizFlowController(QObject):
             )
             return False
 
-        if selected_voice == "omnivoice:clone" and not self.voiceCloneReferencePath:
+        if (selected_voice in {"omnivoice:clone", "vieneu:clone"} or selected_voice.endswith(":clone")) and not self.voiceCloneReferencePath:
             self.appAlertRequested.emit(
                 "Chưa có mẫu giọng",
                 "Thêm mẫu giọng được phép sử dụng trước khi chọn giọng đã nhân bản.",
@@ -6677,6 +6674,11 @@ class HaizFlowController(QObject):
     def copyToClipboard(self, text: str) -> None:
         self.copyText(text)
 
+    @Slot(result=str)
+    def clipboardText(self) -> str:
+        cb = QGuiApplication.clipboard()
+        return cb.text() if cb is not None else ""
+
     @Slot()
     def deleteCurrentProject(self):
         HaizFlowController._project_commands_for(self).delete_current_project()
@@ -7488,16 +7490,12 @@ class HaizFlowController(QObject):
 
     @staticmethod
     def _normalized_tts_provider(language_code, provider):
-        provider = str(provider or "omnivoice").lower()
-        return provider if provider in {"omnivoice", "omnivoice-gpu", "elevenlabs"} else "omnivoice"
+        return "vieneu"
 
     def _tts_provider_options_for_language(self, language_code):
-        return [{"provider": provider, "label": label,
-                 "available": provider != "omnivoice-gpu" or HaizFlowController._project_gpu_available(self)}
-                for provider, label in (
-            ("omnivoice", "OmniVoice · CPU"), ("omnivoice-gpu", "OmniVoice · GPU"),
-            ("elevenlabs", "ElevenLabs · API"),
-        )]
+        return [
+            {"provider": "vieneu", "label": "VieNeu-TTS · Chuẩn Việt Nam (Offline 48kHz)", "available": True}
+        ]
 
     def _show_app_alert(self, title: str, message: str, severity: str = "information") -> None:
         level = str(severity or "information").strip().lower()

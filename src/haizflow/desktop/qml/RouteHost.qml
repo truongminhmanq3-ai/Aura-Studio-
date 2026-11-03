@@ -18,9 +18,10 @@ StackLayout {
     signal workspaceRequested(string returnRoute, string workspaceRoute)
     signal navigateRequested(string route)
     signal reviewTranslationRequested
-    signal urlImportRequested(string mode)
+    signal urlImportRequested(string mode, string initialUrl)
     signal downloadProjectImportRequested(string mode)
     signal batchSettingsRequested
+    signal notificationRequested(string title, string message)
 
     function routeIndex(route) {
         const routes = {
@@ -329,5 +330,9 @@ StackLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
         Layout.margins: 0
+        onRequestUrlImport: function(mode, initialUrl) { root.urlImportRequested(mode, initialUrl); }
+        onRequestNavigate: function(route) { root.navigateRequested(route); }
+        onRequestNewProject: function(type, returnRoute) { root.newProjectRequested(type, returnRoute); }
+        onRequestNotification: function(title, message) { root.notificationRequested(title, message); }
     }
 }

@@ -222,22 +222,36 @@ def logs_dir() -> Path:
 
 
 def bin_dir() -> Path:
-    if not runtime_overrides_allowed():
-        # Bundled binaries are immutable release payload, beside the selected
-        # installation directory. Do not prefer a machine-wide BIN_DIR value.
-        return (bundle_root() / "bin").resolve()
     override = os.getenv("BIN_DIR")
-    if override:
+    if override and runtime_overrides_allowed():
         return Path(override).expanduser().resolve()
 
-    candidates = [
-        project_root() / "runtime" / "bin",
-        project_root() / "bin",
-        bundle_root() / "bin",
-    ]
-    if sys.platform == "darwin" and not is_frozen():
-        candidates.extend([Path("/opt/homebrew/opt/ffmpeg-full/bin"), Path("/usr/local/opt/ffmpeg-full/bin")])
+    candidates: list[Path] = []
+    if is_frozen():
+        candidates.append(bundle_root() / "bin")
+        if sys.platform == "darwin":
+            app_contents = Path(sys.executable).parent.parent
+            candidates.extend([
+                app_contents / "Frameworks" / "bin",
+                app_contents / "MacOS" / "bin",
+                app_contents / "Resources" / "bin",
+            ])
+    else:
+        candidates.extend([
+            project_root() / "runtime" / "bin",
+            project_root() / "bin",
+            bundle_root() / "bin",
+        ])
+
+    if sys.platform == "darwin":
+        candidates.extend([
+            Path("/opt/homebrew/opt/ffmpeg-full/bin"),
+            Path("/opt/homebrew/bin"),
+            Path("/usr/local/opt/ffmpeg-full/bin"),
+            Path("/usr/local/bin"),
+        ])
+
     for candidate in candidates:
         if candidate.exists():
             return candidate.resolve()
-    return candidates[0].resolve()
+    return (bundle_root() / "bin").resolve()

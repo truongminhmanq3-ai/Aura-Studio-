@@ -35,16 +35,55 @@ AppDialog {
     maximumHeight: 620
     closePolicy: importer.busy ? Popup.NoAutoClose : Popup.CloseOnEscape
 
-    function openForMode(mode) {
+    property string initialUrl: ""
+
+    function openForMode(mode, targetUrl) {
         importMode = mode === "batch" ? "batch" : "single"
+        initialUrl = (targetUrl !== undefined && targetUrl !== null) ? targetUrl.toString().trim() : ""
         importer.begin(importMode)
         open()
     }
 
     onOpened: {
-        videoUrl.clear()
-        inspectedText = ""
-        videoUrl.forceActiveFocus()
+        let urlToUse = ""
+        const isSearch = function(u) {
+            return u && typeof u === "string" && u.indexOf("/search/") >= 0
+        }
+        const isDirect = function(u) {
+            if (!u || typeof u !== "string") return false
+            const s = u.trim()
+            return s.indexOf("/video/") >= 0 ||
+                   s.indexOf("v.douyin.com/") >= 0 ||
+                   s.indexOf("tiktok.com/") >= 0 ||
+                   s.indexOf("youtube.com/") >= 0 ||
+                   s.indexOf("youtu.be/") >= 0
+        }
+
+        if (initialUrl.length > 0 && !isSearch(initialUrl)) {
+            urlToUse = initialUrl.trim()
+        } else {
+            try {
+                const clip = AppController.clipboardText().trim()
+                if (isDirect(clip)) {
+                    urlToUse = clip
+                }
+            } catch (err) {}
+        }
+        initialUrl = ""
+
+        if (urlToUse.length > 0) {
+            videoUrl.text = urlToUse
+            inspectedText = ""
+            videoUrl.forceActiveFocus()
+            videoUrl.selectAll()
+            if (isDirect(urlToUse) && douyinAction.permitsRequest && !root.importer.busy) {
+                root.inspectLink()
+            }
+        } else {
+            videoUrl.clear()
+            inspectedText = ""
+            videoUrl.forceActiveFocus()
+        }
     }
 
     function inspectLink() {

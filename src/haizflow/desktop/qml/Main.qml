@@ -635,13 +635,19 @@ ApplicationWindow {
                     root.navigate(route);
                 }
                 onReviewTranslationRequested: translationReviewDialogLoader.invoke("open", [])
-                onUrlImportRequested: function (mode) {
-                    urlImportDialogLoader.invoke("openForMode", [mode]);
+                onUrlImportRequested: function (mode, initialUrl) {
+                    if (initialUrl && initialUrl.length > 0)
+                        urlImportDialogLoader.invoke("openForMode", [mode, initialUrl]);
+                    else
+                        urlImportDialogLoader.invoke("openForMode", [mode]);
                 }
                 onDownloadProjectImportRequested: function (mode) {
                     downloadProjectSourceDialogLoader.invoke("openForMode", [mode]);
                 }
                 onBatchSettingsRequested: batchSettingsDialogLoader.invoke("open", [])
+                onNotificationRequested: function (title, message) {
+                    desktopNotifier.notify(title, message);
+                }
             }
 
             ActivityTray {

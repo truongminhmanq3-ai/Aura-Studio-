@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -9,10 +10,23 @@ from haizflow.config import BIN_DIR
 
 
 def _binary(name: str) -> str:
+    if sys.platform == "darwin":
+        # Prioritize system/Homebrew ffmpeg & ffprobe to avoid dyld collisions with bundled dylibs
+        for system_candidate in (
+            f"/opt/homebrew/opt/ffmpeg-full/bin/{name}",
+            f"/opt/homebrew/bin/{name}",
+            f"/usr/local/opt/ffmpeg-full/bin/{name}",
+            f"/usr/local/bin/{name}",
+        ):
+            if os.path.isfile(system_candidate):
+                return system_candidate
     resolved = shutil.which(name)
-    if resolved:
+    if resolved and Path(resolved).is_file():
         return resolved
-    return str(Path(BIN_DIR) / (f"{name}.exe" if sys.platform == "win32" else name))
+    bundled = Path(BIN_DIR) / (f"{name}.exe" if sys.platform == "win32" else name)
+    if bundled.is_file():
+        return str(bundled)
+    return str(bundled)
 
 
 @lru_cache(maxsize=1)
@@ -180,7 +194,9 @@ def get_media_stream_types(media_path: str, *, timeout_seconds: float = 15.0) ->
             for stream in payload.get("streams", [])
             if isinstance(stream, dict) and stream.get("codec_type")
         }
-    except (OSError, subprocess.SubprocessError, json.JSONDecodeError, TypeError, ValueError):
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).warning("get_media_stream_types failed on %s: %s", media_path, exc)
         return set()
 
 

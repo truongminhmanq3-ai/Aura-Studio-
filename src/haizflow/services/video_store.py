@@ -485,13 +485,16 @@ def _migrate_video_metadata(raw_data: dict) -> tuple[dict, bool]:
     if data.get("tts_provider") == "elevenlabs":
         from haizflow.services.elevenlabs import normalize_voice
         data["tts_voice"] = normalize_voice(legacy_voice)
+    elif data.get("tts_provider") == "vieneu":
+        from haizflow.pipeline.vieneu_tts import normalize_vieneu_voice
+        data["tts_voice"] = normalize_vieneu_voice(legacy_voice)
     elif not legacy_voice.startswith("omnivoice:"):
         data["tts_voice"] = (
             "omnivoice:male"
             if legacy_voice in {"vi-VN-NamMinhNeural", "en-US-GuyNeural", "zh-CN-YunxiNeural"}
             else "omnivoice:female"
         )
-    if data.get("tts_provider") not in {"omnivoice", "omnivoice-gpu", "elevenlabs"}:
+    if data.get("tts_provider") not in {"omnivoice", "omnivoice-gpu", "vieneu", "elevenlabs"}:
         data["tts_provider"] = "omnivoice"
     files = data.get("files")
     if isinstance(files, dict) and isinstance(files.get("manual_voice_overrides"), dict):
@@ -501,6 +504,9 @@ def _migrate_video_metadata(raw_data: dict) -> tuple[dict, bool]:
                 if override.get("provider") == "elevenlabs":
                     from haizflow.services.elevenlabs import normalize_voice
                     override["voice"] = normalize_voice(voice)
+                elif override.get("provider") == "vieneu":
+                    from haizflow.pipeline.vieneu_tts import normalize_vieneu_voice
+                    override["voice"] = normalize_vieneu_voice(voice)
                 elif not voice.startswith("omnivoice:"):
                     override["voice"] = (
                         "omnivoice:male"

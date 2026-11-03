@@ -440,7 +440,8 @@ def _download_format_selector(platform: str, *, require_audio: bool = True) -> s
     if platform in {"TikTok", "Douyin"}:
         selector = (
             "best[vcodec!=none][acodec!=none]/"
-            "bestvideo[vcodec!=none]+bestaudio[acodec!=none]"
+            "bestvideo[vcodec!=none]+bestaudio[acodec!=none]/"
+            "best[vcodec!=none]"
         )
     else:
         selector = (
