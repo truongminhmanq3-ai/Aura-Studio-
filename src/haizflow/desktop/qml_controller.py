@@ -1554,7 +1554,7 @@ class HaizFlowController(QObject):
     def speakerMode(self, value):
         normalized = (
             "multiple"
-            if (self._tts_provider.startswith("omnivoice") or self._tts_provider == "elevenlabs")
+            if (self._tts_provider.startswith("omnivoice") or self._tts_provider == "elevenlabs" or self._tts_provider == "vieneu")
             and str(value or "").strip().lower() == "multiple"
             else "single"
         )
@@ -4681,7 +4681,7 @@ class HaizFlowController(QObject):
             self._tts_voice = selected_voice
             self._speaker_mode = (
                 "multiple"
-                if (selected_provider.startswith("omnivoice") or selected_provider == "elevenlabs")
+                if (selected_provider.startswith("omnivoice") or selected_provider == "elevenlabs" or selected_provider == "vieneu")
                 and str(speaker_mode or "").strip().lower() == "multiple"
                 else "single"
             )
