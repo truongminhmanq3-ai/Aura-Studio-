@@ -246,9 +246,25 @@ def identify(audio_path: str, segments: list[dict], video_id: str, progress=None
         "omnivoice:radio_warm",
     ]
     voices, counts = {}, {"male": 0, "female": 0}
-    for label in sorted(set(labels)):
-        pitch = np.median([pitches[index] for index, identity in label_by_index.items() if identity == label])
-        kind = "female" if pitch >= 175 else "male"
+    unique_labels = sorted(set(labels))
+    cluster_pitches = {
+        label: float(np.median([pitches[idx] for idx, identity in label_by_index.items() if identity == label]))
+        for label in unique_labels
+    }
+    kinds = {}
+    if len(unique_labels) == 2:
+        l1, l2 = unique_labels[0], unique_labels[1]
+        p1, p2 = cluster_pitches[l1], cluster_pitches[l2]
+        if abs(p1 - p2) >= 15:
+            higher, lower = (l1, l2) if p1 > p2 else (l2, l1)
+            kinds[higher] = "female"
+            kinds[lower] = "male"
+
+    for label in unique_labels:
+        if label not in kinds:
+            pitch = cluster_pitches[label]
+            kinds[label] = "female" if pitch >= 160 else "male"
+        kind = kinds[label]
         choices = female if kind == "female" else male
         voices[label] = choices[counts[kind] % len(choices)]
         counts[kind] += 1

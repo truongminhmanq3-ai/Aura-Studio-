@@ -169,24 +169,31 @@ def _request_chunk(
     source_language: str, target_language: str, video_id: str = "",
 ) -> list[str]:
     entries = [{"id": index, "text": text} for index, text in chunk]
+    system_text = (
+        f"You are a professional video dubbing translator specializing in natural, conversational {target_language} for videos, vlogs, and dialogues.\n"
+        f"Source language: {source_language}. Target language: {target_language}.\n"
+        "Rules for natural dubbing and subtitles:\n"
+        "1. Spoken Vietnamese & Colloquial Phrasing: Translate conversational idioms and slang contextually. Never translate literally word-by-word.\n"
+        "   - '出门' -> translate as 'ra ngoài' or 'bước chân ra khỏi nhà/xe', NEVER 'ra cửa'.\n"
+        "   - '收拾' -> translate contextually as 'dọn dẹp' or 'trừng phạt / dạy dỗ / xử đẹp', never mechanistic 'thu dọn'.\n"
+        "   - Friendly banter / couple teasing: Do NOT use offensive curse words like 'mẹ kiếp' or vulgar 'mày - tao' when people are casually bickering or teasing. Use natural friendly tones ('Trời ơi', 'anh - em', 'tui - bả', 'người ta').\n"
+        "   - Food/drink: '免费啤酒' -> 'bia tươi miễn phí' / 'uống bia miễn phí', avoid awkward phrases like 'mùi bia miễn phí'.\n"
+        "2. Concise & Punchy for TTS Dubbing: Video dubbing has strict timing limits. Keep translations compact and rhythmically natural so AI voices can speak smoothly without rushing.\n"
+        "3. Strict Formatting: Keep the same id and order. Never merge, omit or invent a subtitle.\n"
+        + glossary.prompt_for([text for _, text in chunk])
+    )
     payload = {
-        "systemInstruction": {"parts": [{"text": (
-            "Translate each subtitle into " + target_language + ". Source language: "
-            + source_language + ". Keep the same id and order. Preserve meaning, "
-            "speaker tone, names and punctuation. Return only concise translations; "
-            "never merge, omit or invent a subtitle."
-            + glossary.prompt_for([text for _, text in chunk])
-        )}]},
+        "systemInstruction": {"parts": [{"text": system_text}]},
         "contents": [{"role": "user", "parts": [{
             "text": json.dumps(entries, ensure_ascii=False, separators=(",", ":")),
         }]}],
         "generationConfig": {
-            "temperature": 0.1,
+            "temperature": 0.2,
             "candidateCount": 1,
             # A cap does not prepay tokens. Leave room for language expansion,
             # JSON framing and low-level reasoning so the last cue is not cut.
             "maxOutputTokens": min(8192, max(1024, sum(len(text) for _, text in chunk) * 4)),
-            "thinkingConfig": {"thinkingLevel": "minimal" if model == "gemini-3.5-flash-lite" else "low"},
+            "thinkingConfig": {"thinkingLevel": "low"},
             "responseMimeType": "application/json",
             "responseSchema": {
                 "type": "OBJECT",
