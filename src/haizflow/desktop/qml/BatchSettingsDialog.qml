@@ -323,7 +323,7 @@ FloatingToolDialog {
                 }
                 onTtsProviderEdited: function(value) {
                     root.draftTtsProvider = value
-                    if (value.indexOf("omnivoice") !== 0 && value !== "elevenlabs")
+                    if (value.indexOf("omnivoice") !== 0 && value !== "elevenlabs" && value !== "vieneu")
                         root.draftSpeakerMode = "single"
                     root.draftTtsVoice = root.normalizedDraftVoice(root.draftTargetLanguage, value, root.draftTtsVoice)
                 }
