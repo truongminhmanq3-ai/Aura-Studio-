@@ -154,6 +154,99 @@ def _elevenlabs_voices_by_segment(segments_json_path, video_id, default_voice,
     return result or None
 
 
+_FEMALE_VIENEU_VOICES = {
+    "Trúc Ly", "Thùy Dung", "Ngọc Trân", "Mai Anh", "Mai Chi", "Mỹ Duyên",
+    "Quỳnh Anh", "Kim Thanh", "Đoan Trang", "Thục Đoan", "Ngọc Huyền", "Ngọc Linh"
+}
+_MALE_VIENEU_VOICES = {
+    "Hải Đăng", "Minh Quang", "Thái Sơn", "Quang Sơn", "Thiện Minh", "Đức Trí",
+    "Minh Triết", "Minh Đức", "Phạm Tuyên", "Xuân Vĩnh", "Thanh Bình",
+    "Thiền Tâm Đức", "Adam", "Adam bựa", "Quốc Tuấn"
+}
+
+
+def _is_female_vieneu_voice(voice_name: str) -> bool:
+    v = str(voice_name or "").strip()
+    return v in _FEMALE_VIENEU_VOICES or "nữ" in v.lower() or "female" in v.lower()
+
+
+def _vieneu_voices_by_segment(
+    segments_json_path: str,
+    video_id: str,
+    default_voice: str,
+    process_registry_id: str | None = None,
+    status_callback=None,
+) -> dict[int, str] | None:
+    """Return {segment_index: vieneu_voice} for dialogue / multi-speaker mode."""
+    current_video = get_video(video_id)
+    if str(getattr(current_video, "speaker_mode", "single") or "single") != "multiple":
+        return None
+    files = dict((current_video.files if current_video else {}) or {})
+    video_input = str(files.get("video_input") or "")
+    video_root = os.path.dirname(os.path.dirname(video_input)) if video_input else ""
+    source_segments_path = str(files.get("source_segments") or "")
+    if not source_segments_path and video_root:
+        source_segments_path = os.path.join(video_root, "temp", "source_segments.json")
+    source_audio_path = str(files.get("speech_audio") or "")
+    if not source_audio_path and video_root:
+        source_audio_path = os.path.join(video_root, "temp", "audio.wav")
+    source_segments = []
+    if source_segments_path and os.path.isfile(source_segments_path):
+        with open(source_segments_path, "r", encoding="utf-8") as stream:
+            loaded = json.load(stream)
+        if isinstance(loaded, list):
+            source_segments = loaded
+    if not source_segments or not os.path.isfile(source_audio_path):
+        log_to_video(video_id, "[SPEAKERS] Không có âm thanh tách thoại gốc để nhận diện người nói. Dùng 1 giọng.")
+        return None
+
+    from haizflow.pipeline.speaker_identity import prepare_speakers
+
+    def report(status):
+        if status_callback is not None:
+            status_callback("identifying_speakers", int(status.get("current") or 0),
+                            int(status.get("total") or len(source_segments)))
+
+    try:
+        source_segments = prepare_speakers(
+            source_audio_path, source_segments, process_registry_id or video_id, report
+        )
+    except Exception as exc:
+        log_to_video(video_id, f"[SPEAKERS] Nhận diện người nói không thành công ({exc}). Tự động dùng giọng {default_voice}.")
+        return None
+
+    gender_of = {}
+    for item in source_segments:
+        speaker = str(item.get("speaker_id") or "")
+        name = str(item.get("speaker_voice") or "")
+        gender_of.setdefault(speaker, "female" if ("female" in name or name in _FEMALE_SPEAKER_VOICES) else "male")
+
+    primary_is_female = _is_female_vieneu_voice(default_voice)
+    female_pool = [default_voice] if primary_is_female else ["Trúc Ly", "Thùy Dung", "Quỳnh Anh", "Mai Anh"]
+    male_pool = [default_voice] if not primary_is_female else ["Hải Đăng", "Thái Sơn", "Minh Triết", "Thiện Minh"]
+
+    assigned, used = {}, set()
+    for speaker in sorted(gender_of):
+        target_gender = gender_of[speaker]
+        pool = female_pool if target_gender == "female" else male_pool
+        chosen = next((v for v in pool if v not in used), pool[0])
+        assigned[speaker] = chosen
+        used.add(chosen)
+
+    log_to_video(video_id, "[SPEAKERS][VOICE_MAP] " + " ".join(f"{k}={v}" for k, v in assigned.items()))
+
+    with open(segments_json_path, "r", encoding="utf-8") as stream:
+        segments = json.load(stream)
+    result = {}
+    for index, segment in enumerate(segments, 1):
+        if not isinstance(segment, dict):
+            continue
+        speaker = str(_match_source_segment(segment, source_segments).get("speaker_id") or "")
+        result[index] = assigned.get(speaker, default_voice)
+
+    return result or None
+
+
 def generate_voice_parts(
     segments_json_path: str,
     voice_parts_dir: str,
@@ -180,10 +273,14 @@ def generate_voice_parts(
                               voice_by_index=voice_by_index)
     if backend == "vieneu":
         from haizflow.pipeline.vieneu_tts import generate_parts
+        voice_by_index = _vieneu_voices_by_segment(
+            segments_json_path, video_id, voice, process_registry_id, status_callback
+        )
         return generate_parts(
             segments_json_path, voice_parts_dir, voice, video_id, progress_callback,
             target_language=target_language, process_registry_id=process_registry_id,
             segment_indices=segment_indices, status_callback=status_callback,
+            voice_by_index=voice_by_index,
         )
     voice = normalize_voice(voice)
     from haizflow.pipeline.omnivoice_tts import synthesize_batch_to_mp3

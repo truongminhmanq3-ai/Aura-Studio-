@@ -171,7 +171,23 @@ GridLayout {
             }
             SettingLabel {
                 Layout.fillWidth: true
-                text: qsTr("Giọng đọc")
+                text: qsTr("Phân vai người nói")
+                helpText: qsTr("Chọn 1 người thuyết minh toàn bộ hoặc tự động nhận diện Nam ↔ Nữ cho video có 2 người nói.")
+            }
+            SegmentedControl {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 38
+                enabled: root.editable
+                currentValue: root.speakerMode === "multiple" ? "multiple" : "single"
+                options: [
+                    { "label": qsTr("Thuyết minh 1 người"), "value": "single" },
+                    { "label": qsTr("Đối thoại 2 người (Nam ↔ Nữ)"), "value": "multiple" }
+                ]
+                onActivated: function(value) { root.speakerModeEdited(value) }
+            }
+            SettingLabel {
+                Layout.fillWidth: true
+                text: root.speakerMode === "multiple" ? qsTr("Giọng đọc chính (nhân vật chính)") : qsTr("Giọng đọc")
                 helpText: qsTr("25 giọng đọc chuẩn Bắc, Trung, Nam cùng tính năng nhân bản giọng đọc từ mẫu âm thanh của bạn.")
             }
             VoicePicker {
@@ -188,6 +204,37 @@ GridLayout {
                 }
                 onPreviewRequested: function(voice) { root.ttsVoicePreviewRequested(voice) }
                 onCloneRequested: root.cloneVoiceRequested()
+            }
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: multiSpeakerRow.implicitHeight + Theme.space12 * 2
+                visible: root.speakerMode === "multiple"
+                radius: Theme.radiusSmall
+                color: Theme.interactiveMuted
+                border.width: 1
+                border.color: Theme.outline
+
+                RowLayout {
+                    id: multiSpeakerRow
+                    anchors.fill: parent
+                    anchors.margins: Theme.space12
+                    spacing: Theme.space8
+
+                    AppIcon {
+                        glyph: "\uE946"
+                        iconSize: Theme.iconMedium
+                        iconColor: Theme.primary
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("AI tự động nhận diện câu của Nam và Nữ trong video gốc. Nhân vật Nữ sẽ lồng giọng Nữ (Trúc Ly), nhân vật Nam sẽ lồng giọng Nam (Hải Đăng).")
+                        color: Theme.text
+                        font.family: Theme.fontFamily
+                        font.pixelSize: TypeScale.caption
+                        wrapMode: Text.Wrap
+                    }
+                }
             }
 
         }

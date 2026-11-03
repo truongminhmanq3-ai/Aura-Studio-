@@ -80,7 +80,7 @@ class ProjectWorkspaceController:
         stored_speaker_mode = str(getattr(video, "speaker_mode", "single") or "single")
         host._speaker_mode = (
             "multiple"
-            if (host._tts_provider.startswith("omnivoice") or host._tts_provider == "elevenlabs") and stored_speaker_mode == "multiple"
+            if (host._tts_provider.startswith("omnivoice") or host._tts_provider == "elevenlabs" or host._tts_provider == "vieneu") and stored_speaker_mode == "multiple"
             else "single"
         )
         if (

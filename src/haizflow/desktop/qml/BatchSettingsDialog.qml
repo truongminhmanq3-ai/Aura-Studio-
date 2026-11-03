@@ -128,7 +128,7 @@ FloatingToolDialog {
         draftTranslationModel = settings.translationModel || "auto"
         draftTtsProvider = settings.ttsProvider || "vieneu"
         draftTtsVoice = normalizedDraftVoice(draftTargetLanguage, draftTtsProvider, settings.ttsVoice || "")
-        draftSpeakerMode = (draftTtsProvider.indexOf("omnivoice") === 0 || draftTtsProvider === "elevenlabs") && settings.speakerMode === "multiple"
+        draftSpeakerMode = (draftTtsProvider.indexOf("omnivoice") === 0 || draftTtsProvider === "elevenlabs" || draftTtsProvider === "vieneu") && settings.speakerMode === "multiple"
             ? "multiple" : "single"
         draftEnableAudioSeparation = settings.enableAudioSeparation !== undefined ? Boolean(settings.enableAudioSeparation) : true
         draftOriginalVolume = Number(settings.originalVolume !== undefined ? settings.originalVolume : 60)

@@ -658,7 +658,7 @@ class ProjectCommandsController:
             voice = host._normalized_voice_for_language(language, tts_voice)
         normalized_speaker_mode = (
             "multiple"
-            if (provider.startswith("omnivoice") or provider == "elevenlabs")
+            if (provider.startswith("omnivoice") or provider == "elevenlabs" or provider == "vieneu")
             and str(speaker_mode or getattr(host, "_speaker_mode", "single")).strip().lower()
             == "multiple"
             else "single"

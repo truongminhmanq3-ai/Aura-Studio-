@@ -732,8 +732,8 @@ class ResourcePackManager:
         speaker_packs = ["engine-speaker-bundled", "model-speaker-identification"]
         if context.get("speaker_mode") == "multiple":
             voice_packs.extend(speaker_packs)
-        if provider == "elevenlabs":
-            voice_packs = []
+        if provider in {"elevenlabs", "vieneu"}:
+            voice_packs = speaker_packs if context.get("speaker_mode") == "multiple" else []
         recognition_model = str(context.get("model") or "small").lower()
         recognition_device = ("cpu" if recognition_model == "small-cpu" else
                               "gpu" if recognition_model in {"small-gpu", "turbo", "large-v3-turbo"} else device)

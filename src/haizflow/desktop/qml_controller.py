@@ -1484,7 +1484,7 @@ class HaizFlowController(QObject):
             return
         self._tts_provider = provider
         self._tts_voice = normalized_voice
-        speaker_changed = not (provider.startswith("omnivoice") or provider == "elevenlabs") and getattr(self, "_speaker_mode", "single") != "single"
+        speaker_changed = not (provider.startswith("omnivoice") or provider == "elevenlabs" or provider == "vieneu") and getattr(self, "_speaker_mode", "single") != "single"
         if speaker_changed:
             self._speaker_mode = "single"
         preview = getattr(self, "_audio_preview", None)
