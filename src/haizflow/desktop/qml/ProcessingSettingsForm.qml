@@ -11,9 +11,10 @@ GridLayout {
     property bool showCloneAction: false
     property bool showMusicPlaybackSettings: true
     property real availableHeight: 0
-    readonly property real voiceSpacing: Math.max(Theme.space8, Math.min(Theme.space20,
-        Theme.space8 + (availableHeight - 500) / 18))
-    readonly property real mediaSpacing: Math.max(6, Math.min(Theme.space16,
+    readonly property real voiceSpacing: root.speakerMode === "multiple"
+        ? Math.max(Theme.space6, Math.min(Theme.space10, Theme.space6 + (availableHeight - 520) / 30))
+        : Math.max(Theme.space8, Math.min(Theme.space20, Theme.space8 + (availableHeight - 500) / 18))
+    readonly property real mediaSpacing: Math.max(6, Math.min(Theme.space14,
         6 + (availableHeight - 500) / 24))
     property string speechRecognitionModel: "small"
     property string translationModel: "auto"
@@ -257,7 +258,7 @@ GridLayout {
             }
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: multiSpeakerRow.implicitHeight + Theme.space12 * 2
+                Layout.preferredHeight: multiSpeakerRow.implicitHeight + Theme.space8 * 2
                 visible: root.speakerMode === "multiple"
                 radius: Theme.radiusSmall
                 color: Theme.interactiveMuted
@@ -267,7 +268,7 @@ GridLayout {
                 RowLayout {
                     id: multiSpeakerRow
                     anchors.fill: parent
-                    anchors.margins: Theme.space12
+                    anchors.margins: Theme.space8
                     spacing: Theme.space8
 
                     AppIcon {

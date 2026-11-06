@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import "."
 
@@ -19,14 +20,20 @@ InspectorPanel {
         }
     }
 
+    ScrollView {
+        id: setupScrollView
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        clip: true
+        contentWidth: availableWidth
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+
         ProcessingSettingsForm {
             id: settingsForm
             objectName: "autoProcessingSettingsForm"
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.minimumHeight: implicitHeight
-            Layout.alignment: Qt.AlignTop
-            availableHeight: Math.max(0, root.height - root.padding * 2)
+            width: setupScrollView.availableWidth
+            availableHeight: Math.max(0, setupScrollView.availableHeight)
             editable: AppController.canEditSelectedVideo
             cpuOnly: AppController.cpuOnly
             hasSource: AppController.videoPath.length > 0
@@ -100,6 +107,7 @@ InspectorPanel {
             }
             onWatermarkRequested: watermarkDialogLoader.invoke("openForSelectedVideo", [])
         }
+    }
 
     LazyDialogLoader {
         id: audioMixDialogLoader

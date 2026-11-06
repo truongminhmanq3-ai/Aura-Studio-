@@ -74,6 +74,7 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.minimumHeight: 0
+            clip: true
 
             GridLayout {
                 id: workspaceGrid
@@ -109,7 +110,7 @@ Item {
                     Layout.fillHeight: true
                     Layout.minimumWidth: root.wideLayout ? 650 : 0
                     Layout.preferredWidth: root.wideLayout ? 1040 : 600
-                    Layout.minimumHeight: implicitHeight
+                    Layout.minimumHeight: 280
                     Layout.preferredHeight: root.wideLayout ? 650 : 620
                 }
 
