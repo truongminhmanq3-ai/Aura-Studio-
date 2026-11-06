@@ -80,7 +80,68 @@ from haizflow.desktop.resource_pack_controller import ResourcePackController
 from haizflow.desktop.runtime_device_controller import RuntimeDeviceController
 from haizflow.desktop.settings_controller import SettingsController
 from haizflow.desktop.smart_warmup_controller import SmartWarmupController
-from haizflow.desktop.social_publish_controller import SocialPublishController
+
+class _DummySocialPublisher:
+    busy = False
+    account_syncing = False
+    status = ""
+    default_caption = ""
+    default_hashtags = ""
+    count = 0
+    posted_count = 0
+    waiting_count = 0
+    project_source_selected_count = 0
+    api_key_configured = False
+    api_keys = []
+    api_key_verified = False
+    credential_busy = False
+    credential_result = ""
+    connected_account_count = 0
+    profile_count = 0
+    connection_profile_name = ""
+    oauth_sync_pending = False
+    account_ready = False
+    can_post_more = False
+    account_names = []
+    account_platforms = []
+    selected_platform = ""
+    selected_platform_label = ""
+    selected_account_index = -1
+    selected_account_name = ""
+    privacy_levels = []
+    privacy_level = ""
+    publish_now = False
+    allow_comment = False
+    allow_duet = False
+    allow_stitch = False
+    share_to_feed = False
+    ai_generated = False
+    first_comment = ""
+    comment_available = False
+    duet_available = False
+    stitch_available = False
+    consent_confirmed = False
+
+    def can_switch_project(self, *args, **kwargs):
+        return True
+
+    def drain_events(self):
+        pass
+
+    def attach_project(self, *args, **kwargs):
+        pass
+
+    def detach_project(self):
+        pass
+
+    def has_project_work(self, *args, **kwargs):
+        return False
+
+    def __getattr__(self, name):
+        def _noop(*args, **kwargs):
+            return False
+        return _noop
+
 from haizflow.desktop.subtitle_overlay_renderer import SubtitleOverlayRenderer
 from haizflow.desktop.url_import import VideoUrlImportCoordinator
 from haizflow.desktop.voice_clone_recorder import VoiceCloneRecorder
@@ -419,7 +480,7 @@ class HaizFlowController(QObject):
         self._manual_voice_refresh_timer.timeout.connect(self._refresh_manual_voice)
         self._audio_preview = AudioPreviewController(self)
         self._media_downloader = MediaDownloadController(self)
-        self._tiktok_publisher = SocialPublishController(self)
+        self._tiktok_publisher = _DummySocialPublisher()
         self._settings_controller = SettingsController(self)
         self._project_workspace = ProjectWorkspaceController(self)
         self._project_commands = ProjectCommandsController(self)

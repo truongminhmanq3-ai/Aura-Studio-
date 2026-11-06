@@ -36,8 +36,6 @@ ApplicationWindow {
     readonly property string routeBatchVideo: "batch-video"
     readonly property string routeDownloadProjects: "download-projects"
     readonly property string routeDownloadWorkspace: "download-workspace"
-    readonly property string routePublishProjects: "publish-projects"
-    readonly property string routePublishWorkspace: "publish-workspace"
     property string currentRoute: routeHome
     property string workspaceReturnRoute: routeHome
     property var routeHistory: [routeHome]
@@ -60,7 +58,7 @@ ApplicationWindow {
     ].indexOf(AppController.selectedStepId) < 0
     readonly property bool routeCanGoBack: routeHistoryIndex > 0
     readonly property bool routeCanGoForward: routeHistoryIndex < routeHistory.length - 1
-    readonly property bool projectWorkspaceVisible: currentRoute === routeSingleWorkspace || currentRoute === routeManualWorkspace || currentRoute === routeBatchWorkspace || currentRoute === routeBatchVideo || currentRoute === routeDownloadWorkspace || currentRoute === routePublishWorkspace
+    readonly property bool projectWorkspaceVisible: currentRoute === routeSingleWorkspace || currentRoute === routeManualWorkspace || currentRoute === routeBatchWorkspace || currentRoute === routeBatchVideo || currentRoute === routeDownloadWorkspace
     readonly property bool globalNavigationBlocked: lazyDialogVisible(projectSetupDialogLoader) || lazyDialogVisible(urlImportDialogLoader) || lazyDialogVisible(downloadProjectSourceDialogLoader) || lazyDialogVisible(batchSettingsDialogLoader) || lazyDialogVisible(translationReviewDialogLoader) || appAlertDialog.visible || modelSetupOverlayLoader.active
     readonly property bool downloadCanGoBack: routeHost.downloadCanGoBack
     readonly property bool downloadCanGoForward: routeHost.downloadCanGoForward
@@ -72,14 +70,12 @@ ApplicationWindow {
         || currentRoute === routeBatchWorkspace
         || currentRoute === routeBatchVideo
         || currentRoute === routeDownloadWorkspace
-        || currentRoute === routePublishWorkspace
 
     function syncEditHistoryScope() {
         if (currentRoute === routeSettings || currentRoute === routeApiKeys || currentRoute === routePackages) {
             AppController.setEditHistoryScope("settings");
         } else if (currentRoute === routeBatchWorkspace
-                || currentRoute === routeDownloadWorkspace
-                || currentRoute === routePublishWorkspace) {
+                || currentRoute === routeDownloadWorkspace) {
             AppController.setEditHistoryScope("project");
         } else if (currentRoute === routeSingleWorkspace
                 || currentRoute === routeManualWorkspace
@@ -107,8 +103,6 @@ ApplicationWindow {
             return "settings";
         if (currentRoute === routeDownloadProjects)
             return "downloads";
-        if (currentRoute === routePublishProjects)
-            return "social";
         return "home";
     }
 
@@ -116,15 +110,8 @@ ApplicationWindow {
         return loader.status === Loader.Ready && loader.item !== null && loader.item.visible;
     }
 
-    // Reconcile in the background whenever the user returns from a browser.
-    // This catches dashboard disconnects immediately without disabling the UI.
-    onActiveChanged: {
-        if (active && currentRoute === routePublishWorkspace && !AppController.tiktokPublishBusy)
-            AppController.reconcileZernioConnections();
-    }
-
     function routeIsAvailable(route) {
-        if (route === routeHome || route === routeResearch || route === routeProjects || route === routeSettings || route === routeApiKeys || route === routePackages || route === routeSingleProjects || route === routeManualProjects || route === routeBatchProjects || route === routeDownloadProjects || route === routePublishProjects)
+        if (route === routeHome || route === routeResearch || route === routeProjects || route === routeSettings || route === routeApiKeys || route === routePackages || route === routeSingleProjects || route === routeManualProjects || route === routeBatchProjects || route === routeDownloadProjects)
             return true;
         if (!AppController.hasOpenProject)
             return false;
@@ -138,8 +125,6 @@ ApplicationWindow {
             return AppController.projectType === "batch" && AppController.isSelectedBatchVideo;
         if (route === routeDownloadWorkspace)
             return AppController.projectType === "download";
-        if (route === routePublishWorkspace)
-            return AppController.projectType === "publish";
         return false;
     }
 
@@ -459,8 +444,6 @@ ApplicationWindow {
             } else {
                 if (AppController.projectType === "download") {
                     root.openProjectWorkspace(returnRoute || root.routeDownloadProjects, root.routeDownloadWorkspace);
-                } else if (AppController.projectType === "publish") {
-                    root.openProjectWorkspace(returnRoute || root.routePublishProjects, root.routePublishWorkspace);
                 } else {
                     root.openProjectWorkspace(returnRoute || root.routeSingleProjects, root.routeSingleWorkspace);
                 }
@@ -564,8 +547,6 @@ ApplicationWindow {
                     root.navigate(root.routeBatchProjects);
                 else if (section === "downloads")
                     root.navigate(root.routeDownloadProjects);
-                else if (section === "social")
-                    root.navigate(root.routePublishProjects);
                 else if (section === "settings")
                     root.navigate(root.routeSettings);
                 else
@@ -607,10 +588,6 @@ ApplicationWindow {
                 onNewDownloadProjectRequested: {
                     root.workspaceReturnRoute = root.routeDownloadProjects;
                     projectSetupDialogLoader.invoke("openForType", ["download"]);
-                }
-                onNewPublishProjectRequested: {
-                    root.workspaceReturnRoute = root.routePublishProjects;
-                    projectSetupDialogLoader.invoke("openForType", ["publish"]);
                 }
                 onSettingsRequested: root.navigate(root.routeSettings)
                 onApiKeysRequested: root.navigate(root.routeApiKeys)

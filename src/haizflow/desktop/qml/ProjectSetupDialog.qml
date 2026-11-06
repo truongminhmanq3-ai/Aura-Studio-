@@ -18,13 +18,11 @@ AppDialog {
             ? qsTr("Dự án thủ công")
             : projectType === "download"
                 ? qsTr("Dự án tải xuống")
-                : projectType === "publish"
-                    ? qsTr("Dự án đăng mạng xã hội")
-                    : qsTr("Dự án tự động")
+                : qsTr("Dự án tự động")
 
     function openForType(type) {
         AppController.prepareProjectCreationDirectory();
-        projectType = ["batch", "manual", "download", "publish"].includes(type)
+        projectType = ["batch", "manual", "download"].includes(type)
             ? type : "single"
         open()
     }

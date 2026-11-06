@@ -13,7 +13,7 @@ AppDialog {
     preferredWidth: 600
     maximumWidth: 640
 
-    ZernioSetupStep {
+    ApiSetupStep {
         Layout.fillWidth: true
         stepNumber: 1
         title: qsTr("Mở Google AI Studio")
@@ -25,14 +25,14 @@ AppDialog {
         }
     }
 
-    ZernioSetupStep {
+    ApiSetupStep {
         Layout.fillWidth: true
         stepNumber: 2
         title: qsTr("Tạo và sao chép key")
         description: qsTr("Chọn dự án Google của bạn, tạo key mới và sao chép. Kiểm tra hạn mức sử dụng trong AI Studio.")
     }
 
-    ZernioSetupStep {
+    ApiSetupStep {
         Layout.fillWidth: true
         stepNumber: 3
         title: qsTr("Lưu key trong Aura Studio")

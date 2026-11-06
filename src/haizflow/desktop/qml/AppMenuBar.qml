@@ -12,7 +12,6 @@ Rectangle {
     signal manualProjectRequested
     signal newBatchProjectRequested
     signal newDownloadProjectRequested
-    signal newPublishProjectRequested
     signal settingsRequested
     signal apiKeysRequested
     signal packagesRequested
@@ -218,8 +217,7 @@ Rectangle {
             newSingleProjectItem.implicitWidth,
             newManualProjectItem.implicitWidth,
             newBatchProjectItem.implicitWidth,
-            newDownloadProjectItem.implicitWidth,
-            newPublishProjectItem.implicitWidth)
+            newDownloadProjectItem.implicitWidth)
 
         AppMenuItem {
             id: newSingleProjectItem
@@ -249,13 +247,6 @@ Rectangle {
 
             text: qsTr("Dự án Tải xuống mới")
             onTriggered: root.newDownloadProjectRequested()
-        }
-
-        AppMenuItem {
-            id: newPublishProjectItem
-
-            text: qsTr("Dự án Đăng mạng xã hội mới")
-            onTriggered: root.newPublishProjectRequested()
         }
     }
 

@@ -34,14 +34,12 @@ StackLayout {
             "batch-video": 6,
             "download-projects": 7,
             "download-workspace": 8,
-            "publish-projects": 9,
-            "publish-workspace": 10,
-            "home": 11,
-            "projects": 12,
-            "settings": 13,
-            "api-keys": 13,
-            "packages": 13,
-            "research": 14
+            "home": 9,
+            "projects": 10,
+            "settings": 11,
+            "api-keys": 11,
+            "packages": 11,
+            "research": 12
         };
         return routes[route] === undefined ? 0 : routes[route];
     }
@@ -53,8 +51,6 @@ StackLayout {
             return "batch-workspace";
         if (projectType === "download")
             return "download-workspace";
-        if (projectType === "publish")
-            return "publish-workspace";
         return "single-workspace";
     }
 
@@ -260,28 +256,6 @@ StackLayout {
         }
     }
 
-    ProjectsPage {
-        projectType: "publish"
-        // qmllint disable stale-property-read
-        projectModel: AppController.publishProjectModel
-        // qmllint enable stale-property-read
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        Layout.margins: 0
-        onRequestNewProject: root.newProjectRequested("publish", "publish-projects")
-        onOpenProject: root.workspaceRequested("publish-projects", "publish-workspace")
-    }
-
-    Loader {
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        Layout.margins: 0
-        active: root.currentRoute === "publish-workspace"
-        asynchronous: true
-        sourceComponent: Component {
-            SocialPublishPage {}
-        }
-    }
 
     HomePage {
         // qmllint disable missing-property stale-property-read

@@ -29,7 +29,7 @@ Item {
         if (!root.projectModel || !searchField || !typeFilter || !sortMode)
             return;
         searchField.text = root.projectModel.query || "";
-        typeFilter.currentIndex = Math.max(0, ["all", "single", "manual", "batch", "download", "publish"].indexOf(root.projectModel.typeFilter));
+        typeFilter.currentIndex = Math.max(0, ["all", "single", "manual", "batch", "download"].indexOf(root.projectModel.typeFilter));
         sortMode.currentIndex = root.projectModel.sortMode === "name" ? 1 : 0;
         root.projectModel.statusFilter = "all";
     }
@@ -80,9 +80,9 @@ Item {
             AppComboBox {
                 id: typeFilter
                 Layout.preferredWidth: 164
-                model: [qsTr("Mọi loại"), qsTr("Tự động"), qsTr("Thủ công"), qsTr("Hàng loạt"), qsTr("Tải xuống"), qsTr("Đăng mạng xã hội")]
+                model: [qsTr("Mọi loại"), qsTr("Tự động"), qsTr("Thủ công"), qsTr("Hàng loạt"), qsTr("Tải xuống")]
                 onActivated: if (root.projectModel)
-                    root.projectModel.typeFilter = ["all", "single", "manual", "batch", "download", "publish"][currentIndex]
+                    root.projectModel.typeFilter = ["all", "single", "manual", "batch", "download"][currentIndex]
                 Accessible.name: qsTr("Loại dự án")
             }
 
@@ -121,7 +121,6 @@ Item {
                     AppMenuItem { text: qsTr("Hàng loạt"); onTriggered: root.requestNewProject("batch") }
                     MenuSeparator {}
                     AppMenuItem { text: qsTr("Tải xuống"); onTriggered: root.requestNewProject("download") }
-                    AppMenuItem { text: qsTr("Đăng mạng xã hội"); onTriggered: root.requestNewProject("publish") }
                 }
             }
         }

@@ -264,18 +264,6 @@ def test_button_tooltips_are_opt_in_and_setting_help_is_preserved():
     assert "helpText: root.helpText" in (qml / "SettingLabel.qml").read_text(encoding="utf-8")
 
 
-def test_zernio_missing_key_notifies_without_navigation():
-    from haizflow.desktop.social_publish_controller import SocialPublishController
-
-    host = SimpleNamespace(_settings_language="vi", appAlertRequested=SimpleNamespace(emit=Mock()),
-                           apiKeySettingsRequested=SimpleNamespace(emit=Mock()))
-    controller = SimpleNamespace(_host=host, _status="")
-    SocialPublishController._missing_api_key_notice(controller)
-    assert "Cài đặt → API Key → Zernio" in controller._status
-    host.appAlertRequested.emit.assert_called_once()
-    host.apiKeySettingsRequested.emit.assert_not_called()
-
-
 def test_cpu_only_demucs_needs_no_cuda_pack_and_gpu_options_are_blocked():
     from haizflow.core.hardware import HardwareCapabilities
 

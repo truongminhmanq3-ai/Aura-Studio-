@@ -6,7 +6,7 @@ import os
 
 from haizflow.desktop.media import thumbnail_source
 from haizflow.schemas.video import CropSettings
-from haizflow.services import project_store, social_publish as tiktok_publish, video_store
+from haizflow.services import project_store, video_store
 
 
 class ProjectWorkspaceController:
@@ -240,20 +240,11 @@ class ProjectWorkspaceController:
         # updated timestamps.
         host._batch_video_ids = [video.video_id for video in videos] if host._project_type == "batch" else []
         host._refresh_batch_model()
-        publisher = getattr(host, "_tiktok_publisher", None)
         if host._project_type == "download":
             host._media_downloader.attach_project(
                 host._selected_project_key,
                 project_store.project_root_for_key(host._selected_project_key),
             )
-        elif host._project_type == "publish":
-            if publisher is not None:
-                publisher.attach_project(
-                    host._selected_project_key,
-                    project_store.project_root_for_key(host._selected_project_key),
-                )
-        elif publisher is not None:
-            publisher.detach_project()
         if videos:
             self.select_video(videos[0])
         else:
@@ -281,19 +272,6 @@ class ProjectWorkspaceController:
         host._catalog_videos = {video.video_id: video for video in all_videos}
         host.videos.set_videos(all_videos[:40])
         summaries = host._build_project_summaries(all_videos, project_store.list_projects())
-        for summary in summaries:
-            if summary["project_type"] != "publish":
-                continue
-            try:
-                publish_summary = tiktok_publish.summarize(project_store.project_root_for_key(summary["key"]))
-            except (OSError, RuntimeError, ValueError):
-                continue
-            summary.update(
-                video_count=publish_summary["item_count"],
-                status=publish_summary["status"],
-                progress=publish_summary["progress"],
-                thumbnail_source=thumbnail_source(publish_summary["thumbnail_path"]),
-            )
         host._project_summaries_by_key = {project["key"]: project for project in summaries}
         host.projects.set_projects(summaries)
         host.single_projects.set_projects([project for project in summaries if project["project_type"] == "single"])

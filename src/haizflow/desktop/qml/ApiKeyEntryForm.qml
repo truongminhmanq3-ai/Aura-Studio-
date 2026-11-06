@@ -6,7 +6,6 @@ import "."
 
 SettingsGroup {
     id: root
-    property bool zernio: false
     property bool replacing: false
     property bool locked: false
     property bool keyVisible: false
@@ -37,8 +36,8 @@ SettingsGroup {
                 objectName: "apiKeySecretInput"
                 Layout.fillWidth: true
                 enabled: !root.locked
-                placeholderText: root.zernio ? qsTr("Dán Zernio API key") : qsTr("Dán Gemini API key")
-                accessibleName: root.zernio ? qsTr("Zernio API key") : qsTr("Gemini API key")
+                placeholderText: qsTr("Dán Gemini API key")
+                accessibleName: qsTr("Gemini API key")
                 echoMode: root.keyVisible ? TextInput.Normal : TextInput.Password
                 inputMethodHints: Qt.ImhHiddenText | Qt.ImhNoPredictiveText | Qt.ImhNoAutoUppercase
             }
@@ -55,13 +54,12 @@ SettingsGroup {
             spacing: Theme.space8
             StudioButton {
                 objectName: "saveApiKeyButton"
-                text: root.zernio ? qsTr("Kiểm tra và lưu") : qsTr("Lưu và sử dụng")
+                text: qsTr("Lưu và sử dụng")
                 variant: "primary"
                 enabled: !root.locked && keyInput.text.trim().length > 0
                     && nameInput.text.trim().length > 0
                 onClicked: {
-                    const saved = root.zernio ? AppController.addZernioApiKey(nameInput.text, keyInput.text)
-                        : AppController.addGeminiApiKey(nameInput.text, keyInput.text);
+                    const saved = AppController.addGeminiApiKey(nameInput.text, keyInput.text);
                     if (saved) { root.clear(); root.accepted(); }
                 }
             }
@@ -74,7 +72,7 @@ SettingsGroup {
         Text {
             Layout.fillWidth: true
             Layout.topMargin: Theme.space4
-            text: qsTr("Lưu trên máy bằng Windows Credential Manager.")
+            text: qsTr("Lưu trên máy bằng hệ thống bảo mật cục bộ.")
             color: Theme.textSubtle
             font.family: Theme.fontFamily
             font.pixelSize: TypeScale.metadata

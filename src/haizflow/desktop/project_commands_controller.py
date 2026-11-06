@@ -1447,13 +1447,6 @@ class ProjectCommandsController:
                 "Finish or cancel this project's downloads before deleting it.",
             )
             return
-        if host._project_type == "publish" and host._tiktok_publisher.has_project_work(current_key):
-            QMessageBox.information(
-                None,
-                "Delete project",
-                "Wait for this project's Zernio or video import task to finish before deleting it.",
-            )
-            return
         project_videos = [
             video
             for video in video_store.list_videos()

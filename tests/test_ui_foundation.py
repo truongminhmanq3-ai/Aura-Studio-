@@ -179,11 +179,6 @@ for name in ('AutoWatermarkPreviewDialog.qml', 'SubtitlePreviewDialog.qml',
         self.assertIn("AppController.addGeminiApiKey", api_form)
         self.assertIn("AppController.selectGeminiApiKey", api_row)
         self.assertIn("AppController.removeGeminiApiKey", api_page)
-        self.assertIn("AppController.addZernioApiKey", api_form)
-        self.assertIn("AppController.zernioApiKeys", api_page)
-        self.assertIn("AppController.selectZernioApiKey", api_row)
-        self.assertIn("AppController.removeZernioApiKey", api_page)
-        self.assertIn("AppController.verifyZernioApiKey", api_page)
         self.assertNotIn("forceActiveFocus", api_page)
         self.assertNotIn("InlineBanner", api_page)
         self.assertIn("NavigationTabs {", workspace)
@@ -322,14 +317,7 @@ view.close()
             "AudioMixDialog.qml",
             "BatchAudioMixDialog.qml",
             "DownloadProjectSourceDialog.qml",
-            "SocialProjectSourceDialog.qml",
-            "SocialDefaultsDialog.qml",
-            "SocialPublishConfirmDialog.qml",
             "UrlImportDialog.qml",
-            "ZernioApiKeyDialog.qml",
-            "ZernioConnectionDialog.qml",
-            "ZernioGuideDialog.qml",
-            "ZernioPostOptionsDialog.qml",
         )
         for filename in migrated_dialogs:
             source = (QML_DIR / filename).read_text(encoding="utf-8")

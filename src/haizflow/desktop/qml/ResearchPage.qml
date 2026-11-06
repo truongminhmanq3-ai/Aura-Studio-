@@ -712,7 +712,7 @@ Item {
                                                     cursorShape: Qt.PointingHandCursor
                                                     onClicked: {
                                                         if (root.selected && root.selected.url) {
-                                                            Qt.openUrlExternally(root.selected.url);
+                                                            AppController.openExternalUrl(root.selected.url);
                                                         }
                                                     }
                                                 }
@@ -725,7 +725,7 @@ Item {
                                         variant: "primary"
                                         onClicked: {
                                             if (root.selected && root.selected.url) {
-                                                Qt.openUrlExternally(root.selected.url);
+                                                AppController.openExternalUrl(root.selected.url);
                                             }
                                         }
                                     }

@@ -24,8 +24,6 @@ Item {
             return qsTr("Thủ công")
         if (projectType === "download")
             return qsTr("Tải xuống")
-        if (projectType === "publish")
-            return qsTr("Đăng mạng xã hội")
         return qsTr("Tự động")
     }
 

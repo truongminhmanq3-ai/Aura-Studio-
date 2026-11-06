@@ -22,7 +22,7 @@ class ExternalLinkTests(unittest.TestCase):
             "https://github.com/truongminhmanq3-ai/HaizFlow-macos-api/issues/new",
             "https://github.com/truongminhmanq3-ai/HaizFlow-macos-api/blob/main/docs/user-guide.vi.md",
             "https://aistudio.google.com/apikey",
-            "https://zernio.com/dashboard/api-keys",
+            "https://platform.deepseek.com/api_keys",
             "http://example.com/guide?language=vi#install",
             "https://example.com/tài-liệu",
         )

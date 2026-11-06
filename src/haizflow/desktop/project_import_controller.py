@@ -17,7 +17,7 @@ from haizflow.core.model_choices import project_model_defaults
 from haizflow.desktop.localization import QFileDialog, QMessageBox, native_media_dialog_directory
 from haizflow.desktop.media import collect_batch_video_paths, create_video_thumbnail_path, normalize_video_path
 from haizflow.schemas.video import SubtitleStyle, VideoConfig
-from haizflow.services import editor_documents, manual_artifacts, project_store, social_publish, video_store
+from haizflow.services import editor_documents, manual_artifacts, project_store, video_store
 from haizflow.services.channel_import import normalize_remote_url
 from haizflow.services.desktop_videos import (
     create_desktop_video,
@@ -1261,14 +1261,6 @@ class ProjectImportController:
                 "Wait for the current channel task to finish or cancel it before creating another download project.",
             )
             return False
-        if publisher is not None and not publisher.can_switch_project("__new_project__"):
-            QMessageBox.information(
-                None,
-                "Social publishing",
-                "Wait for the current Zernio or publishing-project import task to finish "
-                "before creating another project.",
-            )
-            return False
         previous_video_id = str(getattr(host, "_selected_video_id", "") or "")
         if previous_video_id and str(getattr(host, "_settings_owner_video_id", "") or "") == previous_video_id:
             project_commands = getattr(host, "_project_commands", None)
@@ -1291,16 +1283,6 @@ class ProjectImportController:
         self._reset_new_project_setup()
         if host._project_type == "download":
             host._media_downloader.attach_project(project["key"], project["project_root"])
-        elif host._project_type == "publish":
-            if publisher is not None:
-                # A publishing project owns its caption, hashtags, selected
-                # platform and post options. Persist a blank state up front so
-                # no transient state from the previously-open project can be
-                # mistaken for this project's defaults.
-                social_publish.initialize_project(project["project_root"])
-                publisher.attach_project(project["key"], project["project_root"])
-        elif publisher is not None:
-            publisher.detach_project()
         host.videoPath = ""
         host._selected_video_id, host._batch_video_ids = None, []
         host._refresh_batch_model()

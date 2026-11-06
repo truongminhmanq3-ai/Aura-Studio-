@@ -295,7 +295,7 @@ def test_api_guide_navigates_to_single_owner_before_opening():
         apiKeySettingsRequested=SimpleNamespace(emit=lambda provider: events.append(("navigate", provider))),
         apiKeyGuideRequested=SimpleNamespace(emit=lambda provider: events.append(("guide", provider))),
     )
-    HaizFlowController.requestApiKeyGuide(host, "zernio")
-    assert events == [("navigate", "zernio"), ("guide", "zernio")]
+    HaizFlowController.requestApiKeyGuide(host, "gemini")
+    assert events == [("navigate", "gemini"), ("guide", "gemini")]
     HaizFlowController.requestApiKeyGuide(host, "unknown")
     assert len(events) == 2
