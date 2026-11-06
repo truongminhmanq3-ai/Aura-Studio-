@@ -52,6 +52,25 @@ class TestSubtitleCompounds(unittest.TestCase):
                 self.assertNotIn("thế\nnào?", cue["text"])
                 self.assertNotIn("chủ\nnhà", cue["text"])
 
+    def test_aspectual_compounds_and_caption_width_split(self):
+        from haizflow.pipeline.render import _split_caption_lines_by_width, SubtitleStyle
+
+        style = SubtitleStyle(font_family="Bangers", font_size=42, uppercase=True)
+        text1 = "Cô vợ ngốc này lại còn chạy đi ăn lẩu, vừa thức dậy đã ăn món này, đúng là cạn lời mà."
+        lines1 = _split_caption_lines_by_width(text1, 600, 42, style)
+        self.assertEqual(len(lines1), 2)
+        self.assertTrue(lines1[0].endswith("lẩu,"), f"Line 1 should end cleanly at comma, got: {lines1[0]}")
+        self.assertTrue(lines1[1].startswith("vừa thức dậy"), f"Line 2 should keep 'vừa thức dậy' intact, got: {lines1[1]}")
+
+        text2 = "Phải công nhận Trùng Khánh nóng thật, ngay cạnh tòa nhà đó chính là tòa nhà cao nhất Trùng Khánh, ngoài trời sắp gần bốn mươi lăm độ rồi."
+        lines2 = _split_caption_lines_by_width(text2, 600, 42, style)
+        for line in lines2:
+            self.assertFalse(line.endswith("ngay"), f"Line should not leave isolated dangling 'ngay': {line}")
+            self.assertFalse(line.endswith("chính là"), f"Line should not break 'chính là' from target: {line}")
+            self.assertFalse(line.endswith("Trùng"), f"Line should not break 'Trùng Khánh': {line}")
+            self.assertFalse(line.endswith("bốn mươi"), f"Line should not break 'bốn mươi lăm': {line}")
+
 
 if __name__ == "__main__":
     unittest.main()
+

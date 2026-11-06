@@ -174,8 +174,11 @@ def _request_chunk(
         mode_rules = (
             "SPEAKER MODE: MULTIPLE SPEAKERS / DIALOGUE (Đối thoại 2 người Nam <-> Nữ / bạn bè):\n"
             "- Dialogue Dynamics: Translate as a lively, natural back-and-forth conversation between distinct characters.\n"
+            "- Perspective & Role Consistency: In couple/duo videos, determine who is speaking each line from context:\n"
+            "  * When female partner complains/sighs from bed or roof tent (e.g. waking up, cold, tired, acting cute): use female first-person perspective ('Trời đất ơi, nửa đêm nửa hôm tự dưng bị lôi đầu dậy...', 'Thôi cho em xin...'). NEVER translate female's own monologue in third-person ('bị anh ấy lôi dậy').\n"
+            "  * When male partner grumbles while doing outdoor chores (fixing vehicle, driving in scorching heat, teasing her): use male perspective ('Đang nửa đêm giá treo xe máy lại giở chứng...', 'Cô vợ ngốc này vừa thức dậy đã đòi đi ăn lẩu, cạn lời thật sự!').\n"
             "- Couple / Friendly Banter: Keep interactions witty, playful, and affectionate.\n"
-            "- STRICT BAN ON PROFANITY: Under NO circumstance use aggressive or vulgar curse words (NEVER use 'mẹ kiếp', 'đụ', 'chết tiệt', 'mày - tao' during lighthearted teasing). Use natural Vietnamese terms: 'anh - em', 'tui - bả / bà xã', 'ông xã', 'người ta', 'cô ngốc này', 'trời đất ơi'.\n"
+            "- STRICT BAN ON PROFANITY: Under NO circumstance use aggressive or vulgar curse words (NEVER use 'mẹ kiếp', 'đụ', 'chết tiệt', 'mày - tao' during lighthearted teasing). Use natural Vietnamese terms: 'anh - em', 'tui - bả / bà xã', 'ông xã', 'người ta', 'cô ngốc này', 'cô vợ ngốc này', 'trời đất ơi'.\n"
         )
     else:
         mode_rules = (
@@ -186,7 +189,15 @@ def _request_chunk(
         )
 
     lexicon_rules = (
-        "MANDATORY VIETNAMESE IDIOMATIC TRANSLATIONS (Strictly avoid awkward machine translations):\n"
+        "MANDATORY VIETNAMESE IDIOMATIC TRANSLATIONS & ASR HOMOPHONE CORRECTIONS:\n"
+        "- ASR Homophone Robustness: The source text comes from speech recognition (Whisper) which frequently mishears colloquial Chinese or homophones. ALWAYS deduce the intended meaning from the scene/vlog context rather than translating phonetic nonsense literally:\n"
+        "  * '绑膜堵车' / '绑磨车' / '贴膜堵车' -> In an RV/camper travel video, this is ASR mishearing for tying down/securing the motorcycle or bike rack on the back of the RV: 'buộc lại / chằng lại / sửa giá treo xe máy sau xe RV' (NEVER 'dán màng rồi kẹt xe' or 'dán phim kẹt xe').\n"
+        "  * '炒起来' / '吵起来' (waking someone up in the middle of the night) -> 'bị lôi đầu dậy' / 'bị đánh thức lúc nửa đêm', never 'xào nấu' or 'cãi nhau'.\n"
+        "  * '使侦探庙热' / '侦探庙热' -> ASR mishearing of '是真的特么热' ('shì zhēn de tè me rè'): 'Trùng Khánh nóng dã man' / 'nóng kinh khủng khiếp' / 'nóng muốn chảy mỡ' (NEVER 'thám tử đền chùa nóng').\n"
+        "  * '齐床' -> ASR mishearing for '起床' ('qǐ chuáng'): 'vừa mới ngủ dậy' / 'vừa thức dậy' (NEVER 'giường bằng phẳng').\n"
+        "  * '真是糊啊' / '真是胡啊' -> ASR mishearing for '真是服了啊': 'đúng là cạn lời luôn' / 'chịu thua luôn' / 'bái phục luôn' (NEVER 'hồ đồ / mờ mịt').\n"
+        "  * '甩脸色' -> (of a vehicle or person acting up/grumbling) 'giở chứng' / 'tỏ thái độ' (NEVER 'vung sắc mặt').\n"
+        "  * '傻婆娘' / '傻媳妇' -> 'cô vợ ngốc này' / 'bà xã ngốc nghếch' (affectionate teasing, NEVER insulting).\n"
         "- '打工人' / '打工' -> 'dân làm thuê xa xứ' / 'người đi làm thuê' / 'dân cày cuốc' (NEVER 'lao động tự do' or 'freelancer').\n"
         "- '80后不给房东打工' -> 'thế hệ 80 quyết không cày tiền nuôi chủ trọ' / 'không làm thuê cho chủ nhà' is too rigid; use 'không cày tiền trả tiền trọ cho chủ nhà' or 'không làm giàu cho chủ trọ'.\n"
         "- '外卖' -> 'đồ ăn đặt ship' / 'đơn đồ ăn giao tới' / 'gọi đồ ăn' (NEVER 'đồ ăn ngoài').\n"

@@ -15,6 +15,7 @@ _VIETNAMESE_COMPOUND_PHRASES = {
     "cô ngốc", "cô bé", "cậu bé", "bạn gái", "bạn trai", "chú rể", "cô dâu", "bạn thân", "chúng mình",
     "chúng tôi", "chúng ta", "bản thân", "người ta", "ai nấy", "mỗi người", "cả nhà", "hai đứa",
     "mọi người", "gia đình", "bố mẹ", "anh chị", "vợ chồng", "người yêu", "ông xã", "bà xã",
+    "cô vợ", "vợ ngốc", "ông chồng", "bà vợ", "anh chồng", "vợ tui", "chồng tui",
     # Travel / RV / Camper / Living
     "xe rv", "xe mobihome", "xe cắm trại", "xe nhà", "lưu động", "xe giường", "nhà xe",
     "cắm trại", "dã ngoại", "du lịch", "trải nghiệm", "sinh hoạt", "cuộc sống", "độc thân", "một mình",
@@ -24,19 +25,24 @@ _VIETNAMESE_COMPOUND_PHRASES = {
     "bước ra", "bước chân", "ra ngoài", "ra khỏi", "ven đường", "bên đường", "trạm nghỉ", "trạm dừng",
     "dịch vụ", "công cộng", "tiện lợi", "thoải mái", "dễ chịu", "yên tĩnh", "yên bình", "ấm chỗ",
     "ngồi ấm", "hồng nhai", "hồng nhai động", "trùng khánh", "hàng châu", "căn nhà",
+    "ngay cạnh", "bên cạnh", "chính là", "tòa nhà", "cao nhất", "giá treo", "xe máy", "treo xe",
+    "kẹt cứng", "ngoài trời",
     # Work & Economy
     "làm thuê", "tiền trọ", "chủ trọ", "chủ nhà", "thuê nhà", "thuê phòng", "thuê trọ", "cày cuốc",
     "làm giàu", "kiếm tiền", "công việc", "đi làm", "xa xứ", "tự do", "vất vả", "bươn chải",
     # Food & Delivery
     "đồ ăn", "đặt ship", "giao tới", "giao hàng", "bữa tối", "bữa sáng", "bữa trưa", "nấu ăn",
     "uống bia", "bia tươi", "miễn phí", "cốc nước", "ly nước", "lon nước", "thùng nước", "bình nước",
+    "nồi lẩu", "lẩu cay", "lẩu bò",
     # Wedding & Events
     "đám cưới", "tiệc cưới", "bàn tiệc", "sảnh tiệc", "hoa cưới", "bắt hoa", "giật hoa", "chúc mừng",
     "chúc phúc", "báo thức", "đánh trận", "thức giấc", "thức dậy", "buổi sáng", "buổi tối", "sáng sớm",
     "tối qua", "đêm qua", "ban đêm", "sáng ra", "hôm nay", "ngày mai", "hôm qua", "sáng nào", "tối nào",
+    "đêm hôm", "nửa đêm", "lôi đầu", "lôi dậy",
     # Weather & Nature
     "thời tiết", "dự báo", "trời mưa", "đổ mưa", "cơn mưa", "ngắm cảnh", "cảnh đêm", "đỉnh chóp",
     "tuyệt vời", "tuyệt đẹp", "lung linh", "rực rỡ", "bình minh", "hoàng hôn",
+    "nóng thật", "nóng dã man", "chảy mỡ", "kinh khủng",
     # Verbs / Adjectives / Adverbs
     "tận hưởng", "chuẩn bị", "bắt đầu", "kết thúc", "hoàn thành", "cố gắng", "quan trọng",
     "đặc biệt", "bất ngờ", "thực sự", "thật sự", "nhất định", "tự nhiên", "hoàn toàn",
@@ -44,6 +50,19 @@ _VIETNAMESE_COMPOUND_PHRASES = {
     "để đi", "chỉ để", "cho nên", "vì vậy", "bởi vì", "thay vì", "nhờ vậy", "thế là",
     "mét vuông", "ra sao", "thế nào", "làm sao", "làm gì", "mấy ngày lận", "mấy ngày", "vài ngày",
     "mấy phút", "vài phút", "bao nhiêu", "bao lâu", "được không", "phải không", "đúng không",
+    "giở chứng", "cạn lời", "lại còn", "công nhận", "bốn mươi", "mươi lăm", "bốn mươi lăm",
+    "vừa thức dậy", "vừa ngủ dậy", "mới thức dậy", "mới ngủ dậy",
+}
+
+_ASPECTUAL_LEADERS = {"vừa", "mới", "sắp", "đang", "chưa"}
+_COMMON_VERB_COMPOUNDS = {
+    "thức dậy", "ngủ dậy", "lôi dậy", "ăn lẩu", "rời khỏi", "chạy đi", "bước ra",
+    "bước vào", "ngồi xuống", "đứng lên", "bật lên", "tắt đi", "kéo rèm", "thay đồ",
+    "lấy nước", "nấu ăn", "giao tới", "cắm trại", "đi làm", "thuê nhà"
+}
+_COMMON_SINGLE_VERBS = {
+    "thức", "ngủ", "dậy", "ăn", "uống", "đi", "đến", "tới", "làm", "xong", "về",
+    "nói", "nghe", "thấy", "biết", "hiểu", "ngồi", "đứng", "chạy", "bắt", "giật", "cháy", "nóng"
 }
 
 _NUMBER_UNIT_RE = re.compile(
@@ -78,6 +97,15 @@ def tokenize_cohesive_phrases(text: str) -> list[str]:
                 i += 3
                 continue
 
+            # Aspectual leader + 2-word verb compound: e.g. "vừa thức dậy", "mới ngủ dậy", "sắp rời khỏi"
+            clean_w1 = re.sub(r"[^\w\s]", "", raw_words[i]).strip().lower()
+            clean_w2 = re.sub(r"[^\w\s]", "", raw_words[i+1]).strip().lower()
+            clean_w3 = re.sub(r"[^\w\s]", "", raw_words[i+2]).strip().lower()
+            if clean_w1 in _ASPECTUAL_LEADERS and (f"{clean_w2} {clean_w3}" in _COMMON_VERB_COMPOUNDS or f"{clean_w2} {clean_w3}" in _VIETNAMESE_COMPOUND_PHRASES):
+                tokens.append(trigram)
+                i += 3
+                continue
+
         # Check 2-word phrase next
         if i + 1 < n:
             bigram = f"{raw_words[i]} {raw_words[i+1]}"
@@ -88,9 +116,16 @@ def tokenize_cohesive_phrases(text: str) -> list[str]:
                 i += 2
                 continue
 
+            clean_w1 = re.sub(r"[^\w\s]", "", raw_words[i]).strip().lower()
+            clean_w2 = re.sub(r"[^\w\s]", "", raw_words[i+1]).strip().lower()
+
+            # Aspectual leader + single verb: e.g. "vừa dậy", "chưa ăn", "sắp đến"
+            if clean_w1 in _ASPECTUAL_LEADERS and (clean_w2 in _COMMON_SINGLE_VERBS or clean_w2 in _COMMON_VERB_COMPOUNDS):
+                tokens.append(bigram)
+                i += 2
+                continue
+
             # Number + unit patterns: e.g. "6 mét", "6 m²", "35 giây", "10 điểm", "vài phút"
-            clean_w1 = re.sub(r"[^\w\s]", "", raw_words[i]).lower()
-            clean_w2 = re.sub(r"[^\w\s]", "", raw_words[i+1]).lower()
             if (_NUMBER_UNIT_RE.match(f"{clean_w1} {clean_w2}") or
                 (clean_w1.isdigit() and clean_w2 in {"mét", "m", "m2", "m²", "giây", "phút", "giờ", "ngày", "tháng", "điểm", "triệu", "nghìn", "k", "tuổi"}) or
                 (clean_w1 in {"mấy", "vài", "mỗi", "từng", "một"} and clean_w2 in {"ngày", "phút", "giờ", "thùng", "bình", "chút", "lát", "chỗ", "người", "chiếc", "con"})):

@@ -557,10 +557,18 @@ def _ass_font_em_scale(path: str) -> float:
         return 1.0
 
 
+_WEAK_LINE_TAIL_WORDS = {
+    "vừa", "mới", "sắp", "đang", "sẽ", "chưa", "và", "để", "thì", "mà", "là",
+    "chính", "ngay", "của", "do", "bởi", "vì", "với", "như", "nhưng", "tại", "ở", "lại", "rằng", "rồi",
+}
+
+
 def _split_caption_lines_by_width(
     text: str, width: float, font_size: int, style: SubtitleStyle,
 ) -> list[str]:
     """Pack visible words by glyph advances; changing capacity never scales text."""
+    from haizflow.pipeline.subtitle import tokenize_cohesive_phrases
+
     font_path, _exact = _font_path_details(style.font_family, style.bold, style.italic)
     # libass normalizes \fs to Win ascent+descent, not unitsPerEm. Measuring
     # at an unadjusted EM size makes narrow fonts reject words that fit on screen.
@@ -569,6 +577,14 @@ def _split_caption_lines_by_width(
     units = _karaoke_units(text)
     if not units:
         return [""]
+
+    tokens = tokenize_cohesive_phrases(" ".join(text.split()))
+    allowed_breaks = set()
+    token_word_count = 0
+    for tok in tokens:
+        token_word_count += len(tok.split())
+        allowed_breaks.add(token_word_count)
+
     # Minimum phrase count first, then avoid isolated words and balance widths.
     # This keeps a wider box from producing more temporal fragments.
     best = {len(units): ((0, 0, 0.0), [])}
@@ -581,10 +597,25 @@ def _split_caption_lines_by_width(
             if advance > width and end > start + 1:
                 break
             tail_cost, tail_lines = best[end]
-            cost = (1 + tail_cost[0], int(end == start + 1) + tail_cost[1],
-                    max(0, width - advance) ** 2 + tail_cost[2])
+
+            cand_strip = candidate.rstrip()
+            words_in_cand = cand_strip.split()
+            last_word = re.sub(r"[^\w\s]", "", words_in_cand[-1]).lower() if words_in_cand else ""
+
+            # Cohesive phrase penalty: heavily penalize breaking inside a multi-word compound
+            penalty = 500_000.0 if end not in allowed_breaks and end < len(units) else 0.0
+            # Weak tail word penalty: avoid dangling prepositions/aspect words at the end of a line
+            weak_penalty = 100_000.0 if last_word in _WEAK_LINE_TAIL_WORDS and end < len(units) else 0.0
+            # Punctuation bonus: prefer breaking at natural clause/sentence boundaries
+            punc_bonus = -50_000.0 if re.search(r"[,;:\-—!?。！？]$", cand_strip) else 0.0
+
+            cost = (
+                1 + tail_cost[0],
+                int(end == start + 1) + tail_cost[1],
+                max(0, width - advance) ** 2 + penalty + weak_penalty + punc_bonus + tail_cost[2],
+            )
             if start not in best or cost < best[start][0]:
-                best[start] = (cost, [candidate.rstrip(), *tail_lines])
+                best[start] = (cost, [cand_strip, *tail_lines])
     return best[0][1]
 
 
