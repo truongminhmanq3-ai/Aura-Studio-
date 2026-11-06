@@ -52,7 +52,38 @@ def _chunks(texts: list[str]):
 
 
 def _request_chunk(chunk, *, key: str, model: str, source_language: str,
-                   target_language: str) -> list[str]:
+                   target_language: str, speaker_mode: str = "single") -> list[str]:
+    if speaker_mode == "multiple":
+        mode_rules = (
+            "SPEAKER MODE: MULTIPLE SPEAKERS / DIALOGUE (Đối thoại 2 người Nam <-> Nữ / bạn bè):\n"
+            "- Dialogue Dynamics: Translate as a lively, natural back-and-forth conversation between distinct characters.\n"
+            "- Couple / Friendly Banter: Keep interactions witty, playful, and affectionate.\n"
+            "- STRICT BAN ON PROFANITY: Under NO circumstance use aggressive or vulgar curse words (NEVER use 'mẹ kiếp', 'đụ', 'chết tiệt', 'mày - tao' during lighthearted teasing). Use natural Vietnamese terms: 'anh - em', 'tui - bả / bà xã', 'ông xã', 'người ta', 'cô ngốc này', 'trời đất ơi'.\n"
+        )
+    else:
+        mode_rules = (
+            "SPEAKER MODE: SINGLE NARRATOR / VLOG (Thuyết minh 1 người / Vlog trải nghiệm):\n"
+            "- Consistent First-Person Voice: The speaker is sharing their personal day/vlog. Maintain a single consistent first-person pronoun ('mình' or 'tôi') throughout all sentences. NEVER switch between 'tôi' and 'tui' in the same video.\n"
+            "- Zero-Subject Resolution: In Chinese speech, subjects are often dropped (e.g., '去参加婚礼', '下车接水', '躺下睡觉'). In 1-person mode, translate these in first-person ('mình đi dự đám cưới bạn' / 'tôi xuống xe lấy nước'), NEVER arbitrarily switch to third-person 'anh ấy' or 'hắn ta' or 'cô ấy'.\n"
+            "- Lifestyle Tone: Warm, relaxed, cozy, authentic conversational storytelling.\n"
+        )
+
+    lexicon_rules = (
+        "MANDATORY VIETNAMESE IDIOMATIC TRANSLATIONS (Strictly avoid awkward machine translations):\n"
+        "- '打工人' / '打工' -> 'dân làm thuê xa xứ' / 'người đi làm thuê' / 'dân cày cuốc' (NEVER 'lao động tự do' or 'freelancer').\n"
+        "- '80后不给房东打工' -> 'thế hệ 80 quyết không cày tiền nuôi chủ trọ' / 'không làm thuê cho chủ nhà' is too rigid; use 'không cày tiền trả tiền trọ cho chủ nhà' or 'không làm giàu cho chủ trọ'.\n"
+        "- '外卖' -> 'đồ ăn đặt ship' / 'đơn đồ ăn giao tới' / 'gọi đồ ăn' (NEVER 'đồ ăn ngoài').\n"
+        "- '房车' / '床车' -> 'xe RV' / 'xe mobihome' / 'xe cắm trại' / 'xe nhà lưu động' (NEVER 'xe phòng' or 'xe giường').\n"
+        "- '抢捧花' -> 'bắt hoa cưới' / 'giật hoa cưới' (NEVER 'cướp hoa cưới').\n"
+        "- '屁股还没坐热' -> 'vừa mới ngồi ấm chỗ' / 'chưa kịp ấm chỗ' (NEVER 'ghế chưa ngồi nóng chỗ').\n"
+        "- '出门' -> 'ra ngoài' / 'bước chân ra khỏi xe / nhà' (NEVER 'ra cửa').\n"
+        "- '公共驿站' / '驿站' / '接水' -> 'trạm nghỉ ven đường' / 'trạm dịch vụ công cộng' (NEVER 'trạm xe buýt').\n"
+        "- '有雨' / '今晚有雨' -> 'nghe nói tối nay có mưa' / 'tối nay trời đổ mưa' (NEVER melodramatic 'mưa buồn').\n"
+        "- '淋浴' / '冲凉' -> 'vòi sen tắm' / 'hệ thống nước tắm' / 'tắm rửa' (NEVER 'bình nóng lạnh' when the action is taking a shower or rinsing off).\n"
+        "- '收拾' -> 'dọn dẹp' (tidying room/van) or 'xử đẹp / dạy dỗ' (playful teasing), never mechanical 'thu dọn'.\n"
+        "- '免费啤酒' -> 'uống bia miễn phí' / 'bia tươi miễn phí' (NEVER 'mùi bia miễn phí').\n"
+    )
+
     payload = {
         "model": model, "stream": False, "temperature": 0.1,
         "thinking": {"type": "disabled"},
@@ -62,14 +93,11 @@ def _request_chunk(chunk, *, key: str, model: str, source_language: str,
             {"role": "system", "content": (
                 f"You are a professional video dubbing translator specializing in natural, conversational {target_language} for videos, vlogs, and dialogues.\n"
                 f"Source language: {source_language}. Target language: {target_language}.\n"
-                "Rules for natural dubbing and subtitles:\n"
-                "1. Spoken Vietnamese & Colloquial Phrasing: Translate conversational idioms and slang contextually. Never translate literally word-by-word.\n"
-                "   - '出门' -> translate as 'ra ngoài' or 'bước chân ra khỏi nhà/xe', NEVER 'ra cửa'.\n"
-                "   - '收拾' -> translate contextually as 'dọn dẹp' or 'trừng phạt / dạy dỗ / xử đẹp', never mechanistic 'thu dọn'.\n"
-                "   - Friendly banter / couple teasing: Do NOT use offensive curse words like 'mẹ kiếp' or vulgar 'mày - tao' when people are casually bickering or teasing. Use natural friendly tones ('Trời ơi', 'anh - em', 'tui - bả', 'người ta').\n"
-                "   - Food/drink: '免费啤酒' -> 'bia tươi miễn phí' / 'uống bia miễn phí', avoid awkward phrases like 'mùi bia miễn phí'.\n"
-                "2. Concise & Punchy for TTS Dubbing: Keep translations compact and rhythmically natural so AI voices can speak smoothly without rushing.\n"
-                "3. Strict Formatting: Keep the exact integer ids and order supplied in the input. Return only JSON with translations array."
+                f"{mode_rules}\n"
+                f"{lexicon_rules}\n"
+                "Rules for dubbing timing and formatting:\n"
+                "1. Concise & Punchy for TTS Dubbing: Keep translations compact and rhythmically natural so AI voices can speak smoothly without rushing.\n"
+                "2. Strict Formatting: Keep the exact integer ids and order supplied in the input. Return only JSON with translations array."
                 + glossary.prompt_for([text for _, text in chunk])
             )},
             {"role": "user", "content": json.dumps(
@@ -116,12 +144,21 @@ def _request_chunk(chunk, *, key: str, model: str, source_language: str,
 
 def translate_texts(texts: list[str], *, model: str, source_language: str,
                     target_language: str, video_id: str, progress_callback=None,
-                    initial_translations: list[str | None] | None = None, result_callback=None) -> list[str]:
+                    initial_translations: list[str | None] | None = None, result_callback=None,
+                    speaker_mode: str = "single") -> list[str]:
     if model not in MODELS:
         raise ValueError("Model DeepSeek không được hỗ trợ.")
     key = active_key()
     if not key:
         raise RuntimeError("Chưa có DeepSeek API key. Vào Cài đặt → API key → DeepSeek để thêm key.")
+    if video_id:
+        try:
+            from haizflow.services import video_store
+            video = video_store.get_video(video_id)
+            if video:
+                speaker_mode = str(getattr(video, "speaker_mode", speaker_mode) or speaker_mode)
+        except Exception:
+            pass
     output = list(initial_translations) if initial_translations is not None else [None] * len(texts)
     if len(output) != len(texts):
         raise ValueError("Each source sentence must have a translation slot.")
@@ -135,7 +172,8 @@ def translate_texts(texts: list[str], *, model: str, source_language: str,
         if progress_callback:
             progress_callback(sum(value is not None for value in output), len(texts), detail)
         values = _request_chunk(chunk, key=key, model=model,
-                                source_language=source_language, target_language=target_language)
+                                source_language=source_language, target_language=target_language,
+                                speaker_mode=speaker_mode)
         check_cancellation(video_id)
         if result_callback:
             result_callback([index for index, _ in chunk], values)

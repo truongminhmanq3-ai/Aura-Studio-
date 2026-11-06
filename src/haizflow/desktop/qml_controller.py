@@ -282,7 +282,7 @@ class HaizFlowController(QObject):
         self._background_music_volume = 30
         self._background_music_loop = True
         self._audio_ducking_enabled = False
-        self._audio_ducking_reduction_db = -12.0
+        self._audio_ducking_reduction_db = -5.0
         self._tts_volume = 100
         self._watermark_text = ""
         self._watermark_scale_percent = 100
@@ -7145,7 +7145,7 @@ class HaizFlowController(QObject):
             background_music_volume=self._background_music_volume,
             background_music_loop=getattr(self, "_background_music_loop", True),
             audio_ducking_enabled=getattr(self, "_audio_ducking_enabled", False),
-            audio_ducking_reduction_db=getattr(self, "_audio_ducking_reduction_db", -12.0),
+            audio_ducking_reduction_db=getattr(self, "_audio_ducking_reduction_db", -5.0),
             tts_volume=self._tts_volume,
             watermark_text=self._watermark_text,
             watermark_scale_percent=self._watermark_scale_percent,

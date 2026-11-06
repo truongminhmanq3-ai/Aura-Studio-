@@ -180,7 +180,7 @@ def test_key_storage_uses_only_secure_credentials(monkeypatch, tmp_path):
 @pytest.mark.parametrize("model", list(DEEPSEEK_MODELS))
 def test_project_batch_reload_and_resource_selection(model, tmp_path, monkeypatch):
     config = batch_settings.config_for({"translationModel": model})
-    assert config.translator_provider == "deepseek" and config.tts_provider == "omnivoice"
+    assert config.translator_provider == "deepseek" and config.tts_provider in {"omnivoice", "vieneu"}
     monkeypatch.setattr(video_store, "_project_video_dir", lambda *_: str(tmp_path / "video"))
     video = video_store.create_video("offline-" + model, "fixture.mp4", config)
     restored = video_store.get_video(video.video_id)

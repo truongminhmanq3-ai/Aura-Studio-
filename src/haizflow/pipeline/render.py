@@ -349,7 +349,9 @@ def _wrap_subtitle_for_region(
 
 def _split_subtitle_words(text: str, max_chars: int, *, strict_max_chars: bool = False) -> list[str]:
     """Split into balanced, natural phrases that each fit one line."""
-    words = " ".join(text.split()).split(" ")
+    from haizflow.pipeline.subtitle import tokenize_cohesive_phrases
+
+    words = tokenize_cohesive_phrases(" ".join(text.split()))
     if not words or words == [""]:
         return [""]
     if len(words) == 1 and len(words[0]) > max_chars:

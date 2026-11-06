@@ -1167,7 +1167,7 @@ class ProjectImportController:
             "_background_music_volume": 30,
             "_background_music_loop": True,
             "_audio_ducking_enabled": False,
-            "_audio_ducking_reduction_db": -12.0,
+            "_audio_ducking_reduction_db": -5.0,
             "_tts_volume": 100,
             "_watermark_text": "",
             "_watermark_scale_percent": 100,

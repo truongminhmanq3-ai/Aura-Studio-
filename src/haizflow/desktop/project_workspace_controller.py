@@ -106,7 +106,7 @@ class ProjectWorkspaceController:
         host._background_music_volume = getattr(video, "background_music_volume", 30)
         host._background_music_loop = getattr(video, "background_music_loop", True)
         host._audio_ducking_enabled = getattr(video, "audio_ducking_enabled", False)
-        host._audio_ducking_reduction_db = getattr(video, "audio_ducking_reduction_db", -12.0)
+        host._audio_ducking_reduction_db = getattr(video, "audio_ducking_reduction_db", -5.0)
         host._tts_volume = getattr(video, "tts_volume", 100)
         host._watermark_text = str(getattr(video, "watermark_text", "") or "")
         host._watermark_scale_percent = max(

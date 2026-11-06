@@ -300,7 +300,7 @@ def build_audio_timeline(
     background_music_fade_in_ms: int = 0,
     background_music_fade_out_ms: int = 0,
     ducking_enabled: bool = False,
-    ducking_reduction_db: float = -12.0,
+    ducking_reduction_db: float = -5.0,
     ducking_attack_ms: int = 180,
     ducking_release_ms: int = 420,
 ):

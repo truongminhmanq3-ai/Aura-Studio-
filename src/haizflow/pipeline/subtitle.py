@@ -8,24 +8,163 @@ import srt
 
 from haizflow.services.video_store import log_to_video
 
+# Comprehensive normalized Vietnamese compound words, common collocations and cohesive units.
+# These phrases will never be split across subtitle lines or consecutive cues.
+_VIETNAMESE_COMPOUND_PHRASES = {
+    # Pronouns, People & Relationships
+    "cô ngốc", "cô bé", "cậu bé", "bạn gái", "bạn trai", "chú rể", "cô dâu", "bạn thân", "chúng mình",
+    "chúng tôi", "chúng ta", "bản thân", "người ta", "ai nấy", "mỗi người", "cả nhà", "hai đứa",
+    "mọi người", "gia đình", "bố mẹ", "anh chị", "vợ chồng", "người yêu", "ông xã", "bà xã",
+    # Travel / RV / Camper / Living
+    "xe rv", "xe mobihome", "xe cắm trại", "xe nhà", "lưu động", "xe giường", "nhà xe",
+    "cắm trại", "dã ngoại", "du lịch", "trải nghiệm", "sinh hoạt", "cuộc sống", "độc thân", "một mình",
+    "không gian", "riêng tư", "ấm cúng", "thư giãn", "nghỉ ngơi", "ngủ lại", "ngủ luôn", "ngủ trên xe",
+    "lên xe", "xuống xe", "về xe", "trong xe", "cửa sổ", "kéo rèm", "rèm che", "thay đồ", "đồ ngủ",
+    "vệ sinh", "cá nhân", "vòi sen", "nước tắm", "nóng lạnh", "bình nóng", "nước sôi", "lấy nước",
+    "bước ra", "bước chân", "ra ngoài", "ra khỏi", "ven đường", "bên đường", "trạm nghỉ", "trạm dừng",
+    "dịch vụ", "công cộng", "tiện lợi", "thoải mái", "dễ chịu", "yên tĩnh", "yên bình", "ấm chỗ",
+    "ngồi ấm", "hồng nhai", "hồng nhai động", "trùng khánh", "hàng châu", "căn nhà",
+    # Work & Economy
+    "làm thuê", "tiền trọ", "chủ trọ", "chủ nhà", "thuê nhà", "thuê phòng", "thuê trọ", "cày cuốc",
+    "làm giàu", "kiếm tiền", "công việc", "đi làm", "xa xứ", "tự do", "vất vả", "bươn chải",
+    # Food & Delivery
+    "đồ ăn", "đặt ship", "giao tới", "giao hàng", "bữa tối", "bữa sáng", "bữa trưa", "nấu ăn",
+    "uống bia", "bia tươi", "miễn phí", "cốc nước", "ly nước", "lon nước", "thùng nước", "bình nước",
+    # Wedding & Events
+    "đám cưới", "tiệc cưới", "bàn tiệc", "sảnh tiệc", "hoa cưới", "bắt hoa", "giật hoa", "chúc mừng",
+    "chúc phúc", "báo thức", "đánh trận", "thức giấc", "thức dậy", "buổi sáng", "buổi tối", "sáng sớm",
+    "tối qua", "đêm qua", "ban đêm", "sáng ra", "hôm nay", "ngày mai", "hôm qua", "sáng nào", "tối nào",
+    # Weather & Nature
+    "thời tiết", "dự báo", "trời mưa", "đổ mưa", "cơn mưa", "ngắm cảnh", "cảnh đêm", "đỉnh chóp",
+    "tuyệt vời", "tuyệt đẹp", "lung linh", "rực rỡ", "bình minh", "hoàng hôn",
+    # Verbs / Adjectives / Adverbs
+    "tận hưởng", "chuẩn bị", "bắt đầu", "kết thúc", "hoàn thành", "cố gắng", "quan trọng",
+    "đặc biệt", "bất ngờ", "thực sự", "thật sự", "nhất định", "tự nhiên", "hoàn toàn",
+    "ngay lập tức", "vừa mới", "vừa kịp", "vừa xong", "kịp thời", "thậm chí", "trước tiên",
+    "để đi", "chỉ để", "cho nên", "vì vậy", "bởi vì", "thay vì", "nhờ vậy", "thế là",
+    "mét vuông", "ra sao", "thế nào", "làm sao", "làm gì", "mấy ngày lận", "mấy ngày", "vài ngày",
+    "mấy phút", "vài phút", "bao nhiêu", "bao lâu", "được không", "phải không", "đúng không",
+}
+
+_NUMBER_UNIT_RE = re.compile(
+    r"^\d+(\.\d+)?\s*(m|m²|m2|km|kg|g|l|ml|s|giây|phút|giờ|ngày|tháng|năm|độ|triệu|nghìn|k|mét|bước|phần|tiếng)$",
+    re.IGNORECASE,
+)
+_QUESTION_PARTICLES = {
+    "sao", "sao?", "nào", "nào?", "gì", "gì?", "nhỉ", "nhỉ?", "nhé", "nhé?", "hả", "hả?",
+    "nè", "nè!", "chứ", "chứ?", "chưa", "chưa?", "đâu", "đâu?", "đấy", "đấy!", "à", "à?", "ơi", "ơi!",
+    "lận", "lận,", "lận.", "lận!",
+}
+_CONNECTORS = {"để", "chỉ để", "cho", "và", "nhưng", "mà", "hoặc", "hay", "nên", "thì", "vì"}
+
+
+def tokenize_cohesive_phrases(text: str) -> list[str]:
+    """Tokenize Vietnamese text into cohesive semantic words/phrases that should stay together."""
+    raw_words = text.split()
+    if not raw_words:
+        return []
+
+    tokens: list[str] = []
+    i = 0
+    n = len(raw_words)
+
+    while i < n:
+        # Check 3-word phrase first
+        if i + 2 < n:
+            trigram = f"{raw_words[i]} {raw_words[i+1]} {raw_words[i+2]}"
+            clean_trigram = re.sub(r"[^\w\s]", "", trigram).strip().lower()
+            if clean_trigram in _VIETNAMESE_COMPOUND_PHRASES:
+                tokens.append(trigram)
+                i += 3
+                continue
+
+        # Check 2-word phrase next
+        if i + 1 < n:
+            bigram = f"{raw_words[i]} {raw_words[i+1]}"
+            clean_bigram = re.sub(r"[^\w\s]", "", bigram).strip().lower()
+
+            if clean_bigram in _VIETNAMESE_COMPOUND_PHRASES:
+                tokens.append(bigram)
+                i += 2
+                continue
+
+            # Number + unit patterns: e.g. "6 mét", "6 m²", "35 giây", "10 điểm", "vài phút"
+            clean_w1 = re.sub(r"[^\w\s]", "", raw_words[i]).lower()
+            clean_w2 = re.sub(r"[^\w\s]", "", raw_words[i+1]).lower()
+            if (_NUMBER_UNIT_RE.match(f"{clean_w1} {clean_w2}") or
+                (clean_w1.isdigit() and clean_w2 in {"mét", "m", "m2", "m²", "giây", "phút", "giờ", "ngày", "tháng", "điểm", "triệu", "nghìn", "k", "tuổi"}) or
+                (clean_w1 in {"mấy", "vài", "mỗi", "từng", "một"} and clean_w2 in {"ngày", "phút", "giờ", "thùng", "bình", "chút", "lát", "chỗ", "người", "chiếc", "con"})):
+                tokens.append(bigram)
+                i += 2
+                continue
+
+            if clean_bigram in {"ra sao", "thế nào", "làm sao", "sao vậy", "sao thế", "thì sao", "được không", "phải không", "đúng không", "bao nhiêu", "bao lâu", "mấy ngày lận", "mấy ngày"}:
+                tokens.append(bigram)
+                i += 2
+                continue
+
+        # Single word
+        current_word = raw_words[i]
+        clean_word = re.sub(r"[^\w\s]", "", current_word).lower()
+        if tokens and (clean_word in _QUESTION_PARTICLES or current_word.lower() in _QUESTION_PARTICLES):
+            tokens[-1] = f"{tokens[-1]} {current_word}"
+            i += 1
+            continue
+
+        tokens.append(current_word)
+        i += 1
+
+    return tokens
+
 
 def split_text_by_length(text: str, max_chars: int) -> str:
-    """Wrap one subtitle cue into at most two readable lines."""
-    words = text.split()
-    lines: list[str] = []
-    current: list[str] = []
-    current_length = 0
-    for word in words:
-        added_length = len(word) + (1 if current else 0)
-        if current and current_length + added_length > max_chars:
-            lines.append(" ".join(current))
-            current, current_length = [word], len(word)
-        else:
-            current.append(word)
-            current_length += added_length
-    if current:
-        lines.append(" ".join(current))
-    return "\n".join(lines)
+    """Wrap one subtitle cue into at most two balanced readable lines without splitting compounds."""
+    text = " ".join(text.split())
+    if not text or len(text) <= max_chars:
+        return text
+
+    tokens = tokenize_cohesive_phrases(text)
+    if len(tokens) <= 1:
+        return text
+
+    best_split_idx = -1
+    best_cost = float("inf")
+
+    for k in range(1, len(tokens)):
+        line1 = " ".join(tokens[:k])
+        line2 = " ".join(tokens[k:])
+        len1 = len(line1)
+        len2 = len(line2)
+
+        cost = abs(len1 - len2)
+
+        last_tok1 = tokens[k - 1]
+        if last_tok1.endswith((",", ";", "-", "—", ":", "!", "?")):
+            cost -= 15.0
+
+        first_tok2 = tokens[k].split()[0].lower()
+        if first_tok2 in _CONNECTORS:
+            cost -= 5.0
+
+        overflow1 = max(0, len1 - max_chars)
+        overflow2 = max(0, len2 - max_chars)
+        if overflow1 > 0:
+            cost += (overflow1 ** 1.8) * 10.0
+        if overflow2 > 0:
+            cost += (overflow2 ** 1.8) * 10.0
+
+        if cost < best_cost:
+            best_cost = cost
+            best_split_idx = k
+
+    if best_split_idx > 0:
+        line1 = " ".join(tokens[:best_split_idx])
+        line2 = " ".join(tokens[best_split_idx:])
+        if len(line2) > max_chars * 1.5 and len(tokens[best_split_idx:]) > 2:
+            return f"{line1}\n{split_text_by_length(line2, max_chars)}"
+        return f"{line1}\n{line2}"
+
+    return text
 
 
 def split_segment_into_cues(segment: dict, max_chars_per_line: int) -> list[dict]:
@@ -33,27 +172,32 @@ def split_segment_into_cues(segment: dict, max_chars_per_line: int) -> list[dict
     text = " ".join(segment.get("text", "").split())
     start = float(segment.get("start", 0))
     end = max(start, float(segment.get("end", start)))
-    words = text.split()
-    if not words:
+    tokens = tokenize_cohesive_phrases(text)
+    if not tokens:
         return []
 
     line_limit = max(12, max_chars_per_line)
     cue_limit = min(42, line_limit * 2)
-    max_words = max(3, min(8, cue_limit // 5))
+    max_tokens = max(2, min(6, cue_limit // 6))
     chunks: list[list[str]] = []
     current: list[str] = []
     current_length = 0
-    for word in words:
-        added_length = len(word) + (1 if current else 0)
-        candidate = " ".join([*current, word])
+
+    for token in tokens:
+        added_length = len(token) + (1 if current else 0)
+        candidate = " ".join([*current, token])
         would_need_three_lines = split_text_by_length(candidate, line_limit).count("\n") >= 2
-        should_break = current and (current_length + added_length > cue_limit or len(current) >= max_words or would_need_three_lines)
+        should_break = current and (
+            current_length + added_length > cue_limit
+            or len(current) >= max_tokens
+            or would_need_three_lines
+        )
         if should_break:
             chunks.append(current)
             current, current_length = [], 0
-        current.append(word)
-        current_length += len(word) + (1 if len(current) > 1 else 0)
-        if len(current) >= 3 and re.search(r"[.!?;:]$", word):
+        current.append(token)
+        current_length += len(token) + (1 if len(current) > 1 else 0)
+        if len(current) >= 2 and re.search(r"[.!?;:]$", token):
             chunks.append(current)
             current, current_length = [], 0
     if current:

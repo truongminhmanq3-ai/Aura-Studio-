@@ -188,6 +188,6 @@ class EditorDocument(BaseModel):
     markers: list[EditorMarker] = Field(default_factory=list)
     default_subtitle_style_id: str = "subtitle-default"
     audio_ducking_enabled: bool = False
-    audio_ducking_reduction_db: float = Field(default=-12.0, ge=-60, le=0)
+    audio_ducking_reduction_db: float = Field(default=-5.0, ge=-60, le=0)
     audio_ducking_attack_ms: int = Field(default=180, ge=0, le=10000)
     audio_ducking_release_ms: int = Field(default=420, ge=0, le=10000)
