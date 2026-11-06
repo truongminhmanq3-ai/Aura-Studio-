@@ -19,6 +19,7 @@ FloatingToolDialog {
     property bool autoAlignToCover: false
     property var coverLayout: ({})
     readonly property bool layoutLocked: coverEnabled && autoAlignToCover
+    property string safeZonePreset: "all"
     readonly property var previewMedia: AppController.reviewPreviewMedia || ({})
     readonly property int sourceWidth: Number(previewMedia.videoWidth || 1920)
     readonly property int sourceHeight: Number(previewMedia.videoHeight || 1080)
@@ -189,8 +190,16 @@ FloatingToolDialog {
                     asynchronous: true
                 }
 
+                SafeZoneOverlay {
+                    id: safeZone
+                    videoRect: Qt.rect(previewImage.x + (previewImage.width - previewImage.paintedWidth) / 2, previewImage.y + (previewImage.height - previewImage.paintedHeight) / 2, previewImage.paintedWidth, previewImage.paintedHeight)
+                    preset: root.safeZonePreset
+                    z: 1
+                }
+
                 SubtitleTransformOverlay {
                     id: transform
+                    z: 2
                     objectName: "autoSubtitleTransformOverlay"
                     anchors.fill: parent
                     videoRect: Qt.rect(previewImage.x + (previewImage.width - previewImage.paintedWidth) / 2, previewImage.y + (previewImage.height - previewImage.paintedHeight) / 2, previewImage.paintedWidth, previewImage.paintedHeight)
@@ -258,6 +267,73 @@ FloatingToolDialog {
 
         RowLayout {
             Layout.fillWidth: true
+            spacing: Theme.space8
+
+            Text {
+                text: qsTr("Lưới an toàn:")
+                color: Theme.text
+                font.family: Theme.fontFamily
+                font.pixelSize: TypeScale.caption
+                font.weight: Font.DemiBold
+            }
+
+            StudioButton {
+                text: qsTr("Tắt")
+                variant: root.safeZonePreset === "none" ? "primary" : "secondary"
+                onClicked: root.safeZonePreset = "none"
+            }
+
+            StudioButton {
+                text: qsTr("Chung")
+                variant: root.safeZonePreset === "all" ? "primary" : "secondary"
+                onClicked: root.safeZonePreset = "all"
+            }
+
+            StudioButton {
+                text: qsTr("TikTok")
+                variant: root.safeZonePreset === "tiktok" ? "primary" : "secondary"
+                onClicked: root.safeZonePreset = "tiktok"
+            }
+
+            StudioButton {
+                text: qsTr("Reels")
+                variant: root.safeZonePreset === "reels" ? "primary" : "secondary"
+                onClicked: root.safeZonePreset = "reels"
+            }
+
+            StudioButton {
+                text: qsTr("Shorts")
+                variant: root.safeZonePreset === "shorts" ? "primary" : "secondary"
+                onClicked: root.safeZonePreset = "shorts"
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            StudioButton {
+                text: qsTr("Căn vị trí vàng (Y=70%)")
+                iconGlyph: "\uE73E"
+                variant: "secondary"
+                enabled: !root.layoutLocked
+                onClicked: {
+                    root.draftPositionX = 50;
+                    root.draftPositionY = 70;
+                    root.subtitleLayoutEdited(root.draftFontSize, 50, 70, root.draftBoxWidth, root.draftBoxHeight);
+                }
+            }
+
+            StudioButton {
+                text: qsTr("Căn giữa (50%)")
+                variant: "secondary"
+                enabled: !root.layoutLocked
+                onClicked: {
+                    root.draftPositionX = 50;
+                    root.draftPositionY = 50;
+                    root.subtitleLayoutEdited(root.draftFontSize, 50, 50, root.draftBoxWidth, root.draftBoxHeight);
+                }
+            }
+
             StudioButton {
                 text: qsTr("Đặt lại")
                 variant: "secondary"
@@ -267,9 +343,6 @@ FloatingToolDialog {
                     root.draftPositionY = 96;
                     root.subtitleLayoutEdited(root.draftFontSize, 51, 96, root.draftBoxWidth, root.draftBoxHeight);
                 }
-            }
-            Item {
-                Layout.fillWidth: true
             }
         }
     }
