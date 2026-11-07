@@ -65,6 +65,14 @@ _CANTONESE_VLOG_HOMOPHONES: list[tuple[re.Pattern, str]] = [
     (re.compile(r"大[理鯉鲤]鱼军舰", re.IGNORECASE), "大鲤鱼军舰"),
     (re.compile(r"猴猴猴+", re.IGNORECASE), "好味好吃"),
     (re.compile(r"猴[美好]", re.IGNORECASE), "好味"),
+    # Douyin Skits / Parody / Slang / Whisper Hallucination filters:
+    (re.compile(r"凌[霄宵][后後候侯]", re.IGNORECASE), "营销号"),
+    (re.compile(r"阿凡死了[\s,，]*这心里没[二兩两]叔[嘛吗]?", re.IGNORECASE), "这还用问，自己心里没点数吗"),
+    (re.compile(r"这心里没[二兩两]叔[嘛吗]?", re.IGNORECASE), "心里没点数吗"),
+    (re.compile(r"点救[印隱]度", re.IGNORECASE), "印度剪辑风格"),
+    (re.compile(r"印度剪[輯辑]", re.IGNORECASE), "印度剪辑风格"),
+    (re.compile(r"(扔|扔了|抛|投)上去", re.IGNORECASE), "又胖了"),
+    (re.compile(r"The standard,?\s*it['’]?s just very high\.?", re.IGNORECASE), ""),
 ]
 
 

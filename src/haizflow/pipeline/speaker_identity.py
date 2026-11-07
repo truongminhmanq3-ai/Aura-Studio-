@@ -252,17 +252,16 @@ def identify(audio_path: str, segments: list[dict], video_id: str, progress=None
         for label in unique_labels
     }
     kinds = {}
-    if len(unique_labels) == 2:
-        l1, l2 = unique_labels[0], unique_labels[1]
-        p1, p2 = cluster_pitches[l1], cluster_pitches[l2]
-        higher, lower = (l1, l2) if p1 >= p2 else (l2, l1)
-        kinds[higher] = "female"
-        kinds[lower] = "male"
-
-    for label in unique_labels:
-        if label not in kinds:
-            pitch = cluster_pitches[label]
-            kinds[label] = "female" if pitch >= 160 else "male"
+    if len(unique_labels) >= 2:
+        sorted_by_pitch = sorted(unique_labels, key=lambda l: cluster_pitches[l])
+        lowest_label, highest_label = sorted_by_pitch[0], sorted_by_pitch[-1]
+        kinds[lowest_label] = "male"
+        kinds[highest_label] = "female"
+        mid_pitch = (cluster_pitches[lowest_label] + cluster_pitches[highest_label]) / 2.0
+        for label in sorted_by_pitch[1:-1]:
+            kinds[label] = "female" if cluster_pitches[label] >= mid_pitch else "male"
+    elif len(unique_labels) == 1:
+        kinds[unique_labels[0]] = "female" if cluster_pitches[unique_labels[0]] >= 160 else "male"
         kind = kinds[label]
         choices = female if kind == "female" else male
         voices[label] = choices[counts[kind] % len(choices)]

@@ -309,8 +309,14 @@ def analyze_story_context(
         "- 'theme': Precise video genre/topic (e.g. 'Tiểu phẩm hài cặp đôi / gia đình', 'Thử thách đoán từ ăn ý', 'Vlog du lịch', 'Review ẩm thực', 'Game / Công nghệ').\n"
         "- 'story_summary': 2-3 sentences summarizing the full storyline, central conflict, key interactions, and the punchline/climax/twist.\n"
         "- 'character_profiles': Array of objects with keys: 'speaker', 'role', 'gender', 'self_pronoun', 'address_other', 'tone'.\n"
+        "  CRITICAL COUPLE RULE: For romantic couples / lovers / cohabiting partners, they MUST ALWAYS use 'anh - em' (Boyfriend: xưng 'anh' gọi 'em'; Girlfriend: xưng 'em' gọi 'anh'). NEVER use 'cậu - tớ' or 'bạn - mình' between romantic couples!\n"
         "- 'plot_twist_and_key_actions': Who performs what action to whom (e.g. who punishes who, who wins/loses, critical objects like RTX 5090 or pets) to PREVENT inverted translations.\n"
-        "- 'glossary_mappings': Array of objects with 'source_term' and 'target_meaning' for specific slang, puns, or cultural terms in this video."
+        "- 'glossary_mappings': Array of objects with 'source_term' and 'target_meaning' for specific slang, puns, or cultural terms in this video:\n"
+        "  * '营销号' (Yíngxiāohào) -> 'Kênh lá cải giật tít drama' / 'Kênh câu view bẩn' (NEVER 'Lăng Tiêu hầu/hậu')\n"
+        "  * '心里没点数吗' -> 'Tự soi gương mà biết chứ hỏi gì!' / 'Trong lòng tự hiểu rõ'\n"
+        "  * '庄总' -> 'Trang tổng' (trêu bạn gái họ Trang)\n"
+        "  * '印度剪辑 / 印度电视剧' -> 'Phong cách cắt dựng phim truyền hình Ấn Độ (Cô dâu 8 tuổi)'\n"
+        "  * Drop hallucinations like 'The standard, it's just very high'."
     )
 
     payload = {
@@ -370,10 +376,11 @@ def reflect_and_correct_dialogue(
         f"Context Summary: {story_context.get('story_summary', '')}\n"
         f"Key Plot Actions: {story_context.get('plot_twist_and_key_actions', '')}\n"
         "Check each translated line for any CRITICAL flaws:\n"
-        "1. Did a male speaker refer to himself with a female pronoun (e.g. 'em') or call his girlfriend 'anh' / 'cậu'?\n"
+        "1. Did a couple / romantic partners use 'cậu - tớ' or inverted pronouns? They MUST use 'anh - em'.\n"
         "2. Was an action or plot twist inverted (e.g. did the translator say the boyfriend uninstalled games instead of the girlfriend)?\n"
-        "3. Is there any awkward phonetic translation or hallucination (e.g. 芒果墙粉 mistranslated as bún chả giò instead of Bánh cuốn xoài)?\n"
-        "4. Did any conversational English phrase ('Yellow river fish battleship', 'you don't say') remain untranslated in English? They MUST be translated to natural Vietnamese.\n\n"
+        "3. Is there any awkward phonetic translation or hallucination (e.g. 营销号 translated as 'Lăng Tiêu hầu', 心里没点数吗 as 'A Phàm mất', 庄总 as 'Tổng giám đốc trang', 芒果墙粉 as bún chả giò instead of Bánh cuốn xoài)?\n"
+        "4. Did any conversational English phrase ('Yellow river fish battleship', 'you don't say') remain untranslated in English? They MUST be translated to natural Vietnamese.\n"
+        "5. If there is an irrelevant Whisper hallucination at the end ('The standard, it's just very high'), erase it.\n\n"
         "Return valid JSON with 'corrections': [{\"id\": <line_id>, \"text\": \"<corrected translation>\"}]. "
         "Only include lines that genuinely have a flaw. If all lines look good, return {\"corrections\": []}."
     )
