@@ -147,6 +147,40 @@ def translate_segments(
     if not missing:
         translations = list(checkpoint.values)
     elif using_online:
+        story_context = None
+        has_dialogue = bool(speaker_tags and len(set(speaker_tags.values())) > 1)
+        if has_dialogue and len(segments) > 1 and len(missing) == len(segments):
+            try:
+                log_to_video(
+                    video_id,
+                    "[VIDEOLINGO] Đang phân tích cốt truyện, thể loại và vai vế nhân vật toàn video...",
+                    component="TRANSLATE",
+                )
+                if progress_callback:
+                    progress_callback(0, len(segments), "Phân tích ngữ cảnh kịch bản (VideoLingo)")
+                if provider == "deepseek":
+                    from haizflow.services import deepseek_translation
+                    story_context = deepseek_translation.analyze_story_context(
+                        source_texts, speaker_tags=speaker_tags if speaker_tags else None,
+                        model=requested_model, source_language=source_language,
+                        target_language=target_language_name, video_id=video_id,
+                    )
+                else:
+                    from haizflow.services import gemini_translation
+                    story_context = gemini_translation.analyze_story_context(
+                        source_texts, speaker_tags=speaker_tags if speaker_tags else None,
+                        model=requested_model, source_language=source_language,
+                        target_language=target_language_name, video_id=video_id,
+                    )
+                if story_context and story_context.get("theme"):
+                    log_to_video(
+                        video_id,
+                        f"[VIDEOLINGO] Thể loại: {story_context.get('theme')} | Cốt truyện: {str(story_context.get('story_summary', ''))[:120]}...",
+                        component="TRANSLATE",
+                    )
+            except Exception as ctx_err:
+                log_to_video(video_id, f"[VIDEOLINGO] Phân tích ngữ cảnh: {ctx_err}", level="INFO")
+
         translations = online_translate(
             source_texts, model=requested_model,
             source_language=language_name(source_language) if source_language != "auto" else "auto",
@@ -154,7 +188,35 @@ def translate_segments(
             video_id=video_id, progress_callback=progress_callback,
             initial_translations=checkpoint.values, result_callback=save_valid_batch,
             speaker_tags=speaker_tags if speaker_tags else None,
+            story_context=story_context,
         )
+
+        # VideoLingo Step 3: Global Consistency & Reflection Check for dialogues
+        if story_context and len(translations) > 1 and speaker_tags:
+            try:
+                if provider == "deepseek":
+                    from haizflow.services import deepseek_translation
+                    corrections = deepseek_translation.reflect_and_correct_dialogue(
+                        source_texts, translations, story_context=story_context,
+                        speaker_tags=speaker_tags, model=requested_model, video_id=video_id,
+                    )
+                else:
+                    from haizflow.services import gemini_translation
+                    corrections = gemini_translation.reflect_and_correct_dialogue(
+                        source_texts, translations, story_context=story_context,
+                        speaker_tags=speaker_tags, model=requested_model, video_id=video_id,
+                    )
+                if corrections:
+                    log_to_video(
+                        video_id,
+                        f"[VIDEOLINGO] Tự động hiệu đính {len(corrections)} câu để đảm bảo tính nhất quán kịch bản.",
+                        component="TRANSLATE",
+                    )
+                    for c_idx, c_text in corrections.items():
+                        if 0 <= c_idx < len(translations):
+                            translations[c_idx] = c_text
+            except Exception as ref_err:
+                log_to_video(video_id, f"[VIDEOLINGO] Reflection check: {ref_err}", level="INFO")
     else:
         translations = _translate_with_hymt2_worker(
             source_texts,

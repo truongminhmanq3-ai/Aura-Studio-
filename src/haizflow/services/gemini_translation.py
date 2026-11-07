@@ -169,6 +169,7 @@ def _request_chunk(
     source_language: str, target_language: str, video_id: str = "",
     speaker_mode: str = "single",
     speaker_tags: dict[int, str] | None = None,
+    story_context: dict | None = None,
 ) -> list[str]:
     entries = []
     for index, text in chunk:
@@ -176,6 +177,48 @@ def _request_chunk(
         if speaker_tags and index in speaker_tags:
             entry["speaker"] = speaker_tags[index]
         entries.append(entry)
+
+    context_banner = ""
+    if story_context and isinstance(story_context, dict):
+        theme = story_context.get("theme", "")
+        summary = story_context.get("story_summary", "")
+        twist = story_context.get("plot_twist_and_key_actions", "")
+        profiles = story_context.get("character_profiles", [])
+        glossary_items = story_context.get("glossary_mappings", [])
+
+        char_lines = []
+        for p in profiles:
+            if isinstance(p, dict):
+                char_lines.append(
+                    f"  * {p.get('speaker', '')} ({p.get('role', '')}, {p.get('gender', '')}): "
+                    f"Xưng '{p.get('self_pronoun', '')}', gọi đối phương là '{p.get('address_other', '')}' [{p.get('tone', '')}]"
+                )
+        char_desc = "\n".join(char_lines) if char_lines else "Xưng hô tự nhiên, nhất quán."
+
+        gloss_lines = []
+        if isinstance(glossary_items, list):
+            for g in glossary_items:
+                if isinstance(g, dict):
+                    gloss_lines.append(f"'{g.get('source_term')}' -> '{g.get('target_meaning')}'")
+        elif isinstance(glossary_items, dict):
+            for k, v in glossary_items.items():
+                gloss_lines.append(f"'{k}' -> '{v}'")
+        gloss_desc = ", ".join(gloss_lines) if gloss_lines else ""
+
+        context_banner = (
+            "=====================================================\n"
+            "GLOBAL STORYLINE & CHARACTER ARCHITECTURE (VideoLingo Global Context):\n"
+            f"- Video Genre / Theme: {theme}\n"
+            f"- Overall Story & Plot Conflict: {summary}\n"
+            f"- Key Actions & Plot Twist: {twist}\n"
+            "- Character Roles & Fixed Pronoun Mapping:\n"
+            f"{char_desc}\n"
+            + (f"- Video-Specific Slang & Keywords: {gloss_desc}\n" if gloss_desc else "")
+            + "CRITICAL LOCALIZATION RULES:\n"
+            "1. NEVER INVERT ACTIONS: Follow the Overall Story & Plot Twist strictly. Ensure actions are done by the right character.\n"
+            "2. STRICT PRONOUN COMPLIANCE: Every line MUST use the exact self-pronoun and address-pronoun assigned in the Character Role Mapping above.\n"
+            "=====================================================\n\n"
+        )
     if speaker_mode == "multiple" or (speaker_tags and len(set(speaker_tags.values())) > 1):
         mode_rules = (
             "SPEAKER MODE: MULTIPLE SPEAKERS / COUPLE DIALOGUE & CHALLENGE DYNAMICS (Đối thoại 2 người Nam <-> Nữ / Cặp đôi / Thử thách):\n"
@@ -236,7 +279,7 @@ def _request_chunk(
         "- Subtitle Phrasing & Natural Cadence: Keep translations concise and punchy for TTS. Never produce awkward broken sentence structures; keep cohesive units together ('nhân vật', 'công viên', 'phù thủy', 'chạy bộ', 'kết giao', 'ngụy biện', 'nhẫn tâm', 'gỡ cài đặt', 'quà sinh nhật').\n"
     )
 
-    system_text = (
+    system_text = context_banner + (
         f"You are a professional video dubbing translator specializing in natural, conversational {target_language} for videos, vlogs, and dialogues.\n"
         f"Source language: {source_language}. Target language: {target_language}.\n"
         f"{mode_rules}\n"
@@ -335,6 +378,7 @@ def translate_texts(
     initial_translations: list[str | None] | None = None, result_callback=None,
     speaker_mode: str = "single",
     speaker_tags: dict[int, str] | None = None,
+    story_context: dict | None = None,
 ) -> list[str]:
     if model not in MODELS:
         raise ValueError("Model Gemini không được hỗ trợ.")
@@ -366,6 +410,7 @@ def translate_texts(
             source_language=source_language, target_language=target_language, video_id=video_id,
             speaker_mode=speaker_mode,
             speaker_tags=speaker_tags,
+            story_context=story_context,
         )
         for (index, _), value in zip(chunk, values):
             output[index] = value
@@ -378,3 +423,185 @@ def translate_texts(
         if progress_callback:
             progress_callback(sum(value is not None for value in output), len(texts), "Đang dịch bằng Gemini")
     return output
+
+
+def analyze_story_context(
+    texts: list[str],
+    speaker_tags: dict[int, str] | None = None,
+    *,
+    key: str | None = None,
+    model: str = "gemini-3.5-flash-lite",
+    source_language: str = "Chinese",
+    target_language: str = "Vietnamese",
+    video_id: str = "",
+) -> dict:
+    """VideoLingo Step 1: Pre-analyze transcript for global context, theme, and pronoun mappings."""
+    api_key = key or active_key()
+    if not api_key or not texts:
+        return {}
+
+    lines = []
+    for idx, text in enumerate(texts[:100]):
+        tag = speaker_tags.get(idx, "") if speaker_tags else ""
+        spk_str = f"[{tag}] " if tag else ""
+        lines.append(f"{idx + 1}. {spk_str}{text}")
+    transcript_sample = "\n".join(lines)
+
+    system_instruction = (
+        f"You are a master film director and dubbing localization lead for short videos (Douyin, TikTok, YouTube).\n"
+        f"Analyze the entire transcript below and return a structured narrative brief in {target_language}.\n"
+        "Your analysis MUST determine:\n"
+        "1. 'theme': Precise video genre/topic (e.g. 'Tiểu phẩm hài cặp đôi / gia đình', 'Thử thách đoán từ ăn ý', 'Vlog du lịch', 'Review ẩm thực', 'Game / Công nghệ').\n"
+        "2. 'story_summary': 2-3 sentences summarizing the full storyline, central conflict, key interactions, and the punchline/climax/twist.\n"
+        "3. 'character_profiles': Each speaker's identity (e.g. 'Bạn trai/chồng', 'Bạn gái/vợ', 'Người dẫn chuyện'), gender, exact self-pronoun (xưng gì), address-pronoun (gọi người kia là gì), and tone.\n"
+        "4. 'plot_twist_and_key_actions': Who performs what action to whom (e.g. who punishes who, who wins/loses, critical objects like RTX 5090 or pets) to PREVENT inverted translations.\n"
+        "5. 'glossary_mappings': Specific slang, puns, idioms, or cultural terms in this video that need natural translation into Vietnamese."
+    )
+
+    payload = {
+        "systemInstruction": {"parts": [{"text": system_instruction}]},
+        "contents": [{"role": "user", "parts": [{"text": transcript_sample}]}],
+        "generationConfig": {
+            "temperature": 0.2,
+            "maxOutputTokens": 2048,
+            "thinkingConfig": {"thinkingLevel": "minimal" if model == "gemini-3.5-flash-lite" else "low"},
+            "responseMimeType": "application/json",
+            "responseSchema": {
+                "type": "OBJECT",
+                "properties": {
+                    "theme": {"type": "STRING"},
+                    "story_summary": {"type": "STRING"},
+                    "character_profiles": {
+                        "type": "ARRAY",
+                        "items": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "speaker": {"type": "STRING"},
+                                "role": {"type": "STRING"},
+                                "gender": {"type": "STRING"},
+                                "self_pronoun": {"type": "STRING"},
+                                "address_other": {"type": "STRING"},
+                                "tone": {"type": "STRING"},
+                            },
+                            "required": ["speaker", "role", "gender", "self_pronoun", "address_other"],
+                        },
+                    },
+                    "plot_twist_and_key_actions": {"type": "STRING"},
+                    "glossary_mappings": {
+                        "type": "ARRAY",
+                        "items": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "source_term": {"type": "STRING"},
+                                "target_meaning": {"type": "STRING"},
+                            },
+                            "required": ["source_term", "target_meaning"],
+                        },
+                    },
+                },
+                "required": ["theme", "story_summary", "character_profiles"],
+            },
+        },
+    }
+    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    actual_model = model if model in MODELS else "gemini-3.5-flash-lite"
+    url = _ENDPOINT.format(model=actual_model)
+    try:
+        outgoing = request.Request(
+            url, data=body,
+            headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+            method="POST",
+        )
+        with request.urlopen(outgoing, timeout=45) as response:
+            answer = json.load(response)
+        parts = answer["candidates"][0]["content"]["parts"]
+        parsed = json.loads("".join(str(part.get("text", "")) for part in parts))
+        if isinstance(parsed, dict) and parsed.get("theme"):
+            return parsed
+    except Exception as exc:
+        if video_id:
+            log_to_video(video_id, f"[VIDEOLINGO] Context analysis notice: {exc}", component="TRANSLATE", level="INFO")
+    return {}
+
+
+def reflect_and_correct_dialogue(
+    source_texts: list[str],
+    translations: list[str],
+    *,
+    story_context: dict,
+    speaker_tags: dict[int, str] | None = None,
+    key: str | None = None,
+    model: str = "gemini-3.5-flash-lite",
+    video_id: str = "",
+) -> dict[int, str]:
+    """VideoLingo Step 3: Self-Reflection pass to correct any inverted plot or pronoun inconsistencies."""
+    api_key = key or active_key()
+    if not api_key or not source_texts or not story_context:
+        return {}
+
+    lines = []
+    for idx, (src, trans) in enumerate(zip(source_texts, translations)):
+        spk = speaker_tags.get(idx, "") if speaker_tags else ""
+        spk_str = f"[{spk}] " if spk else ""
+        lines.append(f"Line {idx}: {spk_str}GỐC: '{src}' -> DỊCH: '{trans}'")
+    dialogue_block = "\n".join(lines[:100])
+
+    system_instruction = (
+        "You are an expert quality editor inspecting a video dubbing translation against the Global Narrative Context.\n"
+        f"Context Summary: {story_context.get('story_summary', '')}\n"
+        f"Key Plot Actions: {story_context.get('plot_twist_and_key_actions', '')}\n"
+        "Check each translated line for any CRITICAL flaws:\n"
+        "1. Did a male speaker refer to himself with a female pronoun (e.g. 'em') or call his girlfriend 'anh' / 'cậu'?\n"
+        "2. Was an action or plot twist inverted (e.g. did the translator say the boyfriend uninstalled games instead of the girlfriend)?\n"
+        "3. Is there any awkward phonetic translation or hallucination?\n\n"
+        "Return JSON with 'corrections' list. Only include lines that genuinely have a flaw. If everything looks good, return empty list."
+    )
+
+    payload = {
+        "systemInstruction": {"parts": [{"text": system_instruction}]},
+        "contents": [{"role": "user", "parts": [{"text": dialogue_block}]}],
+        "generationConfig": {
+            "temperature": 0.1,
+            "maxOutputTokens": 2048,
+            "responseMimeType": "application/json",
+            "responseSchema": {
+                "type": "OBJECT",
+                "properties": {
+                    "corrections": {
+                        "type": "ARRAY",
+                        "items": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "id": {"type": "INTEGER"},
+                                "text": {"type": "STRING"}
+                            },
+                            "required": ["id", "text"]
+                        }
+                    }
+                },
+                "required": ["corrections"]
+            }
+        }
+    }
+    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    actual_model = model if model in MODELS else "gemini-3.5-flash-lite"
+    url = _ENDPOINT.format(model=actual_model)
+    try:
+        outgoing = request.Request(
+            url, data=body,
+            headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+            method="POST",
+        )
+        with request.urlopen(outgoing, timeout=45) as response:
+            answer = json.load(response)
+        parts = answer["candidates"][0]["content"]["parts"]
+        parsed = json.loads("".join(str(part.get("text", "")) for part in parts))
+        corrections = {}
+        for item in parsed.get("corrections", []):
+            if isinstance(item, dict) and "id" in item and "text" in item:
+                corrections[int(item["id"])] = str(item["text"]).strip()
+        return corrections
+    except Exception as exc:
+        if video_id:
+            log_to_video(video_id, f"[VIDEOLINGO] Reflection check notice: {exc}", component="TRANSLATE", level="INFO")
+    return {}
