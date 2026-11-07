@@ -1616,7 +1616,8 @@ def render_video(
 
     is_vertical = source_height > source_width
     region_y_pct = float(original_subtitle_region.get("y_percent", 0) or 0) if original_subtitle_region else 0.0
-    is_unsafe_vertical_region = is_vertical and (0 < region_y_pct < 72.0)
+    has_treatment_layers = bool(original_subtitle_region and original_subtitle_region.get("treatment_layers"))
+    is_unsafe_vertical_region = is_vertical and (0 < region_y_pct < 80.0) and not has_treatment_layers
 
     ass_path = os.path.join(video_temp_dir, "positioned_subtitles.ass")
     effective_region_for_layout = None if is_unsafe_vertical_region else (
@@ -1763,14 +1764,14 @@ def render_video(
         removal_region = None
     elif is_unsafe_vertical_region:
         # VideoLingo / PyVideoTrans industrial standard:
-        # On portrait 9:16 videos, a static blur/patch across the middle/upper frame (y < 72%)
+        # On portrait 9:16 videos, a static blur/patch across the middle/upper frame (y < 80%)
         # will sweep across characters' bodies, chests, necks, and hands. Video kept 100% clean.
         removal_prefix = ""
         removal_region = None
         log_to_video(
             video_id,
             f"Original subtitle removal skipped on vertical video: detected region at y={region_y_pct:.1f}% "
-            "is in character body/face area (<72%). Video kept 100% clean without blur artifacts (VideoLingo standard).",
+            "is in character body/face area (<80%). Video kept 100% clean without blur artifacts (VideoLingo standard).",
             component="RENDER",
         )
     else:

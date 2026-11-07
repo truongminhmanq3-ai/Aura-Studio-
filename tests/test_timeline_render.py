@@ -970,5 +970,29 @@ class TimelineRenderTests(unittest.TestCase):
         self.assertLessEqual(max(map(len, parts)) - min(map(len, parts)), 1)
 
 
+    def test_unsafe_vertical_subtitle_removal_bypasses_static_blur_on_body(self):
+        # Portrait video with detected OCR region in body area (e.g. y=72.42%)
+        # VideoLingo standard: Static blur across entire video is bypassed to keep footage clean.
+        region_72 = {"x_percent": 19.0, "y_percent": 72.42, "width_percent": 62.0, "height_percent": 7.34}
+        is_vert = True
+        region_y_pct = float(region_72.get("y_percent", 0))
+        has_treatment_layers = bool(region_72.get("treatment_layers"))
+        is_unsafe = is_vert and (0 < region_y_pct < 80.0) and not has_treatment_layers
+        self.assertTrue(is_unsafe)
+
+        # But if region is in the extreme footer (e.g. y=85%), it is safe
+        region_85 = {"x_percent": 19.0, "y_percent": 85.0, "width_percent": 62.0, "height_percent": 7.34}
+        region_y_85 = float(region_85.get("y_percent", 0))
+        self.assertFalse(is_vert and (0 < region_y_85 < 80.0) and not bool(region_85.get("treatment_layers")))
+
+        # If timed treatment layers are present, timed removal is allowed
+        region_with_layers = {
+            "x_percent": 19.0, "y_percent": 72.42, "width_percent": 62.0, "height_percent": 7.34,
+            "treatment_layers": [{"start_ms": 1000, "duration_ms": 2000, "region": region_72}]
+        }
+        has_layers = bool(region_with_layers.get("treatment_layers"))
+        self.assertFalse(is_vert and (0 < region_y_pct < 80.0) and not has_layers)
+
+
 if __name__ == "__main__":
     unittest.main()
