@@ -70,6 +70,19 @@ class TestSubtitleCompounds(unittest.TestCase):
             self.assertFalse(line.endswith("Trùng"), f"Line should not break 'Trùng Khánh': {line}")
             self.assertFalse(line.endswith("bốn mươi"), f"Line should not break 'bốn mươi lăm': {line}")
 
+    def test_romance_gaming_compounds_not_split(self):
+        samples = [
+            ("Ra ngoài mà kết giao với người có ích kìa", 24, ["kết giao", "người có ích"]),
+            ("Đừng có ngụy biện cho sự nhẫn tâm của em", 24, ["ngụy biện", "nhẫn tâm"]),
+            ("Anh là người bị bỏ rơi rồi cứ để anh tự sinh tự diệt", 26, ["bỏ rơi", "tự sinh tự diệt"]),
+            ("Đi gỡ hết game tháo luôn con card RTX 5090 ra", 24, ["gỡ cài đặt", "quà sinh nhật", "card màn hình"]),
+        ]
+        text = "Đi gỡ hết game tháo luôn card màn hình RTX 5090 ra, đó là quà sinh nhật em tặng anh mà"
+        wrapped = split_text_by_length(text, 26)
+        lines = wrapped.split("\n")
+        self.assertTrue(any("card màn hình" in line for line in lines))
+        self.assertTrue(any("quà sinh nhật" in line for line in lines))
+
 
 if __name__ == "__main__":
     unittest.main()

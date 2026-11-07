@@ -579,14 +579,14 @@ def _migrate_video_metadata(raw_data: dict) -> tuple[dict, bool]:
         style_defaults[key] = max(minimum, min(maximum, value))
     data["subtitle_style"] = style_defaults
     data["subtitle_layout_override"] = bool(data.get("subtitle_layout_override", False))
-    data["remove_original_subtitles"] = bool(data.get("remove_original_subtitles", True))
-    removal_mode = data.get("original_subtitle_removal_mode")
+    data["remove_original_subtitles"] = bool(data.get("remove_original_subtitles", False))
+    removal_mode = str(data.get("original_subtitle_removal_mode") or "keep").strip().lower()
     # Early development builds called the neighbouring-picture patch
     # "inpaint". Preserve those projects while using the accurate production
     # name from schema v11 onward.
     if removal_mode == "inpaint":
         removal_mode = "patch"
-    data["original_subtitle_removal_mode"] = removal_mode if removal_mode in {"blur", "patch"} else "patch"
+    data["original_subtitle_removal_mode"] = removal_mode if removal_mode in {"keep", "blur", "patch"} else "keep"
     try:
         processing_elapsed = float(data.get("processing_elapsed_seconds", 0.0))
     except (TypeError, ValueError):

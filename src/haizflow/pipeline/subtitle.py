@@ -57,6 +57,11 @@ _VIETNAMESE_COMPOUND_PHRASES = {
     "vòng chơi", "vòng một", "vòng hai", "vòng ba", "thành công", "thất bại", "liên tưởng", "suy nghĩ",
     "bị phạt", "phạt chạy", "mệt quá", "mệt xỉu", "mệt đứt hơi", "chập mạch", "xứ oz", "nói tiếng anh",
     "theo logic", "ăn ý", "đoán ý", "chốt từ", "trùng khớp", "kết quả",
+    # Romance, Couple Comedy, Gaming & Domestic Banters
+    "kết giao", "bỏ rơi", "bỏ mặc", "tự sinh", "tự diệt", "tự sinh tự diệt", "ngụy biện", "nhẫn tâm",
+    "tẩy não", "độc thân", "cục cưng", "chiều chuộng", "nhường một bước", "ban công", "rơi tự do",
+    "trưởng thành", "quản thúc", "cài đặt", "gỡ cài đặt", "quà sinh nhật", "card màn hình", "card đồ họa",
+    "làm cái gì", "làm cái gì đấy", "sờ đầu", "vuốt ve", "tháo card", "gỡ game", "chơi game", "nằm ăn vạ",
 }
 
 _ASPECTUAL_LEADERS = {"vừa", "mới", "sắp", "đang", "chưa"}
@@ -64,7 +69,8 @@ _COMMON_VERB_COMPOUNDS = {
     "thức dậy", "ngủ dậy", "lôi dậy", "ăn lẩu", "rời khỏi", "chạy đi", "bước ra",
     "bước vào", "ngồi xuống", "đứng lên", "bật lên", "tắt đi", "kéo rèm", "thay đồ",
     "lấy nước", "nấu ăn", "giao tới", "cắm trại", "đi làm", "thuê nhà",
-    "chạy bộ", "đoán từ", "bị phạt", "thử thách", "suy nghĩ"
+    "chạy bộ", "đoán từ", "bị phạt", "thử thách", "suy nghĩ",
+    "kết giao", "bỏ rơi", "bỏ mặc", "ngụy biện", "chiều chuộng", "gỡ cài đặt", "chơi game", "sờ đầu",
 }
 _COMMON_SINGLE_VERBS = {
     "thức", "ngủ", "dậy", "ăn", "uống", "đi", "đến", "tới", "làm", "xong", "về",

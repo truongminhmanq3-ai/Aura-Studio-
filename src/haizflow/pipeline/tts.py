@@ -136,6 +136,12 @@ def _elevenlabs_voices_by_segment(segments_json_path, video_id, default_voice,
         speaker = str(item.get("speaker_id") or "")
         name = str(item.get("speaker_voice") or "")
         gender_of.setdefault(speaker, "female" if ("female" in name or name in _FEMALE_SPEAKER_VOICES) else "male")
+
+    if len(gender_of) == 2 and len(set(gender_of.values())) == 1:
+        # Guarantee distinct female and male roles for 2-speaker dialogues
+        keys = sorted(gender_of.keys())
+        gender_of[keys[0]] = "female"
+        gender_of[keys[1]] = "male"
     assigned, used = {}, set()
     for speaker in sorted(gender_of):
         matching = [item for item in pool if item.get("gender") == gender_of[speaker]] or pool
@@ -224,6 +230,12 @@ def _vieneu_voices_by_segment(
         speaker = str(item.get("speaker_id") or "")
         name = str(item.get("speaker_voice") or "")
         gender_of.setdefault(speaker, "female" if ("female" in name or name in _FEMALE_SPEAKER_VOICES) else "male")
+
+    if len(gender_of) == 2 and len(set(gender_of.values())) == 1:
+        # Guarantee distinct female and male roles for 2-speaker dialogues
+        keys = sorted(gender_of.keys())
+        gender_of[keys[0]] = "female"
+        gender_of[keys[1]] = "male"
 
     if "|" in default_voice:
         parts = default_voice.split("|", 1)

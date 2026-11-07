@@ -772,7 +772,8 @@ def process_video_sync(
 def _original_subtitle_region_for_render(video, reporter, video_dir, *, pipeline_progress: int = 87):
     """Return the OCR region, or bypass OCR when the user keeps source pixels."""
     video_id = video.video_id
-    if not bool(getattr(video, "remove_original_subtitles", True)):
+    removal_mode = str(getattr(video, "original_subtitle_removal_mode", "keep") or "keep").strip().lower()
+    if not bool(getattr(video, "remove_original_subtitles", False)) or removal_mode in {"keep", "none", "off", "disable", "disabled", "clean"}:
         reporter.update(pipeline_progress, "detecting_original_subtitles", "Keeping original video subtitles unchanged")
         log_to_video(video_id, "Original subtitle detection and removal disabled; preserving the source picture.")
         return None
@@ -1013,8 +1014,8 @@ def _finish_after_translation(video, reporter, video_dir, original_audio_target,
     check_cancellation(video_id)
     style_data = subtitle_style.model_dump() if hasattr(subtitle_style, "model_dump") else subtitle_style.dict()
     crop_data = video.crop.model_dump() if hasattr(video.crop, "model_dump") else video.crop.dict()
-    remove_original_subtitles = bool(getattr(video, "remove_original_subtitles", True))
-    original_subtitle_removal_mode = str(getattr(video, "original_subtitle_removal_mode", "patch") or "patch")
+    remove_original_subtitles = bool(getattr(video, "remove_original_subtitles", False))
+    original_subtitle_removal_mode = str(getattr(video, "original_subtitle_removal_mode", "keep") or "keep")
     # Hiding source captions and positioning translated captions are separate
     # choices. The alignment checkbox controls whether the OCR region wins.
     manual_subtitle_layout = _manual_subtitle_layout_for_render(video)

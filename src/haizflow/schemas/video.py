@@ -12,7 +12,7 @@ TTSProvider = Literal["elevenlabs", "omnivoice", "omnivoice-gpu", "vieneu"]
 SpeechRecognitionModel = Literal["small", "small-cpu", "small-gpu", "large-v3-turbo"]
 OutputFormat = Literal["keep_ratio", "tiktok_9_16_crop", "blur_background_9_16"]
 ProjectType = Literal["single", "manual", "batch"]
-OriginalSubtitleRemovalMode = Literal["blur", "patch"]
+OriginalSubtitleRemovalMode = Literal["keep", "blur", "patch"]
 SpeakerMode = Literal["single", "multiple"]
 WatermarkKind = Literal["text", "image", "video"]
 
@@ -89,8 +89,8 @@ class VideoConfig(BaseModel):
     speaker_mode: SpeakerMode = "single"
     subtitle_style: SubtitleStyle = Field(default_factory=SubtitleStyle)
     subtitle_layout_override: bool = False
-    remove_original_subtitles: bool = True
-    original_subtitle_removal_mode: OriginalSubtitleRemovalMode = "patch"
+    remove_original_subtitles: bool = False
+    original_subtitle_removal_mode: OriginalSubtitleRemovalMode = "keep"
     output_format: OutputFormat = "keep_ratio"  # The desktop workflow preserves the original aspect ratio.
     crop: CropSettings = Field(default_factory=CropSettings)
     enable_audio_separation: bool = True
@@ -140,8 +140,8 @@ class VideoInfo(BaseModel):
     speaker_mode: SpeakerMode = "single"
     subtitle_style: SubtitleStyle
     subtitle_layout_override: bool = False
-    remove_original_subtitles: bool = True
-    original_subtitle_removal_mode: OriginalSubtitleRemovalMode = "patch"
+    remove_original_subtitles: bool = False
+    original_subtitle_removal_mode: OriginalSubtitleRemovalMode = "keep"
     output_format: OutputFormat
     export_preset: Literal["source", "1080p", "1080p-high", "720p", "2160p"] = "source"
     export_history: list[dict] = Field(default_factory=list)

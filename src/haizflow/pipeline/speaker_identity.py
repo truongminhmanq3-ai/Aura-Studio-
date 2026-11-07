@@ -255,10 +255,9 @@ def identify(audio_path: str, segments: list[dict], video_id: str, progress=None
     if len(unique_labels) == 2:
         l1, l2 = unique_labels[0], unique_labels[1]
         p1, p2 = cluster_pitches[l1], cluster_pitches[l2]
-        if abs(p1 - p2) >= 15:
-            higher, lower = (l1, l2) if p1 > p2 else (l2, l1)
-            kinds[higher] = "female"
-            kinds[lower] = "male"
+        higher, lower = (l1, l2) if p1 >= p2 else (l2, l1)
+        kinds[higher] = "female"
+        kinds[lower] = "male"
 
     for label in unique_labels:
         if label not in kinds:

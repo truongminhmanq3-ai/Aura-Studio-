@@ -1393,7 +1393,10 @@ def _original_subtitle_removal_prefix(
     enable_expression: str = "",
     *, static_mask: bool = False,
 ) -> str:
-    if str(mode or "").strip().lower() in {"patch", "inpaint"}:
+    norm_mode = str(mode or "").strip().lower()
+    if norm_mode in {"keep", "none", "off", "disable", "disabled", "clean"} or not region:
+        return ""
+    if norm_mode in {"patch", "inpaint"}:
         return _subtitle_patch_prefix(region, source_width, source_height, enable_expression, static_mask=static_mask)
     return _subtitle_blur_prefix(region, source_width, source_height, enable_expression)
 
@@ -1748,14 +1751,18 @@ def render_video(
         source_height,
     )
     requested_removal_mode = str(original_subtitle_removal_mode).strip().lower()
-    removal_mode = "patch" if requested_removal_mode in {"patch", "inpaint"} else "blur"
-    # The detected rectangle is a source-video treatment, not a subtitle cue.
-    # ASR gaps do not imply the burnt-in source caption has disappeared.
-    # Keep blur/patch active for the entire clip, including its first/last frames.
-    removal_prefix = _ordered_subtitle_removal_prefix(
-        original_subtitle_region, source_width, source_height, removal_mode, source_start_seconds,
-        static_mask=compatibility_preview,
-    )
+    if requested_removal_mode in {"keep", "none", "off", "disable", "disabled", "clean"} or not original_subtitle_region:
+        removal_prefix = ""
+        removal_region = None
+    else:
+        removal_mode = "patch" if requested_removal_mode in {"patch", "inpaint"} else "blur"
+        # The detected rectangle is a source-video treatment, not a subtitle cue.
+        # ASR gaps do not imply the burnt-in source caption has disappeared.
+        # Keep blur/patch active for the entire clip, including its first/last frames.
+        removal_prefix = _ordered_subtitle_removal_prefix(
+            original_subtitle_region, source_width, source_height, removal_mode, source_start_seconds,
+            static_mask=compatibility_preview,
+        )
     if removal_region:
         x, y, width, height = removal_region
         log_to_video(

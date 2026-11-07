@@ -62,18 +62,23 @@ def _request_chunk(chunk, *, key: str, model: str, source_language: str,
         entries.append(entry)
     if speaker_mode == "multiple" or (speaker_tags and len(set(speaker_tags.values())) > 1):
         mode_rules = (
-            "SPEAKER MODE: MULTIPLE SPEAKERS / DIALOGUE & CHALLENGE DYNAMICS (Đối thoại 2 người Nam <-> Nữ / Thử thách / Bạn bè):\n"
+            "SPEAKER MODE: MULTIPLE SPEAKERS / COUPLE DIALOGUE & CHALLENGE DYNAMICS (Đối thoại 2 người Nam <-> Nữ / Cặp đôi / Thử thách):\n"
             "- Multi-Character Separation & Turn-Taking: Each character speaks with their distinct identity and perspective. When 'speaker' metadata is present (e.g., Speaker 1 [Nữ], Speaker 2 [Nam]), translate strictly from their perspective.\n"
+            "- MANDATORY COUPLE PRONOUN CONSISTENCY (Quy tắc ngôi xưng hô cặp đôi yêu nhau / vợ chồng):\n"
+            "  * Male Speaker (Nam): MUST ALWAYS refer to himself as 'anh' (or 'tôi' when dramatically venting/soliloquizing) and address his girlfriend/wife as 'em'. Even when pouting, lying down throwing a tantrum ('躺平 / 耍赖'), or begging, he STILL refers to himself as 'anh' ('Anh là người bị thế giới này bỏ rơi rồi, cứ để anh tự sinh tự diệt đi!'). NEVER let the male refer to himself as 'em' or call the girl 'anh'!\n"
+            "  * Female Speaker (Nữ): MUST ALWAYS refer to herself as 'em' and address the boyfriend/husband as 'anh' ('Ai thèm bỏ rơi anh, chỉ là không quản nữa thôi!'). NEVER let the girl address him as 'cậu' or 'mày' or refer to him as an acquaintance.\n"
+            "  * Addressing Pets (chó cưng Tiểu Bạch / mèo): When teasing or scolding a pet dog, translate with affectionate teasing ('mặc kệ mày đấy, đi đâu thì đi', 'ra đường bỏ mặc'), NEVER use vulgar or aggressive street thug words.\n"
+            "- CRITICAL RULE FOR PLOT TWISTS & DOMESTIC COMEDY (Cốt truyện trừng phạt gỡ game / RTX 5090 / Dọa nhảy ban công):\n"
+            "  * Gaming & GPU Punishment Twist ('卸载游戏' / '拔显卡' / 'RTX 5090' / '生日礼物' / '起立'):\n"
+            "    Context: The girlfriend punishes her boyfriend by marching to the PC, threatening to uninstall all his games and pull out his RTX 5090 graphics card (which she gave him as a birthday gift last year). The boyfriend jumps up terrified ('起立!' -> 'Đứng dậy / Khoan đã!'). The girl gleefully clicks uninstall: '我帮你卸载了' -> MUST translate as 'Em vừa bấm gỡ cài đặt sạch sẽ cho anh rồi nhé!' (girlfriend uninstalled his games). NEVER invert the plot by saying the boy uninstalls games for the girl or plays games for her! The boy then screams in horror ('Em làm cái gì đấy hả trời!?').\n"
+            "  * Balcony Threat ('退到阳台' / '自由落体' / '跳楼'):\n"
+            "    Context: The boyfriend humorously threatens to jump from the balcony: 'Mỗi người nhường một bước, anh lùi ra ban công. Muốn tự do đúng không, anh rơi tự do luôn cho xem!'. This is spoken by the MALE, not female!\n"
             "- CRITICAL RULE FOR WORD-ASSOCIATION GAMES & CHALLENGES (Trò đoán từ ăn ý / Đoán ý đồng đội / Thử thách 3-2-1):\n"
             "  * Independent Guesses: When two characters shout words simultaneously or alternately in a guessing challenge, NEVER merge them or modify one person's guess to match the other! Each person's distinct word MUST be preserved.\n"
             "  * If Player 1 (Nữ) says '女巫' (Phù thủy) and Player 2 (Nam) says '公园' (Công viên): translate accurately as 'Phù thủy!' and 'Công viên!'. NEVER translate both as the same word, because their differing answers cause them to fail the challenge and be punished (e.g. running 100 meters).\n"
             "  * Word References & Pop Culture: In guessing associations, connect pop-culture terms accurately. 'Ariana' refers to Ariana Grande in the movie 'Wicked' (phim Phù thủy xứ Oz). NEVER translate Ariana as 'Arena', 'nhà thi đấu' or 'sân thi đấu'. 'Xứ Oz' refers to The Wizard of Oz.\n"
             "  * Surprised Banter: When one partner speaks English unexpectedly or makes a silly guess, translate their partner's shocked reaction naturally ('Tự nhiên nói tiếng Anh là sao, bị chập mạch hả?').\n"
             "  * Final Consensus: When both finally guess the exact same word (e.g., 'Mệt quá!' / 'Mệt xỉu!'), reflect their shared exhaustion and celebratory triumph ('Thành công rồi!').\n"
-            "- Perspective & Pronoun Consistency:\n"
-            "  * When female character speaks or thinks internally: use female first-person perspective ('Trời ơi...', 'mình lỡ nói...', 'mệt đứt hơi...'), NEVER use third-person ('cô ấy', 'nàng') to describe her own actions.\n"
-            "  * When male partner speaks or thinks: use lively male perspective ('Lần này theo logic của bả nè...', 'chốt từ này!').\n"
-            "  * Natural Vietnamese couple pronouns: 'anh - em', 'tui - bả / bà xã', 'ông xã', 'người ta', 'cô ngốc', 'ông - tui'.\n"
             "- STRICT BAN ON PROFANITY: Under NO circumstance use aggressive or vulgar curses ('mẹ kiếp', 'đụ', 'chết tiệt', 'mày - tao').\n"
         )
     else:
@@ -86,7 +91,15 @@ def _request_chunk(chunk, *, key: str, model: str, source_language: str,
 
     lexicon_rules = (
         "MANDATORY VIETNAMESE IDIOMATIC TRANSLATIONS & ASR HOMOPHONE ROBUSTNESS:\n"
-        "- ASR Homophone Robustness: The source text comes from speech recognition which frequently mishears colloquial Chinese, fast slang, or names. Deduce the intended meaning from the context rather than translating phonetic nonsense literally:\n"
+        "- ASR Homophone Robustness & Douyin Slang: The source text comes from speech recognition which frequently mishears colloquial Chinese, fast slang, or names. Deduce the intended meaning from the context rather than translating phonetic nonsense literally:\n"
+        "  * '社交' / '做点有价值的社交' -> 'kết giao với người có ích kìa' / 'ra ngoài mà kết giao mở rộng quan hệ'. NEVER translate crudely as 'thích giao với mấy người có giá trị'.\n"
+        "  * '不要美化自己的暴行' -> 'Đừng có ngụy biện cho sự nhẫn tâm của em!'. NEVER translate word-by-word as 'đừng làm đẹp cho hành động tàn nhẫn'.\n"
+        "  * '只有成熟男人才懂' -> 'Chỉ đàn ông trưởng thành mới hiểu'. NEVER translate as 'đàn ông lấy vợ'.\n"
+        "  * '谁抛弃你了' -> 'Ai thèm bỏ rơi anh!'. NEVER translate as 'Không ai bỏ rơi cậu cả'.\n"
+        "  * '自生自灭' -> 'tự sinh tự diệt' ('cứ để anh tự sinh tự diệt đi!').\n"
+        "  * '摸头' / '摸摸' / '摸头头' -> 'sờ đầu / vuốt ve cái nào'. NEVER hallucinate 'sở chưa'.\n"
+        "  * '自由落体' -> 'rơi tự do'.\n"
+        "  * '起立' -> 'Đứng dậy / Nhảy dựng lên'. '卸载' -> 'gỡ cài đặt / xóa game'. '显卡' -> 'card màn hình / card đồ họa'.\n"
         "  * 'Ariana' / '爱莉安娜' -> Ca sĩ/diễn viên Ariana Grande (phim Wicked). NEVER translate as 'Arena' or 'nhà thi đấu'.\n"
         "  * '女巫' -> 'Phù thủy' (trong phim/trò chơi). '公园' -> 'Công viên'. '跑' / '跑步' -> 'chạy' / 'chạy bộ'.\n"
         "  * '累' / '累死了' -> 'Mệt' / 'Mệt quá' / 'Mệt xỉu' / 'Mệt đứt hơi'.\n"
@@ -104,7 +117,7 @@ def _request_chunk(chunk, *, key: str, model: str, source_language: str,
         "  * '出门' -> 'ra ngoài' / 'bước chân ra khỏi xe / nhà'.\n"
         "  * '收拾' -> 'dọn dẹp' hoặc 'xử đẹp / dạy dỗ' (trêu đùa).\n"
         "  * '巴黎' or unexpected place name in casual banters -> Translate contextually, do not hallucinate 'Paris' if characters are discussing everyday things.\n"
-        "- Subtitle Phrasing & Natural Cadence: Keep translations concise and punchy for TTS. Never produce awkward broken sentence structures; keep cohesive units together ('nhân vật', 'công viên', 'phù thủy', 'chạy bộ').\n"
+        "- Subtitle Phrasing & Natural Cadence: Keep translations concise and punchy for TTS. Never produce awkward broken sentence structures; keep cohesive units together ('nhân vật', 'công viên', 'phù thủy', 'chạy bộ', 'kết giao', 'ngụy biện', 'nhẫn tâm', 'gỡ cài đặt', 'quà sinh nhật').\n"
     )
 
     payload = {
