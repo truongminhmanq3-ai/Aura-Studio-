@@ -13,20 +13,18 @@ The source code and release packages are public. API keys are not included; each
 - Import local video files or download Douyin videos through the built-in browser.
 - Transcribe speech with Whisper; translate with local HY-MT2, Gemini or DeepSeek.
 - Generate speech with local OmniVoice or ElevenLabs, with voice preview samples.
-- Edit subtitles, cover original subtitles, mix audio, add watermarks and export video.
-- Run manual, automatic and batch workflows, with Zernio publishing integration.
+- Edit subtitles, cover original subtitles, mix audio, add watermarks and export video with Safe Zone overlays.
+- Run manual, automatic and batch workflows optimized for short-form video creation.
 
 ## Download and install
 
-Open the [Aura Studio release page](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/tag/v0.1.8-aura-team.2) and choose the package for your system:
+Open the [Aura Studio v1.0.0 Streamline Release](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/tag/v1.0.0-streamline):
 
-| System | Download | After extraction |
+| System | Download | Format |
 | --- | --- | --- |
-| Apple Silicon Mac, including M3; macOS 26+ | [Aura-Studio-macOS26-Apple-Silicon.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-macOS26-Apple-Silicon.zip) | Run **Cai-dat-Aura-Studio.command** |
-| Apple Silicon Mac, including M3; macOS 27+ | [Aura-Studio-macOS-Apple-Silicon.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-macOS-Apple-Silicon.zip) | Run **Cai-dat-Aura-Studio.command** |
-| Windows 10/11 x64 | [Aura-Studio-Windows-x64.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v0.1.8-aura-team.2/Aura-Studio-Windows-x64.zip) | Run **Cai-dat-Aura-Studio.cmd** |
+| Apple Silicon Mac (M1/M2/M3/M4) | [Aura-Studio-v1.0-Apple-Silicon.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v1.0.0-streamline/Aura-Studio-v1.0-Apple-Silicon.zip) (1.05 GiB) | Giải nén và mở trực tiếp **Aura Studio.app** |
 
-The release packages do not require a source checkout, Python, Homebrew or a local build. Extract the **entire ZIP**, keep its accompanying folders, and quit Aura Studio before running the installer.
+The release package is fully standalone. It includes Python 3.13, Qt6 runtime, native FFmpeg, Demucs, WhisperX, and Chromium Douyin browser. Extract the ZIP and open `Aura Studio.app` (or drag it into `/Applications`).
 
 ### Apple Silicon Macs
 
