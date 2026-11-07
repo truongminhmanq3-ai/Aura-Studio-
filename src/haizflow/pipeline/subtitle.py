@@ -45,6 +45,13 @@ _VIETNAMESE_COMPOUND_PHRASES = {
     "thời tiết", "dự báo", "trời mưa", "đổ mưa", "cơn mưa", "ngắm cảnh", "cảnh đêm", "đỉnh chóp",
     "tuyệt vời", "tuyệt đẹp", "lung linh", "rực rỡ", "bình minh", "hoàng hôn",
     "nóng thật", "nóng dã man", "chảy mỡ", "kinh khủng",
+    # Roadtrip, Nature, Off-road & Technical terms
+    "nhiệt độ", "chất lượng", "chất lượng nước", "nguồn nước", "nước suối", "tinh khiết",
+    "đèn chiếu", "chiếu gần", "đèn cos", "đèn gầm", "đèn pha", "đèn xe",
+    "lợn rừng", "đàn lợn", "bay màu", "tiễn đi", "ủi bay", "đo ván",
+    "dằn xóc", "ổ voi", "ổ gà", "đường đá", "đường sỏi", "phơi nấm", "nấm hương", "chỉ số", "bút thử",
+    "lệ giang", "lý đường", "đạo thành", "cách nhiếp", "nam cách nhiếp", "tuyến nam cách nhiếp",
+    "tứ xuyên", "vân nam", "tây tạng", "á đinh", "điện nam", "cao nguyên", "đèo dốc", "đứt bóng",
     # Verbs / Adjectives / Adverbs
     "tận hưởng", "chuẩn bị", "bắt đầu", "kết thúc", "hoàn thành", "cố gắng", "quan trọng",
     "đặc biệt", "bất ngờ", "thực sự", "thật sự", "nhất định", "tự nhiên", "hoàn toàn",
@@ -131,6 +138,14 @@ def tokenize_cohesive_phrases(text: str) -> list[str]:
                 tokens.append(bigram)
                 i += 2
                 continue
+
+            # Capitalized proper nouns / locations (e.g. "Lệ Giang", "Lý Đường", "Đạo Thành", "Cách Nhiếp")
+            w1, w2 = raw_words[i], raw_words[i + 1]
+            if not text.isupper() and len(w1) > 1 and len(w2) > 1:
+                if w1[0].isupper() and w2[0].isupper() and not re.search(r"[.!?:;,—\-]$", w1):
+                    tokens.append(bigram)
+                    i += 2
+                    continue
 
             clean_w1 = re.sub(r"[^\w\s]", "", raw_words[i]).strip().lower()
             clean_w2 = re.sub(r"[^\w\s]", "", raw_words[i+1]).strip().lower()

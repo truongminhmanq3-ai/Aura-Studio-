@@ -1051,6 +1051,7 @@ def _style_for_original_subtitle_region(
     if region_layout:
         x_percent = round(max(0, min(100, (region_layout.x + region_layout.width / 2) * 100 / output_width)))
         y_percent = round(max(0, min(100, (region_layout.y + region_layout.height / 2) * 100 / output_height)))
+        outline = max(outline, 3)
     else:
         x_percent = subtitle_style.position_x_percent
         y_percent = subtitle_style.position_y_percent
@@ -1620,7 +1621,10 @@ def render_video(
     is_unsafe_vertical_region = is_vertical and (0 < region_y_pct < 80.0) and not has_treatment_layers
 
     ass_path = os.path.join(video_temp_dir, "positioned_subtitles.ass")
-    effective_region_for_layout = None if is_unsafe_vertical_region else (
+    # VideoLingo / PyVideoTrans standard: Always overlay replacement subtitles directly over
+    # the original subtitle position to mask underlying text cleanly without needing a destructive
+    # blur over the scene or characters.
+    effective_region_for_layout = (
         subtitle_region_override if subtitle_region_override is not None else original_subtitle_region
     )
     region_layout = _output_subtitle_region_layout(

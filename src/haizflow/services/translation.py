@@ -73,6 +73,15 @@ _CANTONESE_VLOG_HOMOPHONES: list[tuple[re.Pattern, str]] = [
     (re.compile(r"印度剪[輯辑]", re.IGNORECASE), "印度剪辑风格"),
     (re.compile(r"(扔|扔了|抛|投)上去", re.IGNORECASE), "又胖了"),
     (re.compile(r"The standard,?\s*it['’]?s just very high\.?", re.IGNORECASE), ""),
+    # Sichuan / Tibet Roadtrip & Slang Whisper corrections:
+    (re.compile(r"[电滇点]南[线綫]", re.IGNORECASE), "格聂南线"),
+    (re.compile(r"格[聂涅隔]南[线綫]", re.IGNORECASE), "格聂南线"),
+    (re.compile(r"吵着往[到倒青清道]城?走", re.IGNORECASE), "吵着往稻城走"),
+    (re.compile(r"往[到倒道]城走", re.IGNORECASE), "往稻城走"),
+    (re.compile(r"往[青清]县走", re.IGNORECASE), "往稻城走"),
+    (re.compile(r"去[青清]县", re.IGNORECASE), "去稻城"),
+    (re.compile(r"近[关關]灯|静光灯|进光灯|泥坑灯", re.IGNORECASE), "近光灯"),
+    (re.compile(r"水质[才刚]?11", re.IGNORECASE), "水质TDS才11"),
 ]
 
 

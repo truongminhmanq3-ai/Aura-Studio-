@@ -353,6 +353,23 @@ def build_audio_timeline(
                 original_audio_fade_in_ms,
                 original_audio_fade_out_ms,
             )
+            if ducking_enabled:
+                ambient_voice_ranges = [
+                    (
+                        max(0, int(float(item.get("start", 0) or 0) * 1000)),
+                        max(0, int(float(item.get("end", 0) or 0) * 1000)),
+                    )
+                    for item in segments
+                    if bool(item.get("_voice_enabled", True))
+                ]
+                if ambient_voice_ranges:
+                    bg_audio = _duck_music(
+                        bg_audio,
+                        ambient_voice_ranges,
+                        ducking_reduction_db,
+                        ducking_attack_ms,
+                        ducking_release_ms,
+                    )
             base_audio = bg_audio.set_frame_rate(48000).set_channels(2)
             log_to_video(video_id, f"Original/background audio loaded and pre-processed. Duration: {len(base_audio)}ms")
         except Exception as exc:
