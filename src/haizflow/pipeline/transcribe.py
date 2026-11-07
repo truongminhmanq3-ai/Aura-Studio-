@@ -413,6 +413,27 @@ def _split_sentence_text(text: str) -> list[str]:
     remainder = normalized[sentence_start:].strip()
     if remainder:
         sentences.append(remainder)
+
+    if len(sentences) <= 1 and _CJK_RE.search(normalized) and " " in normalized:
+        # Whisper outputs space-separated clauses for unpunctuated CJK dialogue turns.
+        # Split at spaces where adjacent chunks are substantial dialogue utterances.
+        raw_chunks = normalized.split()
+        if len(raw_chunks) > 1:
+            merged = []
+            buf = []
+            for c in raw_chunks:
+                buf.append(c)
+                if len("".join(buf)) >= 6:
+                    merged.append(" ".join(buf))
+                    buf = []
+            if buf:
+                if merged:
+                    merged[-1] += " " + " ".join(buf)
+                else:
+                    merged.append(" ".join(buf))
+            if len(merged) > 1:
+                return merged
+
     return sentences
 
 

@@ -76,12 +76,18 @@ class TestSubtitleCompounds(unittest.TestCase):
             ("Đừng có ngụy biện cho sự nhẫn tâm của em", 24, ["ngụy biện", "nhẫn tâm"]),
             ("Anh là người bị bỏ rơi rồi cứ để anh tự sinh tự diệt", 26, ["bỏ rơi", "tự sinh tự diệt"]),
             ("Đi gỡ hết game tháo luôn con card RTX 5090 ra", 24, ["gỡ cài đặt", "quà sinh nhật", "card màn hình"]),
+            ("Chẳng lẽ trước khi yêu, con người ta chẳng ở trạng thái độc thân à?", 26, ["con người ta", "độc thân"]),
         ]
         text = "Đi gỡ hết game tháo luôn card màn hình RTX 5090 ra, đó là quà sinh nhật em tặng anh mà"
         wrapped = split_text_by_length(text, 26)
         lines = wrapped.split("\n")
         self.assertTrue(any("card màn hình" in line for line in lines))
         self.assertTrue(any("quà sinh nhật" in line for line in lines))
+
+        text_con_nguoi = "Chẳng lẽ trước khi yêu, con người ta chẳng ở trạng thái độc thân à?"
+        wrapped_cn = split_text_by_length(text_con_nguoi, 26)
+        lines_cn = wrapped_cn.split("\n")
+        self.assertTrue(any("con người ta" in line for line in lines_cn), f"Expected 'con người ta' not to be split in:\n{wrapped_cn}")
 
 
 if __name__ == "__main__":

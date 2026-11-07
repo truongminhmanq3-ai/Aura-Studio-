@@ -132,13 +132,27 @@ def _elevenlabs_voices_by_segment(segments_json_path, video_id, default_voice,
     if not pool:
         return None
     gender_of = {}
+    speaker_turns = {}
     for item in source_segments:
         speaker = str(item.get("speaker_id") or "")
+        if not speaker:
+            continue
+        speaker_turns[speaker] = speaker_turns.get(speaker, 0) + 1
         name = str(item.get("speaker_voice") or "")
         gender_of.setdefault(speaker, "female" if ("female" in name or name in _FEMALE_SPEAKER_VOICES) else "male")
 
-    if len(gender_of) == 2 and len(set(gender_of.values())) == 1:
-        # Guarantee distinct female and male roles for 2-speaker dialogues
+    # In dialogue / multi-speaker mode: enforce distinct 1 Male - 1 Female for primary protagonists
+    sorted_speakers = sorted(speaker_turns.keys(), key=lambda s: speaker_turns[s], reverse=True)
+    if len(sorted_speakers) >= 2:
+        spk1, spk2 = sorted_speakers[0], sorted_speakers[1]
+        if gender_of.get(spk1) == gender_of.get(spk2):
+            # When the top two characters have identical detected gender, force 1 Female and 1 Male
+            gender_of[spk1] = "female"
+            gender_of[spk2] = "male"
+        elif len(set(gender_of.values())) == 1:
+            # If all speakers somehow mapped to the same gender, break the monopoly
+            gender_of[spk2] = "male" if list(gender_of.values())[0] == "female" else "female"
+    elif len(gender_of) == 2 and len(set(gender_of.values())) == 1:
         keys = sorted(gender_of.keys())
         gender_of[keys[0]] = "female"
         gender_of[keys[1]] = "male"
@@ -226,13 +240,27 @@ def _vieneu_voices_by_segment(
         return None
 
     gender_of = {}
+    speaker_turns = {}
     for item in source_segments:
         speaker = str(item.get("speaker_id") or "")
+        if not speaker:
+            continue
+        speaker_turns[speaker] = speaker_turns.get(speaker, 0) + 1
         name = str(item.get("speaker_voice") or "")
         gender_of.setdefault(speaker, "female" if ("female" in name or name in _FEMALE_SPEAKER_VOICES) else "male")
 
-    if len(gender_of) == 2 and len(set(gender_of.values())) == 1:
-        # Guarantee distinct female and male roles for 2-speaker dialogues
+    # In dialogue / multi-speaker mode: enforce distinct 1 Male - 1 Female for primary protagonists
+    sorted_speakers = sorted(speaker_turns.keys(), key=lambda s: speaker_turns[s], reverse=True)
+    if len(sorted_speakers) >= 2:
+        spk1, spk2 = sorted_speakers[0], sorted_speakers[1]
+        if gender_of.get(spk1) == gender_of.get(spk2):
+            # When the top two characters have identical detected gender, force 1 Female and 1 Male
+            gender_of[spk1] = "female"
+            gender_of[spk2] = "male"
+        elif len(set(gender_of.values())) == 1:
+            # If all speakers somehow mapped to the same gender, break the monopoly
+            gender_of[spk2] = "male" if list(gender_of.values())[0] == "female" else "female"
+    elif len(gender_of) == 2 and len(set(gender_of.values())) == 1:
         keys = sorted(gender_of.keys())
         gender_of[keys[0]] = "female"
         gender_of[keys[1]] = "male"

@@ -489,7 +489,8 @@ class TimelineRenderTests(unittest.TestCase):
         fallback = render._karaoke_font_directory() / render.KARAOKE_FONT_FILENAME
 
         with mock.patch.dict(render.os.environ, {"WINDIR": r"Z:\\missing-windows"}):
-            self.assertEqual(render._watermark_font_path(), fallback)
+            with mock.patch("sys.platform", "win32"):
+                self.assertEqual(render._watermark_font_path(), fallback)
 
     def test_empty_watermark_adds_no_filter(self):
         self.assertEqual(render._watermark_filter("   ", 1080, 1920), "")

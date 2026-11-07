@@ -1756,9 +1756,8 @@ def render_video(
         removal_region = None
     else:
         removal_mode = "patch" if requested_removal_mode in {"patch", "inpaint"} else "blur"
-        # The detected rectangle is a source-video treatment, not a subtitle cue.
-        # ASR gaps do not imply the burnt-in source caption has disappeared.
-        # Keep blur/patch active for the entire clip, including its first/last frames.
+        if removal_mode == "patch" and source_height > source_width:
+            removal_mode = "blur"
         removal_prefix = _ordered_subtitle_removal_prefix(
             original_subtitle_region, source_width, source_height, removal_mode, source_start_seconds,
             static_mask=compatibility_preview,

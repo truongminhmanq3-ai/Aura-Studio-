@@ -58,6 +58,8 @@ _VIETNAMESE_COMPOUND_PHRASES = {
     "bị phạt", "phạt chạy", "mệt quá", "mệt xỉu", "mệt đứt hơi", "chập mạch", "xứ oz", "nói tiếng anh",
     "theo logic", "ăn ý", "đoán ý", "chốt từ", "trùng khớp", "kết quả",
     # Romance, Couple Comedy, Gaming & Domestic Banters
+    "con người", "con người ta", "đàn ông", "phụ nữ", "bạn trai", "bạn gái", "người yêu",
+    "mùi vị", "trạng thái", "trạng thái độc thân", "hơn nữa", "lùi lại", "nói chung",
     "kết giao", "bỏ rơi", "bỏ mặc", "tự sinh", "tự diệt", "tự sinh tự diệt", "ngụy biện", "nhẫn tâm",
     "tẩy não", "độc thân", "cục cưng", "chiều chuộng", "nhường một bước", "ban công", "rơi tự do",
     "trưởng thành", "quản thúc", "cài đặt", "gỡ cài đặt", "quà sinh nhật", "card màn hình", "card đồ họa",
