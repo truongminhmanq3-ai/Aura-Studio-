@@ -334,7 +334,7 @@ def _migrate_video_metadata(raw_data: dict) -> tuple[dict, bool]:
             data["metadata_type"] = VIDEO_METADATA_TYPE
             data["mode"] = data.get("mode") if data.get("mode") in {"A", "review"} else "A"
             data["source_language"] = "auto"
-            data["translator_provider"] = "hymt2"
+            data["translator_provider"] = "gemini"
             data["output_format"] = "keep_ratio"
             data["project_type"] = "batch" if data.get("project_type") == "batch" else "single"
             version = 2
@@ -517,8 +517,8 @@ def _migrate_video_metadata(raw_data: dict) -> tuple[dict, bool]:
                     override["provider"] = "omnivoice"
     if data.get("speech_recognition_model") not in {"small", "small-cpu", "small-gpu", "large-v3-turbo"}:
         data["speech_recognition_model"] = "small"
-    if data.get("translation_model") not in {"auto", "q4", "full", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3.8-flash", *DEEPSEEK_MODELS}:
-        data["translation_model"] = "auto"
+    if data.get("translation_model") not in {"auto", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3.8-flash", *DEEPSEEK_MODELS}:
+        data["translation_model"] = "gemini-3.5-flash-lite"
     data["translator_provider"] = provider_for_model(data["translation_model"])
     if data.get("speaker_mode") not in {"single", "multiple"}:
         data["speaker_mode"] = "single"

@@ -5,16 +5,14 @@ import "."
 
 AppComboBox {
     id: root
-    property string selectedModel: "q4"
+    property string selectedModel: "gemini-3.5-flash-lite"
     signal edited(string value)
     textRole: "label"
     valueRole: "value"
     model: [
-        { label: qsTr("HY-MT2 CPU · Q4"), value: "q4" },
-        { label: qsTr("HY-MT2 GPU · đầy đủ"), value: "full", available: AppController.gpuModelsAvailable },
+        { label: qsTr("Gemini 3.5 Flash-Lite · tiết kiệm (Khuyên dùng)"), value: "gemini-3.5-flash-lite" },
         { label: qsTr("Gemini 3.1 Flash-Lite · giá thấp"), value: "gemini-3.1-flash-lite" },
-        { label: qsTr("Gemini 3.5 Flash-Lite · tiết kiệm"), value: "gemini-3.5-flash-lite" },
-        { label: qsTr("Gemini 3.8 Flash · chất lượng cao"), value: "gemini-3.8-flash", available: false },
+        { label: qsTr("Gemini 3.8 Flash · chất lượng cao"), value: "gemini-3.8-flash" },
         { label: qsTr("DeepSeek Flash · API"), value: "deepseek-flash" },
         { label: qsTr("DeepSeek V4 Pro · API"), value: "deepseek-v4-pro" }
     ]

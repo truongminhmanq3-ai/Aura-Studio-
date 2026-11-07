@@ -452,11 +452,11 @@ def _translation_signature(video, video_input: str) -> str:
     using_gemini = provider == "gemini"
     return _signature(
         _file_state(video_input), TIMING_SOURCE,
-        "deepseek-batched-segments-v1" if provider == "deepseek" else "gemini-batched-segments-v1" if using_gemini else "hymt2-semantic-source-context-retry-v21",
+        "deepseek-batched-segments-v1" if provider == "deepseek" else "gemini-batched-segments-v1",
         video.target_language, video.enable_audio_separation,
         getattr(video, "speech_recognition_model", "small"),
         provider,
-        "deepseek-segment-json-v1" if provider == "deepseek" else "gemini-segment-json-v1" if using_gemini else HYMT2_MODEL_REVISION,
+        "deepseek-segment-json-v1" if provider == "deepseek" else "gemini-segment-json-v1",
         *translation_model_signature_parts(getattr(video, "translation_model", "auto")),
     )
 
@@ -524,13 +524,13 @@ def process_video_sync(
         if video.mode not in {"A", "review"}:
             raise ValueError(f"Unsupported workflow: {video.mode}")
 
-        if video.translator_provider not in {"hymt2", "gemini", "deepseek"}:
-            log_to_video(video_id, "Migrated legacy translation setting to HY-MT2.")
-            video = update_video(video_id, translator_provider="hymt2") or video
+        if video.translator_provider not in {"gemini", "deepseek"}:
+            log_to_video(video_id, "Migrated legacy translation setting to Gemini.")
+            video = update_video(video_id, translator_provider="gemini", translation_model="gemini-3.5-flash-lite") or video
         reporter.update(3, "starting", "Preparing video")
-        provider = provider_for_model(getattr(video, "translation_model", "auto"))
-        using_online = provider != "hymt2"
-        engine_name = "DeepSeek" if provider == "deepseek" else "Gemini" if provider == "gemini" else "HY-MT2"
+        provider = provider_for_model(getattr(video, "translation_model", "gemini-3.5-flash-lite"))
+        using_online = True
+        engine_name = "DeepSeek" if provider == "deepseek" else "Gemini"
         log_to_video(video_id, f"Processing started | Mode: Full Auto | Translator: {engine_name}")
 
         video_input = _required_video_path(video, "video_input", must_exist=True)
@@ -597,24 +597,7 @@ def process_video_sync(
 
         clear_runtime()
         profile = runtime_profile()
-        if (
-            using_online
-            or not profile.cuda_available
-            or getattr(profile, "key", "") == "cuda_low_memory"
-            or getattr(profile, "total_ram_gib", 24) < 24
-        ):
-            shutdown_hymt2_worker()
-            log_to_video(video_id, "Released HY-MT2 before speech recognition to preserve memory.")
-        elif not using_online and profile.warm_hymt2_on_startup and not is_hymt2_worker_warm():
-            _ensure_gpu_available("translation model warm-up")
-            reporter.update(4, "loading_models", "Preparing HY-MT2 translation model")
-            log_to_video(video_id, "Preparing HY-MT2 before WhisperX to avoid peak memory usage.")
-
-            def report_model_warmup(detail):
-                log_to_video(video_id, detail)
-                reporter.update(4, "loading_models", detail)
-
-            warm_hymt2_worker(report_model_warmup)
+        shutdown_hymt2_worker()
 
         check_cancellation(video_id)
         reporter.update(5, "extracting_audio", "Extracting source audio")

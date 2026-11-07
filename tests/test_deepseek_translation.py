@@ -200,8 +200,8 @@ def test_model_and_provider_changes_invalidate_auto_and_manual_artifacts(tmp_pat
         auto.add(process_video._translation_signature(video, str(tmp_path / "input.mp4")))
         manual.add(manual_tools.translation_signature(video))
     assert len(auto) == len(manual) == 4
-    assert VideoConfig().translator_provider == "hymt2"
-    assert provider_for_model("q4") == "hymt2"
+    assert VideoConfig().translator_provider == "gemini"
+    assert provider_for_model("gemini-3.5-flash-lite") == "gemini"
 
 
 def test_selecting_deepseek_does_not_require_key_or_local_model():

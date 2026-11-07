@@ -6,8 +6,8 @@ VIDEO_METADATA_SCHEMA_VERSION = 19
 VIDEO_METADATA_TYPE = "haizflow.video"
 SUBTITLE_FONT_FAMILY = "Bangers"
 WorkflowMode = Literal["A", "review"]
-TranslatorProvider = Literal["hymt2", "gemini", "deepseek"]
-TranslationModel = Literal["auto", "q4", "full", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3.8-flash", "deepseek-flash", "deepseek-v4-pro"]
+TranslatorProvider = Literal["gemini", "deepseek", "hymt2"]
+TranslationModel = Literal["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.8-flash", "deepseek-flash", "deepseek-v4-pro", "auto", "q4", "full"]
 TTSProvider = Literal["elevenlabs", "omnivoice", "omnivoice-gpu", "vieneu"]
 SpeechRecognitionModel = Literal["small", "small-cpu", "small-gpu", "large-v3-turbo"]
 OutputFormat = Literal["keep_ratio", "tiktok_9_16_crop", "blur_background_9_16"]
@@ -81,9 +81,9 @@ class VideoConfig(BaseModel):
     mode: WorkflowMode = "A"  # A = full auto, review = pause after translation.
     source_language: str = "auto"  # Automatic detection is performed for every speech segment.
     target_language: str = "vi"
-    translator_provider: TranslatorProvider = "hymt2"
+    translator_provider: TranslatorProvider = "gemini"
     speech_recognition_model: SpeechRecognitionModel = "small"
-    translation_model: TranslationModel = "auto"
+    translation_model: TranslationModel = "gemini-3.5-flash-lite"
     tts_provider: TTSProvider = "vieneu"
     tts_voice: str = "Hải Đăng"
     speaker_mode: SpeakerMode = "single"
@@ -132,9 +132,9 @@ class VideoInfo(BaseModel):
     mode: WorkflowMode
     source_language: str
     target_language: str
-    translator_provider: TranslatorProvider = "hymt2"
+    translator_provider: TranslatorProvider = "gemini"
     speech_recognition_model: SpeechRecognitionModel = "small"
-    translation_model: TranslationModel = "auto"
+    translation_model: TranslationModel = "gemini-3.5-flash-lite"
     tts_provider: TTSProvider = "vieneu"
     tts_voice: str
     speaker_mode: SpeakerMode = "single"

@@ -313,7 +313,7 @@ class ResourcePackController(QObject):
         vi = getattr(self._host, "_settings_language", "vi") == "vi"
         ordered_ids = [
             "model-whisper-small", "model-whisper-turbo",
-            "model-hymt2-cpu", "model-hymt2-gpu", "model-omnivoice",
+            "model-omnivoice",
             "model-demucs-cpu", "model-demucs-gpu", "model-subtitle-ocr",
             "browser-douyin-chromium",
         ]
@@ -321,8 +321,6 @@ class ResourcePackController(QObject):
         descriptions = {
             "model-whisper-small": "Nhận dạng lời nói trên CPU hoặc GPU.",
             "model-whisper-turbo": "Nhận dạng nhanh trên GPU NVIDIA.",
-            "model-hymt2-cpu": "Dịch cục bộ bằng bản Q4, dùng CPU.",
-            "model-hymt2-gpu": "Dịch bằng model đầy đủ trên GPU NVIDIA.",
             "model-omnivoice": "Giọng đọc và nhân bản giọng. Dùng chung cho OmniVoice CPU và GPU.",
             "model-demucs-cpu": "Tách giọng nói khỏi nhạc trên CPU.",
             "model-demucs-gpu": "Tách giọng nói khỏi nhạc trên GPU NVIDIA.",

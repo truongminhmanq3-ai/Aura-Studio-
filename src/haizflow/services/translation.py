@@ -104,9 +104,9 @@ def translate_segments(
     video_id: str,
     target_language: str = "vi",
     source_language: str = "auto",
-    provider: str = "hymt2",
+    provider: str = "gemini",
     progress_callback=None,
-    translation_model: str = "auto",
+    translation_model: str = "gemini-3.5-flash-lite",
     checkpoint_path: str | None = None,
     validation_mode: str = "auto",
 ):
@@ -117,25 +117,19 @@ def translate_segments(
     if validation_mode not in {"auto", "manual"}:
         raise ValueError("Unsupported translation validation mode.")
 
-    requested_model = str(translation_model or "auto").lower()
+    requested_model = str(translation_model or "gemini-3.5-flash-lite").lower()
+    if provider == "hymt2" or requested_model in {"auto", "q4", "full"}:
+        provider = "gemini"
+        requested_model = "gemini-3.5-flash-lite"
     using_gemini = requested_model in GEMINI_MODELS
     using_online = is_online_translation(requested_model)
     online_translate = deepseek_translation.translate_texts if provider == "deepseek" else translate_texts
-    if provider not in {"hymt2", "gemini", "deepseek"} or provider != provider_for_model(requested_model):
-        raise ValueError("Translation provider does not match the selected model.")
-    from haizflow.core.hardware import configure_translation_model
-
-    if requested_model not in {"auto", "q4", "full", *GEMINI_MODELS, *DEEPSEEK_MODELS}:
-        raise ValueError(f"Unsupported translation model: {translation_model}")
-    if using_online:
-        # API translation does not need a warm local translation model.
-        shutdown_hymt2_worker()
-    elif translation_model_preference() != requested_model:
-        shutdown_hymt2_worker()
-        configure_translation_model(requested_model)
+    if provider not in {"gemini", "deepseek"}:
+        provider = "gemini"
+        requested_model = "gemini-3.5-flash-lite"
 
     target_language_name = language_name(target_language)
-    engine_name = "DeepSeek" if provider == "deepseek" else "Gemini" if using_gemini else "HY-MT2"
+    engine_name = "DeepSeek" if provider == "deepseek" else "Gemini"
     log_to_video(video_id, f"Initializing {engine_name} translation | target: {target_language_name}.")
     with open(input_json_path, "r", encoding="utf-8") as file:
         segments = json.load(file)

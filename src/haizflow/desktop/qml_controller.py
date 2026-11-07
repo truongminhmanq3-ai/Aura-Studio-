@@ -3299,9 +3299,9 @@ class HaizFlowController(QObject):
 
     @translationModel.setter
     def translationModel(self, value):
-        normalized = str(value or "auto").lower()
-        if normalized not in {"auto", "q4", "full", *gemini_translation.MODELS, *DEEPSEEK_MODELS}:
-            return
+        normalized = str(value or "gemini-3.5-flash-lite").lower()
+        if normalized not in {*gemini_translation.MODELS, *DEEPSEEK_MODELS}:
+            normalized = "gemini-3.5-flash-lite"
         if normalized in DEEPSEEK_MODELS:
             if normalized != self._translation_model:
                 self._translation_model = normalized
@@ -3314,27 +3314,6 @@ class HaizFlowController(QObject):
             if not self.geminiKeyConfigured:
                 self.requestGeminiSetup()
             return
-        if normalized == "full" and not self._ensure_hardware_ready_for_action():
-            return
-        if normalized == "full" and self._settings_processing_device != "gpu":
-            self._show_app_alert("Máy không đáp ứng", "HY-MT2 GPU cần GPU NVIDIA tương thích.", "warning")
-            return
-        resource_packs = getattr(self, "_resource_packs", None)
-        if resource_packs is not None:
-            pack_id = "model-hymt2-gpu" if normalized == "full" else "model-hymt2-cpu"
-            compatible, reason = resource_packs._hardware_compatibility(pack_id)
-            if not compatible:
-                self._show_app_alert("Máy không đáp ứng", reason, "warning")
-                return
-            if resource_packs.manager.status(pack_id) not in {"installed", "bundled"}:
-                self._show_app_alert(
-                    "Thiếu model dịch",
-                    f"Hãy cài {resource_packs.manager.definitions[pack_id].label} trong Gói tài nguyên trước khi dịch.",
-                    "warning",
-                )
-        if normalized != self._translation_model:
-            self._translation_model = normalized
-            self.translationModelChanged.emit()
 
     @Property(bool, notify=settingsChanged)
     def keepModelsWarm(self):

@@ -309,9 +309,9 @@ def translation_signature(video) -> str:
         recognition_signature(video),
         getattr(video, "target_language", "vi"),
         provider,
-        "deepseek-segment-json-v1" if provider == "deepseek" else "gemini-segment-json-v1" if using_gemini else HYMT2_MODEL_REVISION,
+        "deepseek-segment-json-v1" if provider == "deepseek" else "gemini-segment-json-v1",
         *translation_model_signature_parts(model),
-        "deepseek-batched-segments-v1" if provider == "deepseek" else "gemini-batched-segments-v1" if using_gemini else "hymt2-semantic-source-context-retry-v21",
+        "deepseek-batched-segments-v1" if provider == "deepseek" else "gemini-batched-segments-v1",
         *_generation_token(video, "translation"),
         "manual-translation-v1",
     )
@@ -1489,7 +1489,7 @@ def _run_translation(video, reporter) -> None:
                 {"segments": "translated-segments.json"},
                 inputs=[recognition["artifact_id"]],
                 config_fingerprint=manual_artifacts.signature(
-                    getattr(video, "target_language", "vi"), HYMT2_MODEL_REVISION
+                    getattr(video, "target_language", "vi"), "online-translation-v1"
                 ),
             )
         finally:
