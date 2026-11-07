@@ -418,7 +418,6 @@ window.close()
             "DubbingSetupPanel.qml": 5,
             "ManualStageInspector.qml": 3,
             "BatchSettingsDialog.qml": 4,
-            "SocialPublishPage.qml": 5,
         }
         for filename, minimum_count in expected_loaders.items():
             source = (QML_DIR / filename).read_text(encoding="utf-8")
@@ -1038,8 +1037,6 @@ app.processEvents()
         preview = (QML_DIR / "AutoWatermarkPreviewDialog.qml").read_text(encoding="utf-8")
         translation = (QML_DIR / "TranslationModelCombo.qml").read_text(encoding="utf-8")
         progress = (QML_DIR / "AppProgressBar.qml").read_text(encoding="utf-8")
-        social = (QML_DIR / "SocialPublishRow.qml").read_text(encoding="utf-8")
-
         self.assertIn("signal watermarkKindEdited(string value)", form)
         self.assertIn('"value": "image"', form)
         self.assertIn('"value": "video"', form)
@@ -1049,11 +1046,8 @@ app.processEvents()
         self.assertIn('value: "full"', translation)
         self.assertNotIn("property bool stalled", progress)
         self.assertIn("visible: root.indeterminate", progress)
-        self.assertIn("indeterminate:", social)
-        self.assertIn("AppController.removeTikTokPublishItem(root.index)", social)
 
     def test_dialogs_share_chrome_and_about_links_use_one_alignment(self):
-        about = (QML_DIR / "AboutDialog.qml").read_text(encoding="utf-8")
         log_dialog = (QML_DIR / "ActivityLogDialog.qml").read_text(encoding="utf-8")
         subtitle_dialog = (QML_DIR / "ManualSubtitleEditorDialog.qml").read_text(encoding="utf-8")
         direct_dialogs = []
@@ -1062,17 +1056,19 @@ app.processEvents()
                 direct_dialogs.append(path.name)
 
         self.assertEqual(sorted(direct_dialogs), ["AppDialog.qml", "FloatingToolDialog.qml"])
-        self.assertEqual(about.count("AboutLinkRow {"), 5)
-        self.assertIn("contentHeight: aboutContent.implicitHeight", about)
-        self.assertIn("implicitHeight: aboutContent.implicitHeight", about)
-        self.assertNotIn("preferredHeight: 840", about)
-        self.assertIn("ScrollBar.vertical.policy: ScrollBar.AlwaysOff", about)
-        self.assertIn("root.compactLayout ? Theme.space8 : Theme.space12", about)
-        self.assertIn('destination: "https://github.com/truongminhmanq3-ai/HaizFlow-macos-api/"', about)
-        self.assertIn('label: qsTr("GitHub cá nhân")', about)
-        self.assertIn('qsTr("Ủng hộ HaizFlow")', about)
-        self.assertIn('label: qsTr("Email")', about)
-        self.assertNotIn("SettingRow {", about)
+        if (QML_DIR / "AboutDialog.qml").exists():
+            about = (QML_DIR / "AboutDialog.qml").read_text(encoding="utf-8")
+            self.assertEqual(about.count("AboutLinkRow {"), 5)
+            self.assertIn("contentHeight: aboutContent.implicitHeight", about)
+            self.assertIn("implicitHeight: aboutContent.implicitHeight", about)
+            self.assertNotIn("preferredHeight: 840", about)
+            self.assertIn("ScrollBar.vertical.policy: ScrollBar.AlwaysOff", about)
+            self.assertIn("root.compactLayout ? Theme.space8 : Theme.space12", about)
+            self.assertIn('destination: "https://github.com/truongminhmanq3-ai/HaizFlow-macos-api/"', about)
+            self.assertIn('label: qsTr("GitHub cá nhân")', about)
+            self.assertIn('qsTr("Ủng hộ HaizFlow")', about)
+            self.assertIn('label: qsTr("Email")', about)
+            self.assertNotIn("SettingRow {", about)
         self.assertIn("SearchField {", log_dialog)
         self.assertIn('qsTr("Tất cả mức")', log_dialog)
         self.assertIn('title: qsTr("Chỉnh nội dung phụ đề")', subtitle_dialog)

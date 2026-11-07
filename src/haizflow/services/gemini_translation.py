@@ -168,48 +168,59 @@ def _request_chunk(
     chunk: list[tuple[int, str]], *, key: str, model: str,
     source_language: str, target_language: str, video_id: str = "",
     speaker_mode: str = "single",
+    speaker_tags: dict[int, str] | None = None,
 ) -> list[str]:
-    entries = [{"id": index, "text": text} for index, text in chunk]
-    if speaker_mode == "multiple":
+    entries = []
+    for index, text in chunk:
+        entry = {"id": index, "text": text}
+        if speaker_tags and index in speaker_tags:
+            entry["speaker"] = speaker_tags[index]
+        entries.append(entry)
+    if speaker_mode == "multiple" or (speaker_tags and len(set(speaker_tags.values())) > 1):
         mode_rules = (
-            "SPEAKER MODE: MULTIPLE SPEAKERS / DIALOGUE (Đối thoại 2 người Nam <-> Nữ / bạn bè):\n"
-            "- Dialogue Dynamics: Translate as a lively, natural back-and-forth conversation between distinct characters.\n"
-            "- Perspective & Role Consistency: In couple/duo videos, determine who is speaking each line from context:\n"
-            "  * When female partner complains/sighs from bed or roof tent (e.g. waking up, cold, tired, acting cute): use female first-person perspective ('Trời đất ơi, nửa đêm nửa hôm tự dưng bị lôi đầu dậy...', 'Thôi cho em xin...'). NEVER translate female's own monologue in third-person ('bị anh ấy lôi dậy').\n"
-            "  * When male partner grumbles while doing outdoor chores (fixing vehicle, driving in scorching heat, teasing her): use male perspective ('Đang nửa đêm giá treo xe máy lại giở chứng...', 'Cô vợ ngốc này vừa thức dậy đã đòi đi ăn lẩu, cạn lời thật sự!').\n"
-            "- Couple / Friendly Banter: Keep interactions witty, playful, and affectionate.\n"
-            "- STRICT BAN ON PROFANITY: Under NO circumstance use aggressive or vulgar curse words (NEVER use 'mẹ kiếp', 'đụ', 'chết tiệt', 'mày - tao' during lighthearted teasing). Use natural Vietnamese terms: 'anh - em', 'tui - bả / bà xã', 'ông xã', 'người ta', 'cô ngốc này', 'cô vợ ngốc này', 'trời đất ơi'.\n"
+            "SPEAKER MODE: MULTIPLE SPEAKERS / DIALOGUE & CHALLENGE DYNAMICS (Đối thoại 2 người Nam <-> Nữ / Thử thách / Bạn bè):\n"
+            "- Multi-Character Separation & Turn-Taking: Each character speaks with their distinct identity and perspective. When 'speaker' metadata is present (e.g., Speaker 1 [Nữ], Speaker 2 [Nam]), translate strictly from their perspective.\n"
+            "- CRITICAL RULE FOR WORD-ASSOCIATION GAMES & CHALLENGES (Trò đoán từ ăn ý / Đoán ý đồng đội / Thử thách 3-2-1):\n"
+            "  * Independent Guesses: When two characters shout words simultaneously or alternately in a guessing challenge, NEVER merge them or modify one person's guess to match the other! Each person's distinct word MUST be preserved.\n"
+            "  * If Player 1 (Nữ) says '女巫' (Phù thủy) and Player 2 (Nam) says '公园' (Công viên): translate accurately as 'Phù thủy!' and 'Công viên!'. NEVER translate both as the same word, because their differing answers cause them to fail the challenge and be punished (e.g. running 100 meters).\n"
+            "  * Word References & Pop Culture: In guessing associations, connect pop-culture terms accurately. 'Ariana' refers to Ariana Grande in the movie 'Wicked' (phim Phù thủy xứ Oz). NEVER translate Ariana as 'Arena', 'nhà thi đấu' or 'sân thi đấu'. 'Xứ Oz' refers to The Wizard of Oz.\n"
+            "  * Surprised Banter: When one partner speaks English unexpectedly or makes a silly guess, translate their partner's shocked reaction naturally ('Tự nhiên nói tiếng Anh là sao, bị chập mạch hả?').\n"
+            "  * Final Consensus: When both finally guess the exact same word (e.g., 'Mệt quá!' / 'Mệt xỉu!'), reflect their shared exhaustion and celebratory triumph ('Thành công rồi!').\n"
+            "- Perspective & Pronoun Consistency:\n"
+            "  * When female character speaks or thinks internally: use female first-person perspective ('Trời ơi...', 'mình lỡ nói...', 'mệt đứt hơi...'), NEVER use third-person ('cô ấy', 'nàng') to describe her own actions.\n"
+            "  * When male partner speaks or thinks: use lively male perspective ('Lần này theo logic của bả nè...', 'chốt từ này!').\n"
+            "  * Natural Vietnamese couple pronouns: 'anh - em', 'tui - bả / bà xã', 'ông xã', 'người ta', 'cô ngốc', 'ông - tui'.\n"
+            "- STRICT BAN ON PROFANITY: Under NO circumstance use aggressive or vulgar curses ('mẹ kiếp', 'đụ', 'chết tiệt', 'mày - tao').\n"
         )
     else:
         mode_rules = (
             "SPEAKER MODE: SINGLE NARRATOR / VLOG (Thuyết minh 1 người / Vlog trải nghiệm):\n"
             "- Consistent First-Person Voice: The speaker is sharing their personal day/vlog. Maintain a single consistent first-person pronoun ('mình' or 'tôi') throughout all sentences. NEVER switch between 'tôi' and 'tui' in the same video.\n"
-            "- Zero-Subject Resolution: In Chinese speech, subjects are often dropped (e.g., '去参加婚礼', '下车接水', '躺下睡觉'). In 1-person mode, translate these in first-person ('mình đi dự đám cưới bạn' / 'tôi xuống xe lấy nước'), NEVER arbitrarily switch to third-person 'anh ấy' or 'hắn ta' or 'cô ấy'.\n"
+            "- Zero-Subject Resolution: In Chinese speech, subjects are often dropped. In 1-person mode, translate these in first-person ('mình đi dự đám cưới bạn' / 'tôi xuống xe lấy nước'), NEVER arbitrarily switch to third-person 'anh ấy' or 'hắn ta' or 'cô ấy'.\n"
             "- Lifestyle Tone: Warm, relaxed, cozy, authentic conversational storytelling.\n"
         )
 
     lexicon_rules = (
-        "MANDATORY VIETNAMESE IDIOMATIC TRANSLATIONS & ASR HOMOPHONE CORRECTIONS:\n"
-        "- ASR Homophone Robustness: The source text comes from speech recognition (Whisper) which frequently mishears colloquial Chinese or homophones. ALWAYS deduce the intended meaning from the scene/vlog context rather than translating phonetic nonsense literally:\n"
-        "  * '绑膜堵车' / '绑磨车' / '贴膜堵车' -> In an RV/camper travel video, this is ASR mishearing for tying down/securing the motorcycle or bike rack on the back of the RV: 'buộc lại / chằng lại / sửa giá treo xe máy sau xe RV' (NEVER 'dán màng rồi kẹt xe' or 'dán phim kẹt xe').\n"
-        "  * '炒起来' / '吵起来' (waking someone up in the middle of the night) -> 'bị lôi đầu dậy' / 'bị đánh thức lúc nửa đêm', never 'xào nấu' or 'cãi nhau'.\n"
-        "  * '使侦探庙热' / '侦探庙热' -> ASR mishearing of '是真的特么热' ('shì zhēn de tè me rè'): 'Trùng Khánh nóng dã man' / 'nóng kinh khủng khiếp' / 'nóng muốn chảy mỡ' (NEVER 'thám tử đền chùa nóng').\n"
-        "  * '齐床' -> ASR mishearing for '起床' ('qǐ chuáng'): 'vừa mới ngủ dậy' / 'vừa thức dậy' (NEVER 'giường bằng phẳng').\n"
-        "  * '真是糊啊' / '真是胡啊' -> ASR mishearing for '真是服了啊': 'đúng là cạn lời luôn' / 'chịu thua luôn' / 'bái phục luôn' (NEVER 'hồ đồ / mờ mịt').\n"
-        "  * '甩脸色' -> (of a vehicle or person acting up/grumbling) 'giở chứng' / 'tỏ thái độ' (NEVER 'vung sắc mặt').\n"
-        "  * '傻婆娘' / '傻媳妇' -> 'cô vợ ngốc này' / 'bà xã ngốc nghếch' (affectionate teasing, NEVER insulting).\n"
-        "- '打工人' / '打工' -> 'dân làm thuê xa xứ' / 'người đi làm thuê' / 'dân cày cuốc' (NEVER 'lao động tự do' or 'freelancer').\n"
-        "- '80后不给房东打工' -> 'thế hệ 80 quyết không cày tiền nuôi chủ trọ' / 'không làm thuê cho chủ nhà' is too rigid; use 'không cày tiền trả tiền trọ cho chủ nhà' or 'không làm giàu cho chủ trọ'.\n"
-        "- '外卖' -> 'đồ ăn đặt ship' / 'đơn đồ ăn giao tới' / 'gọi đồ ăn' (NEVER 'đồ ăn ngoài').\n"
-        "- '房车' / '床车' -> 'xe RV' / 'xe mobihome' / 'xe cắm trại' / 'xe nhà lưu động' (NEVER 'xe phòng' or 'xe giường').\n"
-        "- '抢捧花' -> 'bắt hoa cưới' / 'giật hoa cưới' (NEVER 'cướp hoa cưới').\n"
-        "- '屁股还没坐热' -> 'vừa mới ngồi ấm chỗ' / 'chưa kịp ấm chỗ' (NEVER 'ghế chưa ngồi nóng chỗ').\n"
-        "- '出门' -> 'ra ngoài' / 'bước chân ra khỏi xe / nhà' (NEVER 'ra cửa').\n"
-        "- '公共驿站' / '驿站' / '接水' -> 'trạm nghỉ ven đường' / 'trạm dịch vụ công cộng' (NEVER 'trạm xe buýt').\n"
-        "- '有雨' / '今晚有雨' -> 'nghe nói tối nay có mưa' / 'tối nay trời đổ mưa' (NEVER melodramatic 'mưa buồn').\n"
-        "- '淋浴' / '冲凉' -> 'vòi sen tắm' / 'hệ thống nước tắm' / 'tắm rửa' (NEVER 'bình nóng lạnh' when the action is taking a shower or rinsing off).\n"
-        "- '收拾' -> 'dọn dẹp' (tidying room/van) or 'xử đẹp / dạy dỗ' (playful teasing), never mechanical 'thu dọn'.\n"
-        "- '免费啤酒' -> 'uống bia miễn phí' / 'bia tươi miễn phí' (NEVER 'mùi bia miễn phí').\n"
+        "MANDATORY VIETNAMESE IDIOMATIC TRANSLATIONS & ASR HOMOPHONE ROBUSTNESS:\n"
+        "- ASR Homophone Robustness: The source text comes from speech recognition which frequently mishears colloquial Chinese, fast slang, or names. Deduce the intended meaning from the context rather than translating phonetic nonsense literally:\n"
+        "  * 'Ariana' / '爱莉安娜' -> Ca sĩ/diễn viên Ariana Grande (phim Wicked). NEVER translate as 'Arena' or 'nhà thi đấu'.\n"
+        "  * '女巫' -> 'Phù thủy' (trong phim/trò chơi). '公园' -> 'Công viên'. '跑' / '跑步' -> 'chạy' / 'chạy bộ'.\n"
+        "  * '累' / '累死了' -> 'Mệt' / 'Mệt quá' / 'Mệt xỉu' / 'Mệt đứt hơi'.\n"
+        "  * '吵起来' / '炒起来' -> 'bị lôi đầu dậy' / 'bị đánh thức lúc nửa đêm'.\n"
+        "  * '是真的特么热' / '使侦探庙热' -> 'Trùng Khánh nóng dã man' / 'nóng kinh khủng' / 'nóng chảy mỡ'.\n"
+        "  * '起床' / '齐床' -> 'vừa mới ngủ dậy' / 'vừa thức dậy'.\n"
+        "  * '真是服了' / '真是胡啊' -> 'đúng là cạn lời luôn' / 'chịu thua luôn' / 'bái phục luôn'.\n"
+        "  * '甩脸色' -> 'giở chứng' / 'tỏ thái độ'.\n"
+        "  * '傻婆娘' / '傻媳妇' -> 'cô vợ ngốc này' / 'bà xã ngốc nghếch' (affectionate teasing).\n"
+        "  * '打工人' / '打工' -> 'dân làm thuê xa xứ' / 'người đi làm thuê' / 'dân cày cuốc'.\n"
+        "  * '外卖' -> 'đồ ăn đặt ship' / 'gọi đồ ăn'.\n"
+        "  * '房车' / '床车' -> 'xe RV' / 'xe mobihome' / 'xe cắm trại'.\n"
+        "  * '抢捧花' -> 'bắt hoa cưới' / 'giật hoa cưới'.\n"
+        "  * '屁股还没坐热' -> 'vừa mới ngồi ấm chỗ' / 'chưa kịp ấm chỗ'.\n"
+        "  * '出门' -> 'ra ngoài' / 'bước chân ra khỏi xe / nhà'.\n"
+        "  * '收拾' -> 'dọn dẹp' hoặc 'xử đẹp / dạy dỗ' (trêu đùa).\n"
+        "  * '巴黎' or unexpected place name in casual banters -> Translate contextually, do not hallucinate 'Paris' if characters are discussing everyday things.\n"
+        "- Subtitle Phrasing & Natural Cadence: Keep translations concise and punchy for TTS. Never produce awkward broken sentence structures; keep cohesive units together ('nhân vật', 'công viên', 'phù thủy', 'chạy bộ').\n"
     )
 
     system_text = (
@@ -310,6 +321,7 @@ def translate_texts(
     target_language: str, video_id: str, progress_callback=None,
     initial_translations: list[str | None] | None = None, result_callback=None,
     speaker_mode: str = "single",
+    speaker_tags: dict[int, str] | None = None,
 ) -> list[str]:
     if model not in MODELS:
         raise ValueError("Model Gemini không được hỗ trợ.")
@@ -340,6 +352,7 @@ def translate_texts(
             chunk, key=key, model=model,
             source_language=source_language, target_language=target_language, video_id=video_id,
             speaker_mode=speaker_mode,
+            speaker_tags=speaker_tags,
         )
         for (index, _), value in zip(chunk, values):
             output[index] = value

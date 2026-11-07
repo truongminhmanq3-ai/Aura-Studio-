@@ -13,7 +13,9 @@ def resolve_tts_provider(provider: str, target_language: str) -> str:
     normalized = str(provider or "vieneu").strip().lower()
     if normalized == "elevenlabs":
         return "elevenlabs"
-    if normalized in {"vieneu", "omnivoice", "omnivoice-gpu", "auto", "edge"} or target_language == "vi":
+    if normalized.startswith("omnivoice"):
+        return "omnivoice"
+    if normalized in {"vieneu", "auto", "edge"} or target_language == "vi":
         return "vieneu"
     return "vieneu"
 
@@ -39,6 +41,8 @@ def preprocess_text_for_tts(text: str) -> str:
             "\u2013": ",", "\u2014": ",", "\u2026": "...",
         })
     )
+    # Deduplicate obvious speech repetition / stutter loops (e.g., "theo logic của ông, theo logic của ông thì")
+    text = re.sub(r"\b([a-zA-Zà-ỹÀ-Ỹ0-9\s]{4,30}?)\s*[,，]\s*\1\b", r"\1", text, flags=re.IGNORECASE)
     text = " ".join(text.split())
     text = re.sub(r"\s+([,.;:!?])", r"\1", text)
     if text and text[-1] not in ".!?,;:。！？；：":
@@ -279,6 +283,13 @@ def generate_voice_parts(
     narrator_anchor_text: str = "",
     status_callback=None,
 ):
+    current_video = get_video(video_id)
+    speaker_mode = str(getattr(current_video, "speaker_mode", "single") or "single")
+    if speaker_mode == "multiple" and (
+        voice in {"omnivoice:clone", "vieneu:clone", "clone"} or str(voice).endswith(":clone")
+    ):
+        raise ValueError("Hãy chọn Giọng nhân bản hoặc Nhận diện nhiều người nói, không dùng cả hai cùng lúc.")
+
     backend = resolve_tts_provider(provider, target_language)
     if backend == "elevenlabs":
         from haizflow.pipeline.elevenlabs_tts import generate_parts

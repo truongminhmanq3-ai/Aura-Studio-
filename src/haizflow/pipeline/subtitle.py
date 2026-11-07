@@ -52,13 +52,19 @@ _VIETNAMESE_COMPOUND_PHRASES = {
     "mấy phút", "vài phút", "bao nhiêu", "bao lâu", "được không", "phải không", "đúng không",
     "giở chứng", "cạn lời", "lại còn", "công nhận", "bốn mươi", "mươi lăm", "bốn mươi lăm",
     "vừa thức dậy", "vừa ngủ dậy", "mới thức dậy", "mới ngủ dậy",
+    # Games, Challenges, Sports & Colloquial Dialogue (Fixes awkward syllable breaks)
+    "nhân vật", "phù thủy", "công viên", "chạy bộ", "thử thách", "đồng đội", "đoán từ", "luật chơi",
+    "vòng chơi", "vòng một", "vòng hai", "vòng ba", "thành công", "thất bại", "liên tưởng", "suy nghĩ",
+    "bị phạt", "phạt chạy", "mệt quá", "mệt xỉu", "mệt đứt hơi", "chập mạch", "xứ oz", "nói tiếng anh",
+    "theo logic", "ăn ý", "đoán ý", "chốt từ", "trùng khớp", "kết quả",
 }
 
 _ASPECTUAL_LEADERS = {"vừa", "mới", "sắp", "đang", "chưa"}
 _COMMON_VERB_COMPOUNDS = {
     "thức dậy", "ngủ dậy", "lôi dậy", "ăn lẩu", "rời khỏi", "chạy đi", "bước ra",
     "bước vào", "ngồi xuống", "đứng lên", "bật lên", "tắt đi", "kéo rèm", "thay đồ",
-    "lấy nước", "nấu ăn", "giao tới", "cắm trại", "đi làm", "thuê nhà"
+    "lấy nước", "nấu ăn", "giao tới", "cắm trại", "đi làm", "thuê nhà",
+    "chạy bộ", "đoán từ", "bị phạt", "thử thách", "suy nghĩ"
 }
 _COMMON_SINGLE_VERBS = {
     "thức", "ngủ", "dậy", "ăn", "uống", "đi", "đến", "tới", "làm", "xong", "về",

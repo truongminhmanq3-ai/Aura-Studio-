@@ -117,6 +117,13 @@ def translate_segments(
             raise RuntimeError(f"Source sentence {index} has an invalid time range.")
 
     source_texts = [segment["text"] for segment in segments]
+    speaker_tags = {}
+    for index, seg in enumerate(segments):
+        spk_id = str(seg.get("speaker_id") or "")
+        voice = str(seg.get("speaker_voice") or "").lower()
+        gender = "Nữ" if ("female" in voice or "truc ly" in voice) else "Nam" if ("male" in voice or "hai dang" in voice) else ""
+        if spk_id or gender:
+            speaker_tags[index] = f"{spk_id} ({gender})".strip() if (gender and spk_id) else (spk_id or gender)
     source_codes = [str(segment.get("language") or source_language or "en").lower() for segment in segments]
     from haizflow.services.translation_progress import TranslationProgress
 
@@ -146,6 +153,7 @@ def translate_segments(
             target_language=target_language_name,
             video_id=video_id, progress_callback=progress_callback,
             initial_translations=checkpoint.values, result_callback=save_valid_batch,
+            speaker_tags=speaker_tags if speaker_tags else None,
         )
     else:
         translations = _translate_with_hymt2_worker(

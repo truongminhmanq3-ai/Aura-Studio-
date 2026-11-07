@@ -47,6 +47,12 @@ def normalize_vieneu_voice(voice: str) -> str:
     if voice_str in valid_names:
         return voice_str
 
+    lower = voice_str.lower()
+    if "female" in lower or "nữ" in lower or lower in {"bright", "soprano", "gentle", "truc ly"}:
+        return "Trúc Ly"
+    if "male" in lower or "nam" in lower or lower in {"deep", "mature", "hai dang"}:
+        return "Hải Đăng"
+
     return "Hải Đăng"
 
 

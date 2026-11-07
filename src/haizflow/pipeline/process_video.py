@@ -649,6 +649,34 @@ def process_video_sync(
             video, reporter, transcribe_audio_target, source_segments_json,
         )
 
+        # Multi-speaker Diarization before translation:
+        speaker_mode = str(getattr(video, "speaker_mode", "single") or "single")
+        try:
+            from haizflow.pipeline.speaker_identity import prepare_speakers
+            if (speaker_mode == "multiple" or getattr(video, "auto_detect_speakers", True)) and os.path.isfile(transcribe_audio_target):
+                reporter.update(49, "identifying_speakers", "Analyzing speaker roles for dialogue translation")
+                diarized = prepare_speakers(transcribe_audio_target, _segments, video_id)
+                if diarized and any(s.get("speaker_id") for s in diarized):
+                    unique_spks = {s.get("speaker_id") for s in diarized if s.get("speaker_id")}
+                    if len(unique_spks) > 1:
+                        _segments = diarized
+                        with open(source_segments_json, "w", encoding="utf-8") as f:
+                            json.dump(_segments, f, ensure_ascii=False, indent=2)
+                        video.speaker_mode = "multiple"
+                        update_video(video_id, speaker_mode="multiple")
+                        log_to_video(
+                            video_id,
+                            f"[SPEAKERS] Phân tách thành công {len(unique_spks)} nhân vật trước khi dịch: "
+                            + " ".join(f"{s.get('speaker_id')}={s.get('speaker_voice')}" for s in _segments if s.get("speaker_id"))[:120],
+                            component="SPEAKERS",
+                        )
+                    elif speaker_mode == "multiple":
+                        _segments = diarized
+                        with open(source_segments_json, "w", encoding="utf-8") as f:
+                            json.dump(_segments, f, ensure_ascii=False, indent=2)
+        except Exception as spk_exc:
+            log_to_video(video_id, f"[SPEAKERS] Speaker identification note: {spk_exc}", level="INFO")
+
         if not profile.cuda_available or profile.key == "cuda_low_memory":
             _release_recognition_runtime()
             log_to_video(
