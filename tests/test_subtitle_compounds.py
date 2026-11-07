@@ -90,6 +90,21 @@ class TestSubtitleCompounds(unittest.TestCase):
         self.assertTrue(any("con người ta" in line for line in lines_cn), f"Expected 'con người ta' not to be split in:\n{wrapped_cn}")
 
 
+        text_banh_cuon = "Hôm nay chúng mình đi ăn bánh cuốn xoài và ngỗng quay ngon xuất sắc luôn nha"
+        wrapped_bc = split_text_by_length(text_banh_cuon, 26)
+        lines_bc = wrapped_bc.split("\n")
+        self.assertTrue(any("bánh cuốn xoài" in line for line in lines_bc), f"Expected 'bánh cuốn xoài' not to be split in:\n{wrapped_bc}")
+
+    def test_cantonese_food_vlog_homophone_normalizer(self):
+        from haizflow.services.translation import _normalize_vlog_asr_homophones
+        self.assertEqual(_normalize_vlog_asr_homophones("烧鹅手臥"), "烧鹅手握")
+        self.assertEqual(_normalize_vlog_asr_homophones("芒果墙粉大湖"), "芒果肠粉")
+        self.assertEqual(_normalize_vlog_asr_homophones("你给我装了是吧"), "你跟我装呢是吧")
+        self.assertEqual(_normalize_vlog_asr_homophones("真太天赋罗"), "真太天妇罗")
+        self.assertEqual(_normalize_vlog_asr_homophones("諾米雞手臥"), "糯米鸡手握")
+        self.assertEqual(_normalize_vlog_asr_homophones("梁茶可爾必思"), "凉茶可尔必思")
+
+
 if __name__ == "__main__":
     unittest.main()
 

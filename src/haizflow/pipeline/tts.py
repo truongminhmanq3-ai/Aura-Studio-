@@ -146,18 +146,16 @@ def _elevenlabs_voices_by_segment(segments_json_path, video_id, default_voice,
     if len(sorted_speakers) >= 2:
         spk1, spk2 = sorted_speakers[0], sorted_speakers[1]
         if gender_of.get(spk1) == gender_of.get(spk2):
-            # When the top two characters have identical detected gender, force 1 Female and 1 Male
             gender_of[spk1] = "female"
             gender_of[spk2] = "male"
         elif len(set(gender_of.values())) == 1:
-            # If all speakers somehow mapped to the same gender, break the monopoly
             gender_of[spk2] = "male" if list(gender_of.values())[0] == "female" else "female"
     elif len(gender_of) == 2 and len(set(gender_of.values())) == 1:
         keys = sorted(gender_of.keys())
         gender_of[keys[0]] = "female"
         gender_of[keys[1]] = "male"
     assigned, used = {}, set()
-    for speaker in sorted(gender_of):
+    for speaker in sorted(gender_of.keys(), key=lambda s: speaker_turns.get(s, 0), reverse=True):
         matching = [item for item in pool if item.get("gender") == gender_of[speaker]] or pool
         fresh = [item for item in matching if item["voice"] not in used] or \
                 [item for item in pool if item["voice"] not in used] or matching
@@ -285,7 +283,7 @@ def _vieneu_voices_by_segment(
     male_pool = [chosen_male] + [v for v in ["Hải Đăng", "Thái Sơn", "Minh Triết", "Thiện Minh", "Quang Sơn", "Đức Trí"] if v != chosen_male]
 
     assigned, used = {}, set()
-    for speaker in sorted(gender_of):
+    for speaker in sorted(gender_of.keys(), key=lambda s: speaker_turns.get(s, 0), reverse=True):
         target_gender = gender_of[speaker]
         pool = female_pool if target_gender == "female" else male_pool
         chosen = next((v for v in pool if v not in used), pool[0])

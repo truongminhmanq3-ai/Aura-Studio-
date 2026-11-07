@@ -55,6 +55,25 @@ _WORKER_WARM = False
 _WORKER_IDLE_TIMER = None
 _WORKER_DIAGNOSTIC_PATH = None
 
+_CANTONESE_VLOG_HOMOPHONES: list[tuple[re.Pattern, str]] = [
+    (re.compile(r"手[臥卧]", re.IGNORECASE), "手握"),
+    (re.compile(r"芒果[墙墻]粉(大湖)?", re.IGNORECASE), "芒果肠粉"),
+    (re.compile(r"你给我装了是吧", re.IGNORECASE), "你跟我装呢是吧"),
+    (re.compile(r"天[赋賦][罗落]", re.IGNORECASE), "天妇罗"),
+    (re.compile(r"[諾诺]米[雞鸡]", re.IGNORECASE), "糯米鸡"),
+    (re.compile(r"[梁涼凉]茶可[爾尔]必思", re.IGNORECASE), "凉茶可尔必思"),
+    (re.compile(r"大[理鯉鲤]鱼军舰", re.IGNORECASE), "大鲤鱼军舰"),
+    (re.compile(r"猴猴猴+", re.IGNORECASE), "好味好吃"),
+    (re.compile(r"猴[美好]", re.IGNORECASE), "好味"),
+]
+
+
+def _normalize_vlog_asr_homophones(text: str) -> str:
+    normalized = str(text or "")
+    for pattern, replacement in _CANTONESE_VLOG_HOMOPHONES:
+        normalized = pattern.sub(replacement, normalized)
+    return normalized
+
 
 def language_name(language_code: str) -> str:
     normalized = (language_code or "").lower()
@@ -116,7 +135,7 @@ def translate_segments(
         if start < 0 or end <= start:
             raise RuntimeError(f"Source sentence {index} has an invalid time range.")
 
-    source_texts = [segment["text"] for segment in segments]
+    source_texts = [_normalize_vlog_asr_homophones(segment["text"]) for segment in segments]
     speaker_tags = {}
     for index, seg in enumerate(segments):
         spk_id = str(seg.get("speaker_id") or "")

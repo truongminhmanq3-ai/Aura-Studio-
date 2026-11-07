@@ -33,7 +33,9 @@ _VIETNAMESE_COMPOUND_PHRASES = {
     # Food & Delivery
     "đồ ăn", "đặt ship", "giao tới", "giao hàng", "bữa tối", "bữa sáng", "bữa trưa", "nấu ăn",
     "uống bia", "bia tươi", "miễn phí", "cốc nước", "ly nước", "lon nước", "thùng nước", "bình nước",
-    "nồi lẩu", "lẩu cay", "lẩu bò",
+    "nồi lẩu", "lẩu cay", "lẩu bò", "bánh cuốn", "bánh cuốn xoài", "ngỗng quay", "phá lấu", "phá lấu bò",
+    "xôi gà", "gà luộc", "trà thảo mộc", "chiến hạm cá", "đỉnh của chóp", "xuất sắc", "nếm thử",
+    "lạ miệng", "tự nhiên", "thưởng thức", "béo ngậy", "thơm lừng",
     # Wedding & Events
     "đám cưới", "tiệc cưới", "bàn tiệc", "sảnh tiệc", "hoa cưới", "bắt hoa", "giật hoa", "chúc mừng",
     "chúc phúc", "báo thức", "đánh trận", "thức giấc", "thức dậy", "buổi sáng", "buổi tối", "sáng sớm",

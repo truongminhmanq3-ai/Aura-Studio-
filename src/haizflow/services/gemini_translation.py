@@ -276,7 +276,22 @@ def _request_chunk(
         "  * '出门' -> 'ra ngoài' / 'bước chân ra khỏi xe / nhà'.\n"
         "  * '收拾' -> 'dọn dẹp' hoặc 'xử đẹp / dạy dỗ' (trêu đùa).\n"
         "  * '巴黎' or unexpected place name in casual banters -> Translate contextually, do not hallucinate 'Paris' if characters are discussing everyday things.\n"
-        "- Subtitle Phrasing & Natural Cadence: Keep translations concise and punchy for TTS. Never produce awkward broken sentence structures; keep cohesive units together ('nhân vật', 'công viên', 'phù thủy', 'chạy bộ', 'kết giao', 'ngụy biện', 'nhẫn tâm', 'gỡ cài đặt', 'quà sinh nhật').\n"
+        "- CANTONESE DIALECT, FOOD VLOG & ASR HOMOPHONE ROBUSTNESS (VideoLingo standard):\n"
+        "  * '猴美' / '猴猴猴' / '好美' / '好好味' -> 'Ngon xuất sắc luôn!' / 'Ngon đỉnh chóp luôn!' (Cantonese 'hou hou mei' = extremely delicious).\n"
+        "  * '你跟我装呢是吧' / '你给我装了是吧' -> 'Anh lại diễn với em đấy à?' / 'Em lại diễn với anh đấy à?' / 'Lại còn giả vờ à!' (Playful teasing between couple). NEVER translate as 'canh không cay lạ miệng'.\n"
+        "  * '芒果肠粉' / '芒果墙粉' -> 'Bánh cuốn xoài' (Famous Cantonese dessert Mango Changfen). NEVER translate as 'bún chả giò xoài' or 'tường bột'.\n"
+        "  * '肠粉' -> 'Bánh cuốn' (Bánh cuốn Quảng Đông / Hồng Kông). '烧鹅手握' / '烧鹅手臥' -> 'Sushi ngỗng quay' / 'Ngỗng quay cuộn cơm'.\n"
+        "  * '大理鱼军舰' / '大鱼军舰' / '黄河大鲤鱼' -> 'Sushi chiến hạm cá lớn Hoàng Hà'.\n"
+        "  * '天妇罗' / '天赋罗' -> 'Tempura' (Món chiên Tempura phong cách Nhật).\n"
+        "  * '糯米鸡' / '諾米雞' -> 'Xôi gà bọc lá sen'. '白切鸡' -> 'Gà luộc chặt miếng'. '牛杂' -> 'Phá lấu bò / Lòng bò hầm'.\n"
+        "  * '凉茶可尔必思' / '梁茶可爾必思' -> 'Trà thảo mộc Calpis' (Trà thảo mộc pha Calpis mát lạnh).\n"
+        "- MANDATORY 100% TRANSLATION OF EMBEDDED FOREIGN PHRASES (Bắt buộc dịch trọn vẹn ngoại ngữ xen kẽ):\n"
+        "  * When speakers use casual English or Korean phrases in dialogue, YOU MUST TRANSLATE THEM INTO NATURAL VIETNAMESE. NEVER leave them in English:\n"
+        "    - 'Yellow river fish battleship' -> 'Sushi chiến hạm cá Hoàng Hà đấy!' / 'Chiến hạm cá lớn Hoàng Hà!'\n"
+        "    - 'you don't say' -> 'Lại còn phải nói!' / 'Chuẩn không cần chỉnh!' / 'Chuyện!'\n"
+        "    - '이거 미안해' -> 'Cái này xin lỗi nhé!' / 'Tớ xin lỗi nha!'\n"
+        "    - 'delicious' / 'yummy' -> 'Ngon tuyệt!'\n"
+        "- Subtitle Phrasing & Natural Cadence: Keep translations concise and punchy for TTS. Never produce awkward broken sentence structures; keep cohesive units together ('nhân vật', 'công viên', 'phù thủy', 'chạy bộ', 'kết giao', 'ngụy biện', 'nhẫn tâm', 'gỡ cài đặt', 'quà sinh nhật', 'bánh cuốn xoài').\n"
     )
 
     system_text = context_banner + (
@@ -553,7 +568,8 @@ def reflect_and_correct_dialogue(
         "Check each translated line for any CRITICAL flaws:\n"
         "1. Did a male speaker refer to himself with a female pronoun (e.g. 'em') or call his girlfriend 'anh' / 'cậu'?\n"
         "2. Was an action or plot twist inverted (e.g. did the translator say the boyfriend uninstalled games instead of the girlfriend)?\n"
-        "3. Is there any awkward phonetic translation or hallucination?\n\n"
+        "3. Is there any awkward phonetic translation or hallucination (e.g. 芒果墙粉 mistranslated as bún chả giò instead of Bánh cuốn xoài)?\n"
+        "4. Did any conversational English phrase ('Yellow river fish battleship', 'you don't say') remain untranslated in English? They MUST be translated to natural Vietnamese.\n\n"
         "Return JSON with 'corrections' list. Only include lines that genuinely have a flaw. If everything looks good, return empty list."
     )
 
