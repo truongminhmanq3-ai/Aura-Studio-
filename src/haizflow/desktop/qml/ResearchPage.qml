@@ -276,68 +276,98 @@ Item {
                 // Category selector bar
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: 10
 
                     Text {
-                        text: qsTr("🔥 Xu hướng hôm nay:")
+                        text: qsTr("🔥 Xu hướng:")
                         font.family: Theme.fontFamily
                         font.bold: true
                         font.pixelSize: 13
                         color: Theme.text
                     }
 
-                    // Categories
-                    Repeater {
-                        model: [
-                            { id: "all", label: "Tất cả" },
-                            { id: "pets", label: "🐶 Thú cưng" },
-                            { id: "home", label: "🏠 Gia dụng" },
-                            { id: "camping", label: "🏕️ Cắm trại" },
-                            { id: "food", label: "🍳 Nấu ăn" },
-                            { id: "beauty", label: "💄 Làm đẹp" },
-                            { id: "douyin_hot", label: "📊 Douyin Hot" }
-                        ]
+                    // Horizontal Scrollable Category Pills
+                    Flickable {
+                        id: catFlickable
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 30
+                        contentWidth: catRow.implicitWidth
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        flickableDirection: Flickable.HorizontalFlick
 
-                        Rectangle {
-                            id: catChip
-                            required property var modelData
-                            readonly property bool isSelected: Boolean(root.controller && root.controller.trendingCategory === modelData.id)
-                            Layout.preferredHeight: 28
-                            Layout.preferredWidth: catText.implicitWidth + 20
-                            radius: 8
-                            color: isSelected ? Theme.interactive : (catMouse.containsMouse ? "#1C000000" : "#0A000000")
-                            border.width: 1
-                            border.color: isSelected ? Theme.interactive : (catMouse.containsMouse ? "#2E000000" : "#18000000")
+                        RowLayout {
+                            id: catRow
+                            spacing: 6
+                            height: parent.height
 
-                            Text {
-                                id: catText
-                                anchors.centerIn: parent
-                                text: catChip.modelData.label
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 12
-                                font.weight: catChip.isSelected ? Font.Bold : Font.Normal
-                                color: catChip.isSelected ? Theme.textOnAccent : Theme.text
-                            }
+                            Repeater {
+                                model: [
+                                    { id: "all", label: "Tất cả" },
+                                    { id: "douyin_hot", label: "📊 Douyin Hot" },
+                                    { id: "beauty", label: "💄 Làm đẹp" },
+                                    { id: "food", label: "🍳 Nấu ăn" },
+                                    { id: "fitness", label: "💪 Thể hình" },
+                                    { id: "finance", label: "💰 Tài chính" },
+                                    { id: "home", label: "🏠 Nhà cửa & Setup" },
+                                    { id: "travel", label: "🏕️ Du lịch" },
+                                    { id: "tech_ai", label: "🤖 Công nghệ & AI" },
+                                    { id: "business", label: "💼 Kinh doanh" },
+                                    { id: "psychology", label: "🌿 Tâm lý" },
+                                    { id: "parenting", label: "👶 Nuôi dạy con" },
+                                    { id: "fashion", label: "👗 Thời trang" },
+                                    { id: "pets", label: "🐶 Thú cưng" },
+                                    { id: "mystery_history", label: "🔍 Kỳ án & Lịch sử" },
+                                    { id: "repair_restoration", label: "🛠️ Phục hồi đồ cũ" },
+                                    { id: "language_study", label: "📖 Học ngoại ngữ" },
+                                    { id: "cars", label: "🚗 Xe cộ" },
+                                    { id: "insider_secrets", label: "🕵️ Bí mật nghề" },
+                                    { id: "rural_life", label: "🌾 Thôn dã" },
+                                    { id: "books_movies", label: "🎬 Sách & Phim" },
+                                    { id: "crafts", label: "🎨 Thủ công" },
+                                    { id: "floristry", label: "💐 Cắm hoa" }
+                                ]
 
-                            MouseArea {
-                                id: catMouse
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                hoverEnabled: true
-                                onClicked: {
-                                    if (root.controller) {
-                                        root.controller.setTrendingCategory(catChip.modelData.id);
+                                Rectangle {
+                                    id: catChip
+                                    required property var modelData
+                                    readonly property bool isSelected: Boolean(root.controller && root.controller.trendingCategory === modelData.id)
+                                    Layout.preferredHeight: 28
+                                    Layout.preferredWidth: catText.implicitWidth + 20
+                                    radius: 8
+                                    color: isSelected ? Theme.interactive : (catMouse.containsMouse ? "#1C000000" : "#0A000000")
+                                    border.width: 1
+                                    border.color: isSelected ? Theme.interactive : (catMouse.containsMouse ? "#2E000000" : "#18000000")
+
+                                    Text {
+                                        id: catText
+                                        anchors.centerIn: parent
+                                        text: catChip.modelData.label
+                                        font.family: Theme.fontFamily
+                                        font.pixelSize: 12
+                                        font.weight: catChip.isSelected ? Font.Bold : Font.Normal
+                                        color: catChip.isSelected ? Theme.textOnAccent : Theme.text
+                                    }
+
+                                    MouseArea {
+                                        id: catMouse
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        hoverEnabled: true
+                                        onClicked: {
+                                            if (root.controller) {
+                                                root.controller.setTrendingCategory(catChip.modelData.id);
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
 
-                    Item { Layout.fillWidth: true }
-
                     // Button to open Top 50 Hot Search Dialog
                     StudioButton {
-                        text: qsTr("📊 Top 50 Hot Search Douyin")
+                        text: qsTr("📊 Top 50 Douyin")
                         variant: "secondary"
                         onClicked: {
                             if (root.controller) {
