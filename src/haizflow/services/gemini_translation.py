@@ -170,12 +170,15 @@ def _request_chunk(
     speaker_mode: str = "single",
     speaker_tags: dict[int, str] | None = None,
     story_context: dict | None = None,
+    budgets: dict[int, int] | None = None,
 ) -> list[str]:
     entries = []
     for index, text in chunk:
         entry = {"id": index, "text": text}
         if speaker_tags and index in speaker_tags:
             entry["speaker"] = speaker_tags[index]
+        if budgets and index in budgets:
+            entry["max_chars"] = budgets[index]
         entries.append(entry)
 
     context_banner = ""
@@ -310,6 +313,8 @@ def _request_chunk(
         "Rules for dubbing timing and formatting:\n"
         "1. Concise & Punchy for TTS Dubbing: Video dubbing has strict timing limits. Keep translations compact and rhythmically natural so AI voices can speak smoothly without rushing.\n"
         "2. Strict Formatting: Keep the same id and order. Never merge, omit or invent a subtitle.\n"
+        + ("3. Length budget: an entry with max_chars must be translated in at most that many characters "
+           "(spaces included). Shorten wording, never drop a person, action or key fact.\n" if budgets else "")
         + glossary.prompt_for([text for _, text in chunk])
     )
     payload = {
@@ -402,6 +407,7 @@ def translate_texts(
     speaker_mode: str = "single",
     speaker_tags: dict[int, str] | None = None,
     story_context: dict | None = None,
+    budgets: dict[int, int] | None = None,
 ) -> list[str]:
     if model not in MODELS:
         raise ValueError("Model Gemini không được hỗ trợ.")
@@ -434,6 +440,7 @@ def translate_texts(
             speaker_mode=speaker_mode,
             speaker_tags=speaker_tags,
             story_context=story_context,
+            budgets=budgets,
         )
         for (index, _), value in zip(chunk, values):
             output[index] = value
@@ -446,6 +453,48 @@ def translate_texts(
         if progress_callback:
             progress_callback(sum(value is not None for value in output), len(texts), "Đang dịch bằng Gemini")
     return output
+
+
+def correct_asr_texts(
+    texts: list[str],
+    speaker_tags: dict[int, str] | None = None,
+    *,
+    key: str | None = None,
+    model: str = "gemini-3.5-flash-lite",
+    video_id: str = "",
+) -> dict[int, str]:
+    """Best-effort homophone repair of the whole transcript; ``{}`` on any failure."""
+    from haizflow.services import asr_correction
+
+    api_key = key or active_key()
+    if not api_key or len(texts) < 3:
+        return {}
+    payload = {
+        "systemInstruction": {"parts": [{"text": asr_correction.SYSTEM_PROMPT}]},
+        "contents": [{"role": "user", "parts": [{"text": json.dumps(
+            asr_correction.transcript_lines(texts, speaker_tags), ensure_ascii=False, separators=(",", ":"))}]}],
+        "generationConfig": {
+            "temperature": 0.1,
+            "maxOutputTokens": min(8192, max(1024, sum(len(text) for text in texts) * 3)),
+            "thinkingConfig": {"thinkingLevel": "minimal" if model == "gemini-3.5-flash-lite" else "low"},
+            "responseMimeType": "application/json",
+        },
+    }
+    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    url = _ENDPOINT.format(model=model if model in MODELS else "gemini-3.5-flash-lite")
+    try:
+        outgoing = request.Request(
+            url, data=body,
+            headers={"Content-Type": "application/json", "x-goog-api-key": api_key}, method="POST",
+        )
+        with request.urlopen(outgoing, timeout=60) as response:
+            answer = json.load(response)
+        parts = answer["candidates"][0]["content"]["parts"]
+        return asr_correction.parse(json.loads("".join(str(part.get("text", "")) for part in parts)), texts)
+    except Exception as exc:
+        if video_id:
+            log_to_video(video_id, f"[ASR-FIX] Gemini transcript check skipped: {exc}", component="TRANSLATE", level="INFO")
+    return {}
 
 
 def analyze_story_context(

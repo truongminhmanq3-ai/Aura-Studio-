@@ -112,7 +112,8 @@ def translate_segments(
 ):
     from haizflow.services.gemini_translation import MODELS as GEMINI_MODELS
     from haizflow.services.gemini_translation import translate_texts
-    from haizflow.services import deepseek_translation
+    from haizflow.services import asr_correction, deepseek_translation, translation_fit
+    from haizflow.services import gemini_translation
 
     if validation_mode not in {"auto", "manual"}:
         raise ValueError("Unsupported translation validation mode.")
@@ -168,6 +169,10 @@ def translate_segments(
         if valid:
             checkpoint.save_batch([item[0] for item in valid], [item[1] for item in valid])
 
+    length_limits = translation_fit.budgets(
+        [float(segment["end"]) - float(segment["start"]) for segment in segments], target_language,
+    )
+    story_context = None
     missing = [index for index, value in enumerate(checkpoint.values) if value is None]
     completed = len(segments) - len(missing)
     if completed:
@@ -177,7 +182,23 @@ def translate_segments(
     if not missing:
         translations = list(checkpoint.values)
     elif using_online:
-        story_context = None
+        if len(missing) == len(segments):
+            try:
+                if progress_callback:
+                    progress_callback(0, len(segments), "Kiểm tra lỗi nhận dạng đồng âm")
+                corrector = (deepseek_translation.correct_asr_texts if provider == "deepseek"
+                             else gemini_translation.correct_asr_texts)
+                fixes = corrector(source_texts, speaker_tags or None, model=requested_model, video_id=video_id)
+                if fixes:
+                    for fix_index, fix_text in sorted(fixes.items()):
+                        log_to_video(
+                            video_id,
+                            f"[ASR-FIX] {fix_index + 1}: '{source_texts[fix_index]}' -> '{fix_text}'",
+                            component="TRANSLATE",
+                        )
+                    source_texts = asr_correction.apply(source_texts, fixes)
+            except Exception as fix_err:
+                log_to_video(video_id, f"[ASR-FIX] Transcript check skipped: {fix_err}", level="INFO")
         has_dialogue = bool(speaker_tags and len(set(speaker_tags.values())) > 1)
         if has_dialogue and len(segments) > 1 and len(missing) == len(segments):
             try:
@@ -219,6 +240,7 @@ def translate_segments(
             initial_translations=checkpoint.values, result_callback=save_valid_batch,
             speaker_tags=speaker_tags if speaker_tags else None,
             story_context=story_context,
+            budgets=length_limits or None,
         )
 
         # VideoLingo Step 3: Global Consistency & Reflection Check for dialogues
@@ -262,6 +284,36 @@ def translate_segments(
             "Translator must return exactly one translation for each timestamped source sentence."
         )
     translations = [clean_translation(text) for text in translations]
+    if using_online and length_limits:
+        long_indexes = translation_fit.over_budget(translations, length_limits)
+        if long_indexes:
+            tight = translation_fit.tightened(length_limits, long_indexes)
+            log_to_video(
+                video_id,
+                f"[FIT] {len(long_indexes)} dubbed line(s) are too long for their time slot; asking for shorter wording.",
+                component="TRANSLATE",
+            )
+            try:
+                check_cancellation(video_id)
+                shorter = online_translate(
+                    [source_texts[i] for i in long_indexes], model=requested_model,
+                    source_language=language_name(source_language) if source_language != "auto" else "auto",
+                    target_language=target_language_name, video_id=video_id,
+                    speaker_tags={n: speaker_tags[i] for n, i in enumerate(long_indexes) if i in speaker_tags} or None,
+                    story_context=story_context,
+                    budgets={n: tight[i] for n, i in enumerate(long_indexes)},
+                )
+                if len(shorter) == len(long_indexes):
+                    for i, candidate in zip(long_indexes, shorter):
+                        candidate = clean_translation(candidate)
+                        if candidate and not _invalid_translation(candidate) and len(candidate) < len(translations[i]):
+                            translations[i] = candidate
+            except (OSError, RuntimeError, ValueError, TypeError, KeyError, IndexError, AttributeError) as exc:
+                check_cancellation(video_id)
+                if "cancelled by user" in str(exc).lower():
+                    raise
+                log_to_video(video_id, f"[FIT] Shortening skipped, keeping original wording: {exc}",
+                             level="WARNING", component="TRANSLATE")
     save_valid_batch(list(range(len(segments))), translations)
     suspect_indexes = _suspicious_translation_indexes(
         source_texts,

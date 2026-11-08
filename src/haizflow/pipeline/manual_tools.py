@@ -327,7 +327,7 @@ def recognition_signature(video) -> str:
         getattr(video, "source_language", "auto"),
         TIMING_SOURCE,
         *_generation_token(video, "recognition"),
-        "manual-recognition-v1",
+        "manual-recognition-v2",
     )
 
 
@@ -341,7 +341,7 @@ def translation_signature(video) -> str:
         provider,
         "deepseek-segment-json-v1" if provider == "deepseek" else "gemini-segment-json-v1",
         *translation_model_signature_parts(model),
-        "deepseek-batched-segments-v1" if provider == "deepseek" else "gemini-batched-segments-v1",
+        "deepseek-batched-segments-v2" if provider == "deepseek" else "gemini-batched-segments-v2",
         *_generation_token(video, "translation"),
         "manual-translation-v1",
     )

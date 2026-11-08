@@ -41,6 +41,8 @@ def api(monkeypatch):
     monkeypatch.setattr(deepseek, "active_key", lambda: "offline-secret-key")
     monkeypatch.setattr(deepseek, "log_to_video", Mock())
     monkeypatch.setattr(translation, "log_to_video", Mock())
+    # These tests count translation requests; the transcript check has its own tests.
+    monkeypatch.setattr(deepseek, "correct_asr_texts", lambda *args, **kwargs: {})
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     yield state

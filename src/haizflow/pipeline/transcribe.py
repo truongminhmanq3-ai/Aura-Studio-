@@ -30,6 +30,7 @@ from haizflow.core.model_integrity import (
     verify_whisper_turbo_model,
     verify_whisperx_vad_model,
 )
+from haizflow.pipeline import asr_sparse
 from haizflow.pipeline.process_registry import check_cancellation, is_cancelled
 from haizflow.pipeline.timing_contract import TIMING_SOURCE
 from haizflow.services.video_store import log_to_video
@@ -757,6 +758,49 @@ def _recover_speech_without_vad(asr_model, audio, segments, language: str, video
     return sorted([*stable, *recovered], key=lambda item: float(item["start"]))
 
 
+def _recover_sparse_segments(asr_model, audio, segments, language: str, video_id: str):
+    """Re-decode sentences whose text is far too short for the audio they span."""
+    raw_model = getattr(getattr(asr_model, "model", None), "transcribe", None)
+    if not callable(raw_model):
+        return segments
+    duration = len(audio) / _AUDIO_SAMPLE_RATE
+    result = []
+    for segment in segments:
+        if not asr_sparse.is_sparse(segment):
+            result.append(segment)
+            continue
+        check_cancellation(video_id)
+        start, end = float(segment["start"]), min(duration, float(segment["end"]))
+        left, right = max(0.0, start - 0.1), min(duration, end + 0.1)
+        clip = audio[int(left * _AUDIO_SAMPLE_RATE):int(right * _AUDIO_SAMPLE_RATE)]
+        recovered = []
+        for vad_filter in (True, False):
+            try:
+                found, _info = raw_model(
+                    clip, language=language, vad_filter=vad_filter, beam_size=5,
+                    condition_on_previous_text=False,
+                )
+                recovered = asr_sparse.proposals_to_segments(list(found), left, start, end, language)
+            except Exception as exc:
+                if is_cancelled(video_id):
+                    raise
+                log_to_video(video_id, f"WARNING: Sparse speech check at {start:.2f}-{end:.2f}s failed: {exc}")
+                recovered = []
+            if asr_sparse.is_better(segment.get("text", ""), recovered):
+                break
+            recovered = []
+        if not recovered:
+            result.append(segment)
+            continue
+        log_to_video(
+            video_id,
+            f"Recovered {len(recovered)} turn(s) from sparse sentence {start:.2f}-{end:.2f}s: "
+            + " / ".join(item["text"] for item in recovered),
+        )
+        result.extend(recovered)
+    return result
+
+
 def _alignment_groups(segments: list[dict]) -> list[list[dict]]:
     """Group consecutive same-language sentences for context-aware alignment."""
     groups = []
@@ -1320,6 +1364,9 @@ def transcribe(
                 detected_language,
             )
             initial_segments = _recover_speech_without_vad(
+                asr_model, audio, initial_segments, detected_language, video_id,
+            )
+            initial_segments = _recover_sparse_segments(
                 asr_model, audio, initial_segments, detected_language, video_id,
             )
 

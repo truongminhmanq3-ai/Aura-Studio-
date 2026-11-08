@@ -15,7 +15,7 @@ from haizflow.utils.ffmpeg import _binary
 from haizflow.utils.atomic_file import atomic_json
 
 from haizflow.core.bundled_models import MODEL_FILE, MODEL_SIZE, MODEL_SHA256, MODEL_REVISION, MODEL_URL as MODEL_URL
-IDENTITY_VERSION = "gender-by-segment-pitch-v7"
+IDENTITY_VERSION = "gender-by-segment-pitch-v8"
 
 
 def verify_model(root: Path) -> Path:
@@ -253,6 +253,39 @@ def _classify_genders(cluster_pitches: dict) -> dict:
     return kinds
 
 
+SHORT_SEGMENT_SECONDS = 2.5
+EXTREME_MALE_HZ = 125.0
+EXTREME_FEMALE_HZ = 215.0
+MAX_NEIGHBOUR_GAP_SECONDS = 1.0
+
+
+def _smooth_short_segments(kinds: dict, pitches: dict, spans: dict) -> dict:
+    """Stop a short, unremarkable fragment flipping gender inside one speaker's turn.
+
+    ASR can cut one sentence in two; the short, breathy half then measures a
+    different pitch. A short segment whose neighbours (immediately before and
+    after) agree with each other, and whose own pitch is not clearly the other
+    gender's, takes their gender. Real quick replies keep theirs because their
+    pitch is far from the band.
+    """
+    order = sorted(kinds, key=lambda i: spans[i][0])
+    smoothed = dict(kinds)
+    for position in range(1, len(order) - 1):
+        index = order[position]
+        start, end = spans[index]
+        if end - start >= SHORT_SEGMENT_SECONDS:
+            continue
+        if EXTREME_MALE_HZ >= pitches[index] or pitches[index] >= EXTREME_FEMALE_HZ:
+            continue
+        before, after = order[position - 1], order[position + 1]
+        if (start - spans[before][1] > MAX_NEIGHBOUR_GAP_SECONDS
+                or spans[after][0] - end > MAX_NEIGHBOUR_GAP_SECONDS):
+            continue
+        if kinds[before] == kinds[after] != kinds[index]:
+            smoothed[index] = kinds[before]
+    return smoothed
+
+
 def identify(audio_path: str, segments: list[dict], video_id: str, progress=None, *,
              model_directory: str = "", runtime_callback=None) -> list[dict]:
     """Use the built-in CPU backend in an isolated worker; release before TTS."""
@@ -318,6 +351,10 @@ def identify(audio_path: str, segments: list[dict], video_id: str, progress=None
     male_voice = "omnivoice:male"
     female_voice = "omnivoice:female"
     kinds = _classify_genders(pitches)
+    kinds = _smooth_short_segments(
+        kinds, pitches,
+        {i: (float(segments[i].get("start") or 0), float(segments[i].get("end") or 0)) for i in pitches},
+    )
 
     def source_start(i):
         return float(segments[i].get("start") or 0)

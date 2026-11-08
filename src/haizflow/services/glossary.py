@@ -18,6 +18,7 @@ DEFAULT_ENTRIES = {
     "空心支援": "không quân yểm trợ",
     "冯贵": "Phú Quý",
     "宋俊俊": "Đoàn Đoàn",
+    "土拨鼠": "chuột marmot",
 }
 
 

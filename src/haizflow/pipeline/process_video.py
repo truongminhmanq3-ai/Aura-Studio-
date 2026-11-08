@@ -150,7 +150,7 @@ def _recognize_for_translation(video, reporter, audio_path, output_path):
     signature = _signature(
         _file_state(video.files["video_input"]), video.source_language,
         getattr(video, "speech_recognition_model", "small"), video.enable_audio_separation,
-        TIMING_SOURCE, "recognition-progress-v1",
+        TIMING_SOURCE, "recognition-progress-v2",
     )
     if _checkpoint_valid(video, "recognition", signature, [output_path]):
         try:
@@ -452,7 +452,7 @@ def _translation_signature(video, video_input: str) -> str:
     using_gemini = provider == "gemini"
     return _signature(
         _file_state(video_input), TIMING_SOURCE,
-        "deepseek-batched-segments-v1" if provider == "deepseek" else "gemini-batched-segments-v1",
+        "deepseek-batched-segments-v2" if provider == "deepseek" else "gemini-batched-segments-v2",
         video.target_language, video.enable_audio_separation,
         getattr(video, "speech_recognition_model", "small"),
         provider,

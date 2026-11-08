@@ -30,6 +30,18 @@ class SpeakerIdentityTests(unittest.TestCase):
         self.assertEqual(kinds[6], "male")  # ambiguous band goes to the nearer median
         self.assertEqual(classify({0: 110.0, 1: 220.0}), {0: "male", 1: "female"})
 
+    def test_short_fragment_between_same_gender_neighbours_follows_them(self):
+        kinds = {0: "male", 1: "female", 2: "male", 3: "male", 4: "female", 5: "male"}
+        pitches = {0: 130.0, 1: 190.0, 2: 140.0, 3: 135.0, 4: 300.0, 5: 128.0}
+        spans = {0: (0, 3), 1: (3.2, 4.6), 2: (4.8, 8), 3: (8.2, 11), 4: (11.2, 12.4), 5: (12.6, 15)}
+        smoothed = identity._smooth_short_segments(kinds, pitches, spans)
+        self.assertEqual(smoothed[1], "male")      # unremarkable 190 Hz fragment inside a male turn
+        self.assertEqual(smoothed[4], "female")    # 300 Hz quick reply is clearly the other gender
+        long_spans = {**spans, 1: (3.2, 4.6 + 3.0)}
+        self.assertEqual(identity._smooth_short_segments(kinds, pitches, long_spans)[1], "female")
+        gap_spans = {**spans, 0: (0, 1.0)}   # 2.2 s of silence before the fragment
+        self.assertEqual(identity._smooth_short_segments(kinds, pitches, gap_spans)[1], "female")
+
     def test_short_only_dialogue_is_not_forced_to_one_person(self):
         vectors = np.array([[1, 0], [0, 1], [.99, .02], [.01, .99]], dtype=np.float32)
         vectors /= np.linalg.norm(vectors, axis=1, keepdims=True)
