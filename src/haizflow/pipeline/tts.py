@@ -141,26 +141,15 @@ def _elevenlabs_voices_by_segment(segments_json_path, video_id, default_voice,
         name = str(item.get("speaker_voice") or "")
         gender_of.setdefault(speaker, "female" if ("female" in name or name in _FEMALE_SPEAKER_VOICES) else "male")
 
-    # In dialogue / multi-speaker mode: enforce distinct 1 Male - 1 Female for primary protagonists
-    sorted_speakers = sorted(speaker_turns.keys(), key=lambda s: speaker_turns[s], reverse=True)
-    if len(sorted_speakers) >= 2:
-        spk1, spk2 = sorted_speakers[0], sorted_speakers[1]
-        if gender_of.get(spk1) == gender_of.get(spk2):
-            gender_of[spk1] = "female"
-            gender_of[spk2] = "male"
-        elif len(set(gender_of.values())) == 1:
-            gender_of[spk2] = "male" if list(gender_of.values())[0] == "female" else "female"
-    elif len(gender_of) == 2 and len(set(gender_of.values())) == 1:
-        keys = sorted(gender_of.keys())
-        gender_of[keys[0]] = "female"
-        gender_of[keys[1]] = "male"
-    assigned, used = {}, set()
-    for speaker in sorted(gender_of.keys(), key=lambda s: speaker_turns.get(s, 0), reverse=True):
-        matching = [item for item in pool if item.get("gender") == gender_of[speaker]] or pool
-        fresh = [item for item in matching if item["voice"] not in used] or \
-                [item for item in pool if item["voice"] not in used] or matching
-        assigned[speaker] = fresh[0]["voice"]
-        used.add(fresh[0]["voice"])
+    # In 2-person dialogue mode (Đối thoại 2 người Nam ↔ Nữ):
+    female_pool = [item["voice"] for item in pool if item.get("gender") == "female"] or [item["voice"] for item in pool]
+    male_pool = [item["voice"] for item in pool if item.get("gender") == "male"] or [item["voice"] for item in pool]
+    chosen_female = female_pool[0] if female_pool else default_voice
+    chosen_male = male_pool[0] if male_pool else default_voice
+
+    assigned = {}
+    for speaker in gender_of.keys():
+        assigned[speaker] = chosen_female if gender_of[speaker] == "female" else chosen_male
     log_to_video(video_id, "[SPEAKERS][VOICE_MAP] " + " ".join(f"{k}={v}" for k, v in assigned.items()))
     if len(pool) < len(assigned):
         log_to_video(video_id, "[SPEAKERS] Tài khoản ElevenLabs có ít giọng hơn số người nói; một số người dùng chung giọng.")
@@ -248,14 +237,6 @@ def _vieneu_voices_by_segment(
         gender_of.setdefault(speaker, "female" if ("female" in name or name in _FEMALE_SPEAKER_VOICES) else "male")
 
     # In dialogue / multi-speaker mode: preserve natural detected genders of protagonists.
-    # Only if ALL detected speakers have identical gender do we force the secondary speaker to the opposite gender,
-    # ensuring the primary narrator (spk1) keeps their true detected gender.
-    sorted_speakers = sorted(speaker_turns.keys(), key=lambda s: speaker_turns[s], reverse=True)
-    if len(sorted_speakers) >= 2 and len(set(gender_of.values())) == 1:
-        spk1, spk2 = sorted_speakers[0], sorted_speakers[1]
-        opposite_gender = "female" if gender_of[spk1] == "male" else "male"
-        gender_of[spk2] = opposite_gender
-
     if "|" in default_voice:
         parts = default_voice.split("|", 1)
         p0, p1 = parts[0].strip(), parts[1].strip()
@@ -272,16 +253,14 @@ def _vieneu_voices_by_segment(
         chosen_male = default_voice
         chosen_female = "Trúc Ly"
 
-    female_pool = [chosen_female] + [v for v in ["Trúc Ly", "Thùy Dung", "Quỳnh Anh", "Mai Anh", "Ngọc Trân", "Đoan Trang"] if v != chosen_female]
-    male_pool = [chosen_male] + [v for v in ["Hải Đăng", "Thái Sơn", "Minh Triết", "Thiện Minh", "Quang Sơn", "Đức Trí"] if v != chosen_male]
-
-    assigned, used = {}, set()
-    for speaker in sorted(gender_of.keys(), key=lambda s: speaker_turns.get(s, 0), reverse=True):
-        target_gender = gender_of[speaker]
-        pool = female_pool if target_gender == "female" else male_pool
-        chosen = next((v for v in pool if v not in used), pool[0])
-        assigned[speaker] = chosen
-        used.add(chosen)
+    # In 2-person dialogue mode (Đối thoại 2 người Nam ↔ Nữ):
+    # Every detected male turn must consistently use the chosen Male voice.
+    # Every detected female turn must consistently use the chosen Female voice.
+    # Do not rotate through auxiliary voices (Thái Sơn, Minh Triết, Thùy Dung)
+    # which causes the same character to unnaturally switch voices across sentences.
+    assigned = {}
+    for speaker in gender_of.keys():
+        assigned[speaker] = chosen_female if gender_of[speaker] == "female" else chosen_male
 
     log_to_video(video_id, "[SPEAKERS][VOICE_MAP] " + " ".join(f"{k}={v}" for k, v in assigned.items()))
 

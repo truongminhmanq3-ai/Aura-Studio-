@@ -255,19 +255,25 @@ def identify(audio_path: str, segments: list[dict], video_id: str, progress=None
     if len(unique_labels) >= 2:
         sorted_by_pitch = sorted(unique_labels, key=lambda l: cluster_pitches[l])
         lowest_label, highest_label = sorted_by_pitch[0], sorted_by_pitch[-1]
-        kinds[lowest_label] = "male"
-        kinds[highest_label] = "female"
-        mid_pitch = (cluster_pitches[lowest_label] + cluster_pitches[highest_label]) / 2.0
-        for label in sorted_by_pitch[1:-1]:
-            kinds[label] = "female" if cluster_pitches[label] >= mid_pitch else "male"
+        pitch_gap = cluster_pitches[highest_label] - cluster_pitches[lowest_label]
+        # Only assign contrasting male & female if there is a real acoustic pitch distinction
+        # across the male/female boundary (adult male F0: 85-155 Hz, female F0: 165-260 Hz).
+        if pitch_gap >= 35.0 and cluster_pitches[highest_label] >= 155.0 and cluster_pitches[lowest_label] < 165.0:
+            kinds[lowest_label] = "male"
+            kinds[highest_label] = "female"
+            mid_pitch = (cluster_pitches[lowest_label] + cluster_pitches[highest_label]) / 2.0
+            for label in sorted_by_pitch[1:-1]:
+                kinds[label] = "female" if cluster_pitches[label] >= mid_pitch else "male"
+        else:
+            for label in unique_labels:
+                kinds[label] = "female" if cluster_pitches[label] >= 160.0 else "male"
     elif len(unique_labels) == 1:
-        kinds[unique_labels[0]] = "female" if cluster_pitches[unique_labels[0]] >= 160 else "male"
+        kinds[unique_labels[0]] = "female" if cluster_pitches[unique_labels[0]] >= 160.0 else "male"
 
     for label in unique_labels:
         kind = kinds[label]
         choices = female if kind == "female" else male
-        voices[label] = choices[counts[kind] % len(choices)]
-        counts[kind] += 1
+        voices[label] = choices[0]
     positions = {index: position for position, index in enumerate(valid_indices)}
     result = []
     for index, segment in enumerate(segments):

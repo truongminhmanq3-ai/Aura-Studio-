@@ -163,3 +163,50 @@ class SpeakerIdentityTests(unittest.TestCase):
                     identity.prepare_speakers(str(audio), [{"start": 0, "end": 2, "text": "hello"}], "fixture")
             pool.return_value.release.assert_called_once_with({"speaker"})
             self.assertFalse(list(Path(directory).glob("speaker-map-*.json")))
+
+    def test_dialogue_maps_all_male_to_chosen_male_and_all_female_to_chosen_female(self):
+        from types import SimpleNamespace
+        from haizflow.pipeline import tts
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            segments = [
+                {"start": 0.0, "end": 2.0, "text": "Câu 1 của Nam."},
+                {"start": 2.0, "end": 4.0, "text": "Câu 2 của Nữ."},
+                {"start": 4.0, "end": 6.0, "text": "Câu 3 của Nam tiếp."},
+                {"start": 6.0, "end": 8.0, "text": "Câu 4 của Nam nữa."},
+            ]
+            transcript = root / "translated.json"
+            source = root / "source.json"
+            transcript.write_text(json.dumps(segments), encoding="utf-8")
+            source_segments = [
+                {"start": 0.0, "end": 2.0, "text": "Zh 1", "speaker_id": "speaker-1", "speaker_voice": "omnivoice:male"},
+                {"start": 2.0, "end": 4.0, "text": "Zh 2", "speaker_id": "speaker-2", "speaker_voice": "omnivoice:female"},
+                {"start": 4.0, "end": 6.0, "text": "Zh 3", "speaker_id": "speaker-3", "speaker_voice": "omnivoice:male"},
+                {"start": 6.0, "end": 8.0, "text": "Zh 4", "speaker_id": "speaker-4", "speaker_voice": "omnivoice:male"},
+            ]
+            source.write_text(json.dumps(source_segments), encoding="utf-8")
+            audio = root / "audio.wav"
+            audio.touch()
+
+            video = SimpleNamespace(
+                speaker_mode="multiple",
+                files={
+                    "source_segments": str(source),
+                    "speech_audio": str(audio),
+                    "video_input": str(root / "video.mp4"),
+                },
+            )
+            with (
+                patch.object(tts, "get_video", return_value=video),
+                patch.object(tts, "log_to_video"),
+                patch.object(identity, "prepare_speakers", return_value=source_segments),
+            ):
+                mapping = tts._vieneu_voices_by_segment(
+                    str(transcript), "fixture", "Trúc Ly|Hải Đăng"
+                )
+                self.assertEqual(mapping[1], "Hải Đăng")
+                self.assertEqual(mapping[2], "Trúc Ly")
+                self.assertEqual(mapping[3], "Hải Đăng")
+                self.assertEqual(mapping[4], "Hải Đăng")
+
