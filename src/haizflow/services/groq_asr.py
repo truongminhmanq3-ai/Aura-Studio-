@@ -13,10 +13,12 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import requests
 
+from haizflow.pipeline import asr_sparse
 from haizflow.pipeline.process_registry import check_cancellation
 from haizflow.pipeline.timing_contract import TIMING_SOURCE
 from haizflow.services import secure_credentials
@@ -109,6 +111,91 @@ def _prepare_audio_payload(audio_path: str, temp_dir: str) -> str:
     return str(audio_path)
 
 
+def _post_transcription(payload_audio: str, headers: Dict[str, str], data: Dict[str, str], video_id: str) -> Dict[str, Any]:
+    """POST one audio file to Groq with retries and return the parsed verbose_json."""
+    response = None
+    for attempt in range(1, 4):
+        check_cancellation(video_id)
+        try:
+            with open(payload_audio, "rb") as f:
+                files = {"file": (os.path.basename(payload_audio), f, "audio/mpeg")}
+                response = requests.post(
+                    GROQ_TRANSCRIPTION_ENDPOINT,
+                    headers=headers,
+                    data=data,
+                    files=files,
+                    timeout=120,
+                )
+            if response.status_code == 200:
+                break
+            if response.status_code in {429, 500, 502, 503, 504} and attempt < 3:
+                log_to_video(video_id, f"Groq API returned HTTP {response.status_code}, retrying attempt {attempt + 1}/3...")
+                time.sleep(1.5 * attempt)
+                continue
+            error_body = response.text[:300]
+            raise RuntimeError(f"Groq API error (HTTP {response.status_code}): {error_body}")
+        except requests.exceptions.RequestException as exc:
+            if attempt < 3:
+                time.sleep(1.5 * attempt)
+                continue
+            raise RuntimeError(f"Lỗi kết nối Groq API: {exc}") from exc
+
+    if not response or response.status_code != 200:
+        raise RuntimeError(f"Groq transcription failed with status {getattr(response, 'status_code', 'unknown')}.")
+    return response.json()
+
+
+def _recover_sparse_segments(
+    audio_path: str,
+    segments: List[Dict[str, Any]],
+    headers: Dict[str, str],
+    data: Dict[str, str],
+    language: str,
+    temp_dir: str,
+    video_id: str,
+) -> List[Dict[str, Any]]:
+    """Re-transcribe long segments that hold very little text, one clip at a time.
+
+    Best effort: any failure keeps the original segment.
+    """
+    output: List[Dict[str, Any]] = []
+    for index, segment in enumerate(segments):
+        if not asr_sparse.is_sparse(segment):
+            output.append(segment)
+            continue
+        start, end = float(segment["start"]), float(segment["end"])
+        clip = Path(temp_dir) / f"sparse_{index}.mp3"
+        try:
+            subprocess.run(
+                ["ffmpeg", "-y", "-ss", f"{start:.3f}", "-t", f"{end - start:.3f}", "-i", str(audio_path),
+                 "-vn", "-ar", "16000", "-ac", "1", "-b:a", "64k", str(clip)],
+                check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+            result = _post_transcription(str(clip), headers, data, video_id)
+            proposals = [SimpleNamespace(**{
+                "text": item.get("text", ""), "start": item.get("start", 0.0), "end": item.get("end", 0.0),
+                "avg_logprob": item.get("avg_logprob", -10.0), "no_speech_prob": item.get("no_speech_prob", 1.0),
+            }) for item in result.get("segments", [])]
+            replacement = asr_sparse.proposals_to_segments(proposals, start, start, end, language)
+        except Exception as exc:
+            log_to_video(video_id, f"[ASR-RECOVER] {start:.1f}-{end:.1f}s skipped: {exc}", level="INFO")
+            output.append(segment)
+            continue
+        if not asr_sparse.is_better(segment["text"], replacement):
+            log_to_video(video_id, f"[ASR-RECOVER] {start:.1f}-{end:.1f}s: re-decode found nothing better.", level="INFO")
+            output.append(segment)
+            continue
+        log_to_video(
+            video_id,
+            f"[ASR-RECOVER] {start:.1f}-{end:.1f}s: '{segment['text']}' -> {len(replacement)} sentence(s).",
+            level="INFO",
+        )
+        for item in replacement:
+            item["timing_source"] = segment.get("timing_source", TIMING_SOURCE)
+        output.extend(replacement)
+    return output
+
+
 def transcribe_with_groq(
     audio_path: str,
     output_json_path: str,
@@ -149,37 +236,7 @@ def transcribe_with_groq(
         if source_language and source_language != "auto":
             data["language"] = source_language
 
-        response = None
-        for attempt in range(1, 4):
-            check_cancellation(video_id)
-            try:
-                with open(payload_audio, "rb") as f:
-                    files = {"file": (os.path.basename(payload_audio), f, "audio/mpeg")}
-                    response = requests.post(
-                        GROQ_TRANSCRIPTION_ENDPOINT,
-                        headers=headers,
-                        data=data,
-                        files=files,
-                        timeout=120,
-                    )
-                if response.status_code == 200:
-                    break
-                if response.status_code in {429, 500, 502, 503, 504} and attempt < 3:
-                    log_to_video(video_id, f"Groq API returned HTTP {response.status_code}, retrying attempt {attempt + 1}/3...")
-                    time.sleep(1.5 * attempt)
-                    continue
-                error_body = response.text[:300]
-                raise RuntimeError(f"Groq API error (HTTP {response.status_code}): {error_body}")
-            except requests.exceptions.RequestException as exc:
-                if attempt < 3:
-                    time.sleep(1.5 * attempt)
-                    continue
-                raise RuntimeError(f"Lỗi kết nối Groq API: {exc}") from exc
-
-        if not response or response.status_code != 200:
-            raise RuntimeError(f"Groq transcription failed with status {getattr(response, 'status_code', 'unknown')}.")
-
-        result = response.json()
+        result = _post_transcription(payload_audio, headers, data, video_id)
         raw_language = result.get("language", "en")
         detected_language = normalize_language_code(raw_language)
         raw_segments = result.get("segments", [])
@@ -218,6 +275,10 @@ def transcribe_with_groq(
 
         if not output_segments:
             raise RuntimeError("Groq Cloud Whisper did not return any speech segments.")
+
+        output_segments = _recover_sparse_segments(
+            audio_path, output_segments, headers, data, detected_language, temp_dir, video_id,
+        )
 
         # Ensure output directory exists and write JSON
         output_directory = os.path.dirname(os.path.abspath(output_json_path))

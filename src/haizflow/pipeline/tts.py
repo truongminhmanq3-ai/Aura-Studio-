@@ -30,6 +30,12 @@ def normalize_voice(voice: str) -> str:
     return "omnivoice:female"
 
 
+_SPOKEN_FORMS = (
+    (re.compile(r"\bxe\s+RV\b", re.IGNORECASE), "xe nhà di động"),
+    (re.compile(r"\bRV\b"), "xe nhà di động"),
+)
+
+
 def preprocess_text_for_tts(text: str) -> str:
     """Normalize invisible and punctuation characters without changing words."""
     if not text:
@@ -43,6 +49,8 @@ def preprocess_text_for_tts(text: str) -> str:
     )
     # Deduplicate obvious speech repetition / stutter loops (e.g., "theo logic của ông, theo logic của ông thì")
     text = re.sub(r"\b([a-zA-Zà-ỹÀ-Ỹ0-9\s]{4,30}?)\s*[,，]\s*\1\b", r"\1", text, flags=re.IGNORECASE)
+    for pattern, spoken in _SPOKEN_FORMS:
+        text = pattern.sub(spoken, text)
     text = " ".join(text.split())
     text = re.sub(r"\s+([,.;:!?])", r"\1", text)
     if text and text[-1] not in ".!?,;:。！？；：":

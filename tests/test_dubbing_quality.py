@@ -116,3 +116,36 @@ def test_a_failed_shortening_pass_keeps_the_original_wording(tmp_path, monkeypat
     translation.translate_segments(str(source), str(output), "offline", source_language="zh", target_language="vi",
                                    provider="deepseek", translation_model="deepseek-flash")
     assert json.loads(output.read_text())[0]["text"] == long_line
+
+
+def test_groq_recovers_sparse_segment_and_keeps_failures(monkeypatch, tmp_path):
+    from haizflow.services import groq_asr
+
+    segments = [
+        {"start": 0.0, "end": 1.0, "text": "你好吗", "timing_source": "t"},
+        {"start": 1.0, "end": 10.0, "text": "没有看到", "timing_source": "t"},
+        {"start": 10.0, "end": 20.0, "text": "也很少", "timing_source": "t"},
+    ]
+    monkeypatch.setattr(groq_asr.subprocess, "run", lambda *a, **k: None)
+    calls = []
+
+    def fake_post(path, headers, data, video_id):
+        calls.append(path)
+        if len(calls) == 2:
+            raise RuntimeError("boom")
+        return {"segments": [
+            {"text": "没有看到门口就是办公楼吗", "start": 0.0, "end": 4.0, "avg_logprob": -0.2, "no_speech_prob": 0.01},
+            {"text": "你才是傻婆娘吧", "start": 4.0, "end": 8.5, "avg_logprob": -0.3, "no_speech_prob": 0.01},
+        ]}
+
+    monkeypatch.setattr(groq_asr, "_post_transcription", fake_post)
+    monkeypatch.setattr(groq_asr, "log_to_video", lambda *a, **k: None)
+    result = groq_asr._recover_sparse_segments("a.wav", segments, {}, {}, "zh", str(tmp_path), "v")
+    assert [s["text"] for s in result] == ["你好吗", "没有看到门口就是办公楼吗", "你才是傻婆娘吧", "也很少"]
+    assert result[1]["start"] == 1.0 and result[2]["end"] == 9.5
+
+
+def test_tts_speaks_rv_as_words():
+    from haizflow.pipeline.tts import preprocess_text_for_tts
+
+    assert preprocess_text_for_tts("Lái xe RV ở Tân Đô Kiều") == "Lái xe nhà di động ở Tân Đô Kiều."

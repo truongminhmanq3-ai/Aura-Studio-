@@ -11,6 +11,7 @@ from haizflow.services.video_store import log_to_video
 # Comprehensive normalized Vietnamese compound words, common collocations and cohesive units.
 # These phrases will never be split across subtitle lines or consecutive cues.
 _VIETNAMESE_COMPOUND_PHRASES = {
+    "hoang dã", "động vật", "chuột marmot", "yên bình", "không gian", "dọn dẹp", "sạch sẽ",
     # Pronouns, People & Relationships
     "cô ngốc", "cô bé", "cậu bé", "bạn gái", "bạn trai", "chú rể", "cô dâu", "bạn thân", "chúng mình",
     "chúng tôi", "chúng ta", "bản thân", "người ta", "ai nấy", "mỗi người", "cả nhà", "hai đứa",

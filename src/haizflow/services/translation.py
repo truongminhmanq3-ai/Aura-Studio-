@@ -197,6 +197,9 @@ def translate_segments(
                             component="TRANSLATE",
                         )
                     source_texts = asr_correction.apply(source_texts, fixes)
+                else:
+                    log_to_video(video_id, "[ASR-FIX] Transcript check finished: no corrections applied.",
+                                 level="INFO", component="TRANSLATE")
             except Exception as fix_err:
                 log_to_video(video_id, f"[ASR-FIX] Transcript check skipped: {fix_err}", level="INFO")
         has_dialogue = bool(speaker_tags and len(set(speaker_tags.values())) > 1)
@@ -314,6 +317,9 @@ def translate_segments(
                     raise
                 log_to_video(video_id, f"[FIT] Shortening skipped, keeping original wording: {exc}",
                              level="WARNING", component="TRANSLATE")
+    if using_online and length_limits:
+        log_to_video(video_id, f"[FIT] Length check done: {len(translation_fit.over_budget(translations, length_limits))} line(s) still over budget.",
+                     level="INFO", component="TRANSLATE")
     save_valid_batch(list(range(len(segments))), translations)
     suspect_indexes = _suspicious_translation_indexes(
         source_texts,
