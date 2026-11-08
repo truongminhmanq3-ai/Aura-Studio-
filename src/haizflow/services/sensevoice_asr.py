@@ -11,6 +11,7 @@ import os
 import tarfile
 import tempfile
 import threading
+import subprocess
 import urllib.request
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -232,6 +233,34 @@ def _clean_language_tag(tag: str) -> str:
     return "zh" if not cleaned else cleaned[:2]
 
 
+def _load_audio_waveform(audio_path: str) -> Tuple[np.ndarray, int]:
+    """Load audio file as 16kHz mono float32 numpy array, converting via ffmpeg if necessary."""
+    try:
+        audio, sample_rate = sf.read(audio_path, dtype="float32", always_2d=True)
+        waveform = audio[:, 0]
+        if sample_rate == 16000:
+            return waveform, 16000
+    except Exception:
+        pass
+
+    # Safe fallback for MP4 video containers, non-16k, AAC, etc.
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav:
+        tmp_wav_path = tmp_wav.name
+    try:
+        cmd = [
+            "ffmpeg", "-y", "-i", str(audio_path),
+            "-vn", "-ar", "16000", "-ac", "1", "-f", "wav", tmp_wav_path
+        ]
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+        audio, sample_rate = sf.read(tmp_wav_path, dtype="float32", always_2d=True)
+        return audio[:, 0], sample_rate
+    finally:
+        try:
+            os.remove(tmp_wav_path)
+        except OSError:
+            pass
+
+
 def transcribe_with_sensevoice(
     audio_path: str,
     output_json_path: str,
@@ -248,8 +277,7 @@ def transcribe_with_sensevoice(
     recognizer = get_sensevoice_recognizer()
 
     # Load audio as 16kHz float32 mono
-    audio, sample_rate = sf.read(audio_path, dtype="float32", always_2d=True)
-    waveform = audio[:, 0]
+    waveform, sample_rate = _load_audio_waveform(audio_path)
     duration_sec = len(waveform) / sample_rate
 
     log_to_video(video_id, f"SenseVoice loaded audio duration: {duration_sec:.2f}s ({sample_rate}Hz).")
