@@ -147,6 +147,13 @@ def translate_segments(
         if start < 0 or end <= start:
             raise RuntimeError(f"Source sentence {index} has an invalid time range.")
 
+    if validation_mode == "auto":
+        from haizflow.services import translation_blocks
+        merged = translation_blocks.merge_fragments(segments)
+        if len(merged) != len(segments):
+            log_to_video(video_id, f"[BLOCKS] Joined {len(segments)} fragments into {len(merged)} sentence blocks for translation.",
+                         level="INFO", component="TRANSLATE")
+            segments = merged
     source_texts = [_normalize_vlog_asr_homophones(segment["text"]) for segment in segments]
     speaker_tags = {}
     for index, seg in enumerate(segments):

@@ -314,7 +314,8 @@ def _request_chunk(
         "1. Concise & Punchy for TTS Dubbing: Video dubbing has strict timing limits. Keep translations compact and rhythmically natural so AI voices can speak smoothly without rushing.\n"
         "2. Strict Formatting: Keep the same id and order. Never merge, omit or invent a subtitle.\n"
         + ("3. Length budget: an entry with max_chars must be translated in at most that many characters "
-           "(spaces included). Shorten wording, never drop a person, action or key fact.\n" if budgets else "")
+           "(spaces included). Rewrite in natural, modern spoken Vietnamese: drop filler words and repetition, "
+                   "prefer short everyday phrasing, never drop a person, action or key fact.\n" if budgets else "")
         + glossary.prompt_for([text for _, text in chunk])
     )
     payload = {

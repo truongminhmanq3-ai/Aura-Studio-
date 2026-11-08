@@ -204,7 +204,8 @@ def _request_chunk(chunk, *, key: str, model: str, source_language: str,
                 "1. Concise & Punchy for TTS Dubbing: Keep translations compact and rhythmically natural so AI voices can speak smoothly without rushing.\n"
                 "2. Strict Formatting: Keep the exact integer ids and order supplied in the input. Return only JSON with translations array.\n"
                 + ("3. Length budget: an entry with max_chars must be translated in at most that many characters "
-                   "(spaces included). Shorten wording, never drop a person, action or key fact.\n" if budgets else "")
+                   "(spaces included). Rewrite in natural, modern spoken Vietnamese: drop filler words and repetition, "
+                   "prefer short everyday phrasing, never drop a person, action or key fact.\n" if budgets else "")
                 + glossary.prompt_for([text for _, text in chunk])
             )},
             {"role": "user", "content": json.dumps(entries, ensure_ascii=False)},

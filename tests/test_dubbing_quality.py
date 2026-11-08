@@ -155,3 +155,45 @@ def test_borderline_sparse_real_cases_are_caught():
     # test 2 video: 9.9 s with 12 characters and 6.4 s with 8 characters
     assert asr_sparse.is_sparse({"start": 1.3, "end": 11.2, "text": "没有看到门口就是办公楼吗"})
     assert asr_sparse.is_sparse({"start": 20.4, "end": 26.8, "text": "白他喵的想去西藏"})
+
+
+def _seg(start, end, text, speaker="speaker-1", **extra):
+    return {"start": start, "end": end, "text": text, "speaker_id": speaker, **extra}
+
+
+def test_short_same_speaker_fragments_become_one_block():
+    from haizflow.services import translation_blocks
+
+    merged = translation_blocks.merge_fragments([
+        _seg(44.3, 46.4, "他就是有时候说我", speaker_confidence=0.9),
+        _seg(46.4, 47.0, "他说我是肥咪", speaker_confidence=0.5),
+        _seg(47.0, 48.7, "就是说实话里上很在意这个的"),
+    ])
+    assert len(merged) == 1
+    assert (merged[0]["start"], merged[0]["end"]) == (44.3, 48.7)
+    assert merged[0]["text"] == "他就是有时候说我，他说我是肥咪，就是说实话里上很在意这个的"
+    assert merged[0]["speaker_confidence"] == 0.5
+
+
+def test_blocks_respect_speaker_gap_sentence_end_and_length():
+    from haizflow.services import translation_blocks
+
+    assert len(translation_blocks.merge_fragments([_seg(0, 1, "你好"), _seg(1, 2, "好", speaker="speaker-2")])) == 2
+    assert len(translation_blocks.merge_fragments([_seg(0, 1, "你好"), _seg(2.0, 3, "好")])) == 2   # long pause
+    assert len(translation_blocks.merge_fragments([_seg(0, 1, "你好。"), _seg(1, 2, "好")])) == 2   # sentence ended
+    assert len(translation_blocks.merge_fragments([_seg(0, 4, "很长很长"), _seg(4, 8, "也很长很长")])) == 2  # both long
+    run = [_seg(i * 1.0, i * 1.0 + 1.0, "好") for i in range(12)]
+    assert all(b["end"] - b["start"] <= 8.0 for b in translation_blocks.merge_fragments(run))
+
+
+def test_speakerless_segments_are_never_merged():
+    from haizflow.services import translation_blocks
+
+    assert len(translation_blocks.merge_fragments([{"start": 0, "end": 1, "text": "a"}, {"start": 1, "end": 2, "text": "b"}])) == 2
+
+
+def test_countdown_beats_are_not_merged():
+    from haizflow.services import translation_blocks
+
+    out = translation_blocks.merge_fragments([_seg(3.9, 5.2, "321"), _seg(5.2, 6.1, "公园"), _seg(94.8, 95.4, "三"), _seg(95.4, 96.2, "二")])
+    assert [b["text"] for b in out] == ["321", "公园", "三", "二"]
