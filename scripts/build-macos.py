@@ -52,7 +52,8 @@ def engine_spec(profile: str, build: Path):
     extra = (["torch", "torchaudio", "torchvision", "whisperx", "faster_whisper", "demucs",
               "llama_cpp", "transformers", "accelerate", "soundfile", "soxr", "nltk", "av",
               "pyannote.audio.models.segmentation.PyanNet", "pydub.silence", "torchcodec",
-              "transformers.models.higgs_audio_v2_tokenizer", "transformers.models.auto"]
+              "transformers.models.higgs_audio_v2_tokenizer", "transformers.models.auto",
+              "sherpa_onnx", "requests"]
              if profile == "cpu" else ["onnxruntime", "rapidocr"])
     excludes = ["PySide6", "playwright", "pytest", "IPython", "notebook", "jupyter",
                 "tensorflow", "jax", "tensorboard", "triton", "cupy"]
@@ -72,7 +73,7 @@ hidden += {extra!r}
 if {profile!r} == 'cpu':
     hidden += collect_submodules('whisperx') + collect_submodules('demucs')
     hidden += ['einops', 'safetensors.torch', 'huggingface_hub']
-for name in {(['torch', 'torchaudio', 'torchvision', 'whisperx', 'faster-whisper', 'demucs', 'llama-cpp-python', 'transformers', 'accelerate', 'huggingface-hub'] if profile == 'cpu' else ['onnxruntime', 'rapidocr'])!r}:
+for name in {(['torch', 'torchaudio', 'torchvision', 'whisperx', 'faster-whisper', 'demucs', 'llama-cpp-python', 'transformers', 'accelerate', 'huggingface-hub', 'sherpa-onnx'] if profile == 'cpu' else ['onnxruntime', 'rapidocr'])!r}:
     datas += copy_metadata(name)
 a = Analysis([{str(ROOT / 'scripts/macos-engine-entry.py')!r}], pathex=[{str(ROOT / 'src')!r}],
              binaries=[], datas=datas, hiddenimports=hidden, excludes={excludes!r},
@@ -93,9 +94,9 @@ datas = [(str({str(ROOT / 'src/haizflow/desktop/qml')!r}), 'haizflow/desktop/qml
          (str({str(ROOT / 'src/haizflow/desktop/assets')!r}), 'haizflow/desktop/assets'),
          (str({str(ROOT / 'src/haizflow/desktop/translations')!r}), 'haizflow/desktop/translations'),
          (str({str(ROOT / 'src/haizflow/assets/fonts')!r}), 'haizflow/assets/fonts')]
-datas += collect_data_files('certifi') + collect_data_files('playwright') + collect_data_files('vieneu') + collect_data_files('sea_g2p')
-datas += copy_metadata('playwright') + copy_metadata('haizflow') + copy_metadata('vieneu') + copy_metadata('sea_g2p')
-hidden = collect_submodules('haizflow') + collect_submodules('yt_dlp') + collect_submodules('vieneu', filter=lambda n: 'serve' not in n) + collect_submodules('sea_g2p') + ['keyring.backends.macOS', 'psutil', 'soxr', 'kaldi_native_fbank', 'soundfile']
+datas += collect_data_files('certifi') + collect_data_files('playwright') + collect_data_files('vieneu') + collect_data_files('sea_g2p') + collect_data_files('sherpa_onnx')
+datas += copy_metadata('playwright') + copy_metadata('haizflow') + copy_metadata('vieneu') + copy_metadata('sea_g2p') + copy_metadata('sherpa-onnx')
+hidden = collect_submodules('haizflow') + collect_submodules('yt_dlp') + collect_submodules('vieneu', filter=lambda n: 'serve' not in n) + collect_submodules('sea_g2p') + ['keyring.backends.macOS', 'psutil', 'soxr', 'kaldi_native_fbank', 'soundfile', 'requests', 'sherpa_onnx']
 excluded = ['torch', 'torchaudio', 'torchvision', 'whisperx', 'pyannote', 'torchcodec',
             'transformers', 'accelerate', 'llama_cpp', 'ctranslate2', 'faster_whisper', 'demucs',
             'rapidocr', 'av', 'matplotlib', 'IPython', 'pytest',

@@ -15,7 +15,7 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QmlNamedElement, QmlSingleton
 
 from haizflow.config import RUNTIME_DATA_DIR
-from haizflow.services import elevenlabs, deepseek_translation
+from haizflow.services import elevenlabs, deepseek_translation, groq_asr
 from haizflow.core.events import subscribe_log, unsubscribe_log
 from haizflow.core.hardware import (
     basic_hardware_capabilities,
@@ -281,6 +281,7 @@ class HaizFlowController(QObject):
     apiKeyGuideRequested = Signal(str)
     geminiKeyChanged = Signal()
     deepSeekKeyChanged = Signal()
+    groqKeyChanged = Signal()
     appConfirmationRequested = Signal(str, str)
     editorPreviewChanged = Signal()
     previewMediaChanged = Signal()
@@ -1454,7 +1455,7 @@ class HaizFlowController(QObject):
     @speechRecognitionModel.setter
     def speechRecognitionModel(self, value):
         requested = str(value or "small").strip().lower()
-        if requested not in {"small", "small-cpu", "small-gpu", "large-v3-turbo"}:
+        if requested not in {"small", "small-cpu", "small-gpu", "large-v3-turbo", "groq-whisper", "sensevoice-small"}:
             requested = "small"
         if requested in {"small-gpu", "large-v3-turbo"} and getattr(self, "_settings_processing_device", "cpu") != "gpu":
             self._show_app_alert("Đang dùng chế độ CPU", "Chọn Whisper CPU hoặc chuyển sang GPU trong Cài đặt → Chung.", "warning")
@@ -1485,13 +1486,19 @@ class HaizFlowController(QObject):
 
     @Property("QVariantList", notify=speechRecognitionModelOptionsChanged)
     def speechRecognitionModelOptions(self):
-        # The cheap startup probe deliberately avoids importing Torch and
-        # therefore reports CUDA as unavailable.  This property is evaluated
-        # after the asynchronous hardware probe as well, so use its cached,
-        # authoritative result instead of permanently disabling Turbo.
         turbo_available = HaizFlowController._project_gpu_available(self)
         if getattr(self, "_settings_language", "en") == "vi":
             return [
+                {
+                    "value": "groq-whisper",
+                    "label": "Groq Whisper Large-v3 · Cloud (Siêu tốc 2s - Khuyên dùng)",
+                    "available": True,
+                },
+                {
+                    "value": "sensevoice-small",
+                    "label": "SenseVoice-Small · AI Tiếng Trung / Douyin (Offline)",
+                    "available": True,
+                },
                 {"value": "small-cpu", "label": "Whisper Small · CPU", "available": True},
                 {"value": "small-gpu", "label": "Whisper Small · GPU", "available": turbo_available},
                 {
@@ -1501,6 +1508,16 @@ class HaizFlowController(QObject):
                 },
             ]
         return [
+            {
+                "value": "groq-whisper",
+                "label": "Groq Whisper Large-v3 · Cloud (Ultra-fast 2s - Recommended)",
+                "available": True,
+            },
+            {
+                "value": "sensevoice-small",
+                "label": "SenseVoice-Small · Chinese / Douyin AI (Offline)",
+                "available": True,
+            },
             {"value": "small-cpu", "label": "Whisper Small · CPU", "available": True},
             {"value": "small-gpu", "label": "Whisper Small · GPU", "available": turbo_available},
             {
@@ -1512,11 +1529,13 @@ class HaizFlowController(QObject):
 
     @Property(int, notify=speechRecognitionModelChanged)
     def speechRecognitionModelIndex(self):
-        if self._speech_recognition_model == "large-v3-turbo":
-            return 2
-        return 1 if self._speech_recognition_model == "small-gpu" or (
-            self._speech_recognition_model == "small" and self._settings_processing_device == "gpu"
-        ) else 0
+        current = self._speech_recognition_model
+        if current == "small":
+            current = "small-gpu" if getattr(self, "_settings_processing_device", "cpu") == "gpu" else "small-cpu"
+        for idx, opt in enumerate(self.speechRecognitionModelOptions):
+            if opt.get("value") == current:
+                return idx
+        return 0
 
     @Property(str, notify=languageOptionsChanged)
     def targetLanguageLabel(self):
@@ -3086,6 +3105,37 @@ class HaizFlowController(QObject):
     def openDeepSeekApiKeys(self):
         return open_external_url(deepseek_translation.API_KEYS_URL)
 
+    @Property(bool, notify=groqKeyChanged)
+    def groqKeyConfigured(self):
+        try:
+            return groq_asr.key_configured()
+        except OSError:
+            return False
+
+    @Slot(str, result=bool)
+    def saveGroqApiKey(self, value):
+        try:
+            groq_asr.save_key(value)
+        except (OSError, ValueError) as exc:
+            self._show_app_alert("Groq Whisper", str(exc), "warning")
+            return False
+        self.groqKeyChanged.emit()
+        return True
+
+    @Slot(result=bool)
+    def clearGroqApiKey(self):
+        try:
+            groq_asr.clear_key()
+        except OSError as exc:
+            self._show_app_alert("Groq Whisper", str(exc), "warning")
+            return False
+        self.groqKeyChanged.emit()
+        return True
+
+    @Slot(result=bool)
+    def openGroqApiKeys(self):
+        return open_external_url(groq_asr.API_KEYS_URL)
+
     @Property(bool, notify=geminiKeyChanged)
     def geminiKeyConfigured(self):
         try:
@@ -3284,7 +3334,7 @@ class HaizFlowController(QObject):
 
     @Slot(str)
     def requestApiKeySettings(self, provider: str):
-        if provider in {"gemini", "zernio", "elevenlabs", "deepseek"}:
+        if provider in {"gemini", "zernio", "elevenlabs", "deepseek", "groq"}:
             self.apiKeySettingsRequested.emit(provider)
 
     @Slot(str)
@@ -4117,7 +4167,7 @@ class HaizFlowController(QObject):
     ):
         # Keep direct Python callers from older integrations working while the
         # QML-facing signature carries the new ASR model field.
-        if speech_recognition_model not in {"small", "small-cpu", "small-gpu", "large-v3-turbo"}:
+        if speech_recognition_model not in {"small", "small-cpu", "small-gpu", "large-v3-turbo", "groq-whisper", "sensevoice-small"}:
             legacy_provider = speech_recognition_model
             legacy_voice = tts_provider
             legacy_separation = bool(tts_voice)

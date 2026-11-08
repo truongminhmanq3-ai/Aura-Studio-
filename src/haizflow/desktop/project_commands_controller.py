@@ -601,7 +601,7 @@ class ProjectCommandsController:
             .strip()
             .lower()
         )
-        if asr_model not in {"small", "small-cpu", "small-gpu", "large-v3-turbo"}:
+        if asr_model not in {"small", "small-cpu", "small-gpu", "large-v3-turbo", "groq-whisper", "sensevoice-small"}:
             asr_model = "small"
         selected_translation_model = str(translation_model or getattr(host, "_translation_model", "auto")).lower()
         from haizflow.core.model_choices import gpu_choice_blocked

@@ -102,6 +102,8 @@ def warm_whisperx_model(model_name: str = "small", *, device_preference: str | N
     """Load the ASR model once in the background so the first video starts promptly."""
     global _WARM_ASR_MODEL, _WARM_DEVICE, _WARM_MODEL_NAME
     model_name = str(model_name or "small").strip().lower()
+    if model_name in {"groq-whisper", "sensevoice-small"}:
+        return True
     if model_name not in {"small", "large-v3-turbo"}:
         raise RuntimeError(f"Unsupported Whisper model: {model_name}")
     with _MODEL_LOCK:
@@ -1220,6 +1222,27 @@ def transcribe(
     """Transcribe through WhisperX and align sentence timestamps per language."""
     global _WARM_ASR_MODEL, _WARM_DEVICE, _WARM_MODEL_NAME
     model_name = str(model_name or "small").strip().lower()
+    if model_name == "groq-whisper":
+        from haizflow.services.groq_asr import transcribe_with_groq
+
+        return transcribe_with_groq(
+            audio_path=audio_path,
+            output_json_path=output_json_path,
+            source_language=source_language,
+            video_id=video_id,
+            progress_callback=progress_callback,
+        )
+    if model_name == "sensevoice-small":
+        from haizflow.services.sensevoice_asr import transcribe_with_sensevoice
+
+        return transcribe_with_sensevoice(
+            audio_path=audio_path,
+            output_json_path=output_json_path,
+            source_language=source_language,
+            video_id=video_id,
+            progress_callback=progress_callback,
+        )
+
     log_to_video(video_id, f"Initializing WhisperX with model '{model_name}'.")
     from haizflow.core.hardware import cpu_runtime_profile
 

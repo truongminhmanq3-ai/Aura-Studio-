@@ -10,7 +10,8 @@ Item {
     property bool editingKey: false
     readonly property bool elevenlabs: provider === "elevenlabs"
     readonly property bool deepseek: provider === "deepseek"
-    readonly property bool customProvider: elevenlabs || deepseek
+    readonly property bool groq: provider === "groq"
+    readonly property bool customProvider: elevenlabs || deepseek || groq
     readonly property var apiKeys: customProvider ? [] : AppController.geminiApiKeys
     readonly property bool configured: apiKeys.length > 0
     onProviderChanged: { entryForm.clear(); editingKey = false; }
@@ -39,13 +40,18 @@ Item {
         NavigationTabs {
             objectName: "apiKeyProviderSelector"
             options: [{ label: "Gemini", value: "gemini" },
-                      { label: "DeepSeek", value: "deepseek" }]
+                      { label: "DeepSeek", value: "deepseek" },
+                      { label: "Groq Whisper", value: "groq" }]
             currentValue: root.provider
             onActivated: function(value) { root.provider = value; }
         }
         DeepSeekSettingsPanel {
             Layout.fillWidth: true
             visible: root.deepseek
+        }
+        GroqSettingsPanel {
+            Layout.fillWidth: true
+            visible: root.groq
         }
         ElevenLabsSettingsPanel {
             Layout.fillWidth: true

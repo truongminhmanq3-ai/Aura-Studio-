@@ -1,6 +1,6 @@
 """Lightweight model/device choices shared by Core, workers and desktop UI."""
 
-RECOGNITION_CHOICES = frozenset({"small", "small-cpu", "small-gpu", "large-v3-turbo"})
+RECOGNITION_CHOICES = frozenset({"small", "small-cpu", "small-gpu", "large-v3-turbo", "groq-whisper", "sensevoice-small"})
 
 
 def project_recognition_choice(choice: str, app_device: str) -> str:
@@ -39,12 +39,14 @@ def recognition_context(choice: str, app_device: str) -> dict[str, str]:
     device = "gpu" if app_device == "gpu" else "cpu"
     if choice not in RECOGNITION_CHOICES:
         raise ValueError(f"Unsupported recognition model: {choice}")
-    if choice == "small-cpu":
+    if choice in {"small-cpu", "sensevoice-small"}:
         device = "cpu"
+    elif choice == "groq-whisper":
+        device = "cloud"
     elif choice in {"small-gpu", "large-v3-turbo"}:
         if device != "gpu":
             raise ValueError("Đang dùng chế độ CPU. Chọn model CPU hoặc chuyển sang GPU trong Cài đặt → Chung.")
-    return {"model": "large-v3-turbo" if choice == "large-v3-turbo" else "small", "device": device}
+    return {"model": choice if choice in {"large-v3-turbo", "groq-whisper", "sensevoice-small"} else "small", "device": device}
 
 
 def gpu_choice_blocked(app_device: str, *, recognition="small", translation="auto", voice="omnivoice") -> bool:
