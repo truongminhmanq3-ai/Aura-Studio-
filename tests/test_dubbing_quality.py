@@ -197,3 +197,44 @@ def test_countdown_beats_are_not_merged():
 
     out = translation_blocks.merge_fragments([_seg(3.9, 5.2, "321"), _seg(5.2, 6.1, "公园"), _seg(94.8, 95.4, "三"), _seg(95.4, 96.2, "二")])
     assert [b["text"] for b in out] == ["321", "公园", "三", "二"]
+
+
+def test_nonword_detection_catches_glued_words_without_false_positives():
+    from haizflow.services.translation_checks import nonwords
+
+    assert nonwords("sắp hỏngừ cái xe mô tô") == ["hỏngừ"]
+    assert nonwords("Ariana livestream Tân Đô Kiều nguyễn khuỷu giường thuở quyền RV marmot") == []
+
+
+def test_translation_with_glued_word_is_retranslated(tmp_path, monkeypatch):
+    segments = [{"start": 0.0, "end": 4.0, "text": "我感觉就要把摩托车整废了", "language": "zh"}]
+    source, output = tmp_path / "source.json", tmp_path / "translated.json"
+    source.write_text(json.dumps(segments, ensure_ascii=False))
+    calls = []
+
+    def fake_translate(texts, **kwargs):
+        calls.append(list(texts))
+        return ["Anh sợ chiếc xe sắp hỏngừ rồi."] if len(calls) == 1 else ["Anh sợ chiếc xe sắp hỏng rồi."]
+
+    monkeypatch.setattr(deepseek, "translate_texts", fake_translate)
+    monkeypatch.setattr(deepseek, "correct_asr_texts", lambda *_a, **_k: {})
+    monkeypatch.setattr(translation, "log_to_video", Mock())
+    translation.translate_segments(str(source), str(output), "offline", source_language="zh", target_language="vi",
+                                   provider="deepseek", translation_model="deepseek-flash")
+    assert json.loads(output.read_text())[0]["text"] == "Anh sợ chiếc xe sắp hỏng rồi." and len(calls) == 2
+
+
+def test_gemini_listens_when_groq_redecode_finds_nothing(monkeypatch, tmp_path):
+    from haizflow.services import groq_asr
+
+    segments = [{"start": 1.3, "end": 11.2, "text": "没有看到门口就是办公楼吗", "timing_source": "t"}]
+    monkeypatch.setattr(groq_asr.subprocess, "run", lambda *a, **k: None)
+    monkeypatch.setattr(groq_asr, "_post_transcription", lambda *a, **k: {"segments": []})
+    monkeypatch.setattr(groq_asr, "log_to_video", lambda *a, **k: None)
+    heard = [proposal(0.2, 3.0, "你这太给整了", logprob=0.0, no_speech=0.0),
+             proposal(3.2, 9.5, "没有看到门口就是办公楼吗你说话要不要听", logprob=0.0, no_speech=0.0)]
+    monkeypatch.setattr(groq_asr.gemini_audio_asr, "listen", lambda *a, **k: heard)
+    result = groq_asr._recover_sparse_segments("a.wav", segments, {}, {}, "zh", str(tmp_path), "v")
+    assert [s["text"] for s in result] == ["你这太给整了", "没有看到门口就是办公楼吗你说话要不要听"]
+    monkeypatch.setattr(groq_asr.gemini_audio_asr, "listen", lambda *a, **k: [])
+    assert groq_asr._recover_sparse_segments("a.wav", segments, {}, {}, "zh", str(tmp_path), "v") == segments

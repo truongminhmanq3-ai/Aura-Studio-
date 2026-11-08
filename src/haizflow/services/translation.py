@@ -324,6 +324,33 @@ def translate_segments(
                     raise
                 log_to_video(video_id, f"[FIT] Shortening skipped, keeping original wording: {exc}",
                              level="WARNING", component="TRANSLATE")
+    if using_online:
+        from haizflow.services import translation_checks
+        garbled = [i for i, text in enumerate(translations) if translation_checks.nonwords(text)]
+        if garbled:
+            log_to_video(video_id, f"[CLEAN] {len(garbled)} line(s) contain non-Vietnamese words "
+                         f"({', '.join(translation_checks.nonwords(translations[i])[0] for i in garbled)}); retranslating.",
+                         level="WARNING", component="TRANSLATE")
+            try:
+                check_cancellation(video_id)
+                redone = online_translate(
+                    [source_texts[i] for i in garbled], model=requested_model,
+                    source_language=language_name(source_language) if source_language != "auto" else "auto",
+                    target_language=target_language_name, video_id=video_id,
+                    speaker_tags={n: speaker_tags[i] for n, i in enumerate(garbled) if i in speaker_tags} or None,
+                    story_context=story_context,
+                    budgets={n: length_limits[i] for n, i in enumerate(garbled) if i in length_limits} or None,
+                )
+                if len(redone) == len(garbled):
+                    for i, candidate in zip(garbled, redone):
+                        candidate = clean_translation(candidate)
+                        if candidate and not _invalid_translation(candidate) and not translation_checks.nonwords(candidate):
+                            translations[i] = candidate
+            except (OSError, RuntimeError, ValueError, TypeError, KeyError, IndexError, AttributeError) as exc:
+                check_cancellation(video_id)
+                if "cancelled by user" in str(exc).lower():
+                    raise
+                log_to_video(video_id, f"[CLEAN] Retranslation skipped: {exc}", level="WARNING", component="TRANSLATE")
     if using_online and length_limits:
         log_to_video(video_id, f"[FIT] Length check done: {len(translation_fit.over_budget(translations, length_limits))} line(s) still over budget.",
                      level="INFO", component="TRANSLATE")

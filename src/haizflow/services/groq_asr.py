@@ -21,7 +21,7 @@ import requests
 from haizflow.pipeline import asr_sparse
 from haizflow.pipeline.process_registry import check_cancellation
 from haizflow.pipeline.timing_contract import TIMING_SOURCE
-from haizflow.services import secure_credentials
+from haizflow.services import gemini_audio_asr, secure_credentials
 from haizflow.services.video_store import log_to_video
 
 CREDENTIAL_TARGET = "HaizFlow/Groq/APIKey"
@@ -182,13 +182,19 @@ def _recover_sparse_segments(
             log_to_video(video_id, f"[ASR-RECOVER] {start:.1f}-{end:.1f}s skipped: {exc}", level="INFO")
             output.append(segment)
             continue
+        source = "groq"
         if not asr_sparse.is_better(segment["text"], replacement):
-            log_to_video(video_id, f"[ASR-RECOVER] {start:.1f}-{end:.1f}s: re-decode found nothing better.", level="INFO")
-            output.append(segment)
-            continue
+            heard = gemini_audio_asr.listen(str(clip), end - start)
+            replacement = asr_sparse.proposals_to_segments(heard, start, start, end, language)
+            source = "gemini"
+            if not asr_sparse.is_better(segment["text"], replacement):
+                log_to_video(video_id, f"[ASR-RECOVER] {start:.1f}-{end:.1f}s: no better transcription found.", level="INFO")
+                output.append(segment)
+                continue
         log_to_video(
             video_id,
-            f"[ASR-RECOVER] {start:.1f}-{end:.1f}s: '{segment['text']}' -> {len(replacement)} sentence(s).",
+            f"[ASR-RECOVER] {start:.1f}-{end:.1f}s ({source}): '{segment['text']}' -> "
+            + " | ".join(item["text"] for item in replacement),
             level="INFO",
         )
         for item in replacement:
