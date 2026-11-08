@@ -267,13 +267,14 @@ def _vieneu_voices_by_segment(
     with open(segments_json_path, "r", encoding="utf-8") as stream:
         segments = json.load(stream)
     overrides = dict(files.get("manual_voice_overrides") or {})
+    fallback_voice = chosen_female if _is_female_vieneu_voice(default_voice) else chosen_male
     result = {}
     for index, segment in enumerate(segments, 1):
         if not isinstance(segment, dict):
             continue
         speaker = str(_match_source_segment(segment, source_segments).get("speaker_id") or "")
         voice_override = str(segment.get("voice") or overrides.get(str(index), {}).get("voice") or "").strip()
-        result[index] = voice_override if voice_override else assigned.get(speaker, default_voice)
+        result[index] = voice_override if voice_override else assigned.get(speaker, fallback_voice)
 
     return result or None
 
