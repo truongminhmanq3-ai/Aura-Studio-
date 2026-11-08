@@ -19,6 +19,8 @@ DEFAULT_ENTRIES = {
     "冯贵": "Phú Quý",
     "宋俊俊": "Đoàn Đoàn",
     "土拨鼠": "chuột marmot",
+    "房车": "xe nhà di động",
+    "摩托车": "xe mô tô",
 }
 
 

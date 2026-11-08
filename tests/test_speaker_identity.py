@@ -240,3 +240,14 @@ class SpeakerIdentityTests(unittest.TestCase):
                 self.assertEqual(mapping[3], "Hải Đăng")
                 self.assertEqual(mapping[4], "Hải Đăng")
 
+
+
+def test_ambiguous_pitch_segment_between_same_gender_neighbours_follows_them():
+    from haizflow.pipeline.speaker_identity import _smooth_short_segments
+
+    kinds = {0: "female", 1: "male", 2: "female"}
+    pitches = {0: 330.0, 1: 172.0, 2: 250.0}
+    spans = {0: (4.1, 5.1), 1: (5.1, 8.0), 2: (8.0, 9.0)}
+    assert _smooth_short_segments(kinds, pitches, spans)[1] == "female"
+    pitches[1] = 128.0  # clearly male, long: keeps its gender
+    assert _smooth_short_segments(kinds, pitches, spans)[1] == "male"

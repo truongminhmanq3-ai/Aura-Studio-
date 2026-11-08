@@ -28,6 +28,7 @@ CREDENTIAL_TARGET = "HaizFlow/Groq/APIKey"
 API_KEYS_URL = "https://console.groq.com/keys"
 GROQ_TRANSCRIPTION_ENDPOINT = "https://api.groq.com/openai/v1/audio/transcriptions"
 GROQ_MODEL = "whisper-large-v3-turbo"
+GROQ_ACCURATE_MODEL = "whisper-large-v3"  # fewer homophone/dialect errors than turbo
 
 # Map full language names returned by Whisper API to standard 2-letter ISO codes.
 LANGUAGE_NAME_TO_CODE = {
@@ -211,7 +212,7 @@ def transcribe_with_groq(
             "Chưa cấu hình Groq API key. Vui lòng vào Cài đặt → API key → Groq Whisper để dán key (miễn phí tại console.groq.com/keys)."
         )
 
-    log_to_video(video_id, f"Initializing Groq Cloud Whisper API with model '{GROQ_MODEL}'.")
+    log_to_video(video_id, f"Initializing Groq Cloud Whisper API with model '{GROQ_ACCURATE_MODEL}' (fallback '{GROQ_MODEL}').")
     if progress_callback:
         progress_callback("loading_model", "Connecting to Groq Cloud Whisper")
 
@@ -229,14 +230,21 @@ def transcribe_with_groq(
             "User-Agent": "AuraStudio/2.0",
         }
         data = {
-            "model": GROQ_MODEL,
+            "model": GROQ_ACCURATE_MODEL,
             "response_format": "verbose_json",
             "temperature": "0.0",
         }
         if source_language and source_language != "auto":
             data["language"] = source_language
 
-        result = _post_transcription(payload_audio, headers, data, video_id)
+        try:
+            result = _post_transcription(payload_audio, headers, data, video_id)
+        except RuntimeError as exc:
+            if "cancelled by user" in str(exc).lower():
+                raise
+            log_to_video(video_id, f"Groq {GROQ_ACCURATE_MODEL} unavailable ({exc}); retrying with {GROQ_MODEL}.", level="WARNING")
+            data["model"] = GROQ_MODEL
+            result = _post_transcription(payload_audio, headers, data, video_id)
         raw_language = result.get("language", "en")
         detected_language = normalize_language_code(raw_language)
         raw_segments = result.get("segments", [])

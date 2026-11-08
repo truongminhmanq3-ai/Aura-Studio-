@@ -15,7 +15,7 @@ from haizflow.utils.ffmpeg import _binary
 from haizflow.utils.atomic_file import atomic_json
 
 from haizflow.core.bundled_models import MODEL_FILE, MODEL_SIZE, MODEL_SHA256, MODEL_REVISION, MODEL_URL as MODEL_URL
-IDENTITY_VERSION = "gender-by-segment-pitch-v8"
+IDENTITY_VERSION = "gender-by-segment-pitch-v9"
 
 
 def verify_model(root: Path) -> Path:
@@ -257,6 +257,7 @@ SHORT_SEGMENT_SECONDS = 2.5
 EXTREME_MALE_HZ = 125.0
 EXTREME_FEMALE_HZ = 215.0
 MAX_NEIGHBOUR_GAP_SECONDS = 1.0
+AMBIGUOUS_SEGMENT_SECONDS = 4.0
 
 
 def _smooth_short_segments(kinds: dict, pitches: dict, spans: dict) -> dict:
@@ -273,7 +274,8 @@ def _smooth_short_segments(kinds: dict, pitches: dict, spans: dict) -> dict:
     for position in range(1, len(order) - 1):
         index = order[position]
         start, end = spans[index]
-        if end - start >= SHORT_SEGMENT_SECONDS:
+        ambiguous = MALE_MAX_HZ <= pitches[index] <= FEMALE_MIN_HZ
+        if end - start >= (AMBIGUOUS_SEGMENT_SECONDS if ambiguous else SHORT_SEGMENT_SECONDS):
             continue
         if EXTREME_MALE_HZ >= pitches[index] or pitches[index] >= EXTREME_FEMALE_HZ:
             continue
