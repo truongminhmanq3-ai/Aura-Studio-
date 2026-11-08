@@ -21,6 +21,7 @@ DEFAULT_ENTRIES = {
     "土拨鼠": "chuột marmot",
     "房车": "xe nhà di động",
     "摩托车": "xe mô tô",
+    "好累": "mệt quá",
 }
 
 

@@ -15,7 +15,7 @@ from haizflow.utils.ffmpeg import _binary
 from haizflow.utils.atomic_file import atomic_json
 
 from haizflow.core.bundled_models import MODEL_FILE, MODEL_SIZE, MODEL_SHA256, MODEL_REVISION, MODEL_URL as MODEL_URL
-IDENTITY_VERSION = "gender-by-segment-pitch-v9"
+IDENTITY_VERSION = "gender-by-segment-pitch-v10"
 
 
 def verify_model(root: Path) -> Path:
@@ -279,6 +279,8 @@ def _smooth_short_segments(kinds: dict, pitches: dict, spans: dict) -> dict:
             continue
         if EXTREME_MALE_HZ >= pitches[index] or pitches[index] >= EXTREME_FEMALE_HZ:
             continue
+        if kinds[index] == "male" and pitches[index] < MALE_MAX_HZ:
+            continue  # breathy fragments measure higher, never lower: a low reading is a real man
         before, after = order[position - 1], order[position + 1]
         if (start - spans[before][1] > MAX_NEIGHBOUR_GAP_SECONDS
                 or spans[after][0] - end > MAX_NEIGHBOUR_GAP_SECONDS):

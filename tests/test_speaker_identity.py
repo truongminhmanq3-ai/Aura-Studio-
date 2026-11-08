@@ -251,3 +251,12 @@ def test_ambiguous_pitch_segment_between_same_gender_neighbours_follows_them():
     assert _smooth_short_segments(kinds, pitches, spans)[1] == "female"
     pitches[1] = 128.0  # clearly male, long: keeps its gender
     assert _smooth_short_segments(kinds, pitches, spans)[1] == "male"
+
+
+def test_low_pitch_male_reply_between_female_turns_stays_male():
+    from haizflow.pipeline.speaker_identity import _smooth_short_segments
+
+    kinds = {0: "female", 1: "male", 2: "female"}
+    pitches = {0: 266.0, 1: 142.0, 2: 320.0}
+    spans = {0: (3.9, 5.2), 1: (5.2, 6.1), 2: (7.0, 7.6)}
+    assert _smooth_short_segments(kinds, pitches, spans)[1] == "male"
