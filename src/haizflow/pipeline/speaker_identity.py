@@ -15,7 +15,7 @@ from haizflow.utils.ffmpeg import _binary
 from haizflow.utils.atomic_file import atomic_json
 
 from haizflow.core.bundled_models import MODEL_FILE, MODEL_SIZE, MODEL_SHA256, MODEL_REVISION, MODEL_URL as MODEL_URL
-IDENTITY_VERSION = "wespeaker-stable-target-voices-v4-dialogue-consistency"
+IDENTITY_VERSION = "gender-by-segment-pitch-v6"
 
 
 def verify_model(root: Path) -> Path:
@@ -145,15 +145,130 @@ def _label_turns(vectors, valid_indices, segments):
     return _assign_identities(vectors, anchors, _cluster(vectors[anchors]))
 
 
+_PITCH_FRAME = 1024
+_PITCH_HOP = 320
+_PITCH_MIN_LAG = 40
+_PITCH_MAX_LAG = 246
+_PITCH_MIN_VOICED_FRAMES = 4
+_PITCH_LOW_LAG_BIAS = 0.1
+_PITCH_CANDIDATE_RATIO = 0.85
+_PITCH_JUMP_COST = 0.8
+
+
+def _segment_pitch(audio) -> float | None:
+    """Median F0 of one 16 kHz segment, or None when it has too little voiced speech.
+
+    Autocorrelation peaks are kept per frame, then a Viterbi pass picks one
+    continuous track so a single frame cannot jump an octave. Pitch halving and
+    doubling are what flipped speakers to the wrong gender.
+    """
+    import numpy as np
+
+    if len(audio) < _PITCH_FRAME:
+        return None
+    x = np.asarray(audio, dtype=np.float64)
+    window = np.hanning(_PITCH_FRAME)
+    frames = np.stack([x[i : i + _PITCH_FRAME] for i in range(0, len(x) - _PITCH_FRAME + 1, _PITCH_HOP)])
+    frames = (frames - frames.mean(axis=1, keepdims=True)) * window
+    size = 2 * _PITCH_FRAME
+    spectrum = np.fft.rfft(frames, n=size, axis=1)
+    acf = np.fft.irfft(spectrum * np.conj(spectrum), n=size, axis=1)[:, : _PITCH_MAX_LAG + 1]
+    window_spectrum = np.fft.rfft(window, n=size)
+    window_acf = np.fft.irfft(window_spectrum * np.conj(window_spectrum), n=size)[: _PITCH_MAX_LAG + 1]
+    corr = acf / np.maximum(acf[:, :1], 1e-9) / np.maximum(window_acf / window_acf[0], 1e-3)
+    energy = np.sqrt(np.mean(frames**2, axis=1))
+    floor = 0.1 * float(np.percentile(energy, 90))
+
+    tracks = []
+    for row, level in zip(corr, energy):
+        if level <= floor:
+            continue
+        lags = np.arange(_PITCH_MIN_LAG + 1, _PITCH_MAX_LAG)
+        peaks = lags[(row[lags] > row[lags - 1]) & (row[lags] >= row[lags + 1]) & (row[lags] > 0.45)]
+        if not len(peaks):
+            continue
+        best = float(row[peaks].max())
+        candidates = []
+        for lag in peaks[row[peaks] >= _PITCH_CANDIDATE_RATIO * best][:4]:
+            a, b, c = row[lag - 1], row[lag], row[lag + 1]
+            shift = 0.5 * (a - c) / (a - 2 * b + c) if (a - 2 * b + c) < 0 else 0.0
+            candidates.append((float(lag + shift), float(row[lag])))
+        tracks.append(candidates)
+    if len(tracks) < _PITCH_MIN_VOICED_FRAMES:
+        return None
+
+    cost = [np.array([1.0 - r + _PITCH_LOW_LAG_BIAS * np.log2(lag / _PITCH_MIN_LAG) for lag, r in tracks[0]])]
+    back = []
+    for previous, current in zip(tracks, tracks[1:]):
+        step = np.array([[_PITCH_JUMP_COST * abs(np.log2(lag / old)) for old, _ in previous] for lag, _ in current])
+        total = step + cost[-1][None, :]
+        back.append(total.argmin(axis=1))
+        cost.append(total.min(axis=1) + np.array([1.0 - r + _PITCH_LOW_LAG_BIAS * np.log2(lag / _PITCH_MIN_LAG) for lag, r in current]))
+    index = int(cost[-1].argmin())
+    path = [index]
+    for pointers in reversed(back):
+        index = int(pointers[index])
+        path.append(index)
+    path.reverse()
+    return float(np.median([16000.0 / tracks[i][k][0] for i, k in enumerate(path)]))
+
+
+MALE_MAX_HZ = 150.0
+FEMALE_MIN_HZ = 175.0
+AMBIGUOUS_MID_HZ = (MALE_MAX_HZ + FEMALE_MIN_HZ) / 2.0
+AMBIGUOUS_NEIGHBOUR_HZ = 25.0
+AMBIGUOUS_SPLIT_GAP_HZ = 40.0
+
+
+def _classify_genders(cluster_pitches: dict) -> dict:
+    """Map each speaker cluster to "male" or "female".
+
+    Absolute pitch decides first, so a video whose speakers are all one gender
+    never splits. Only clusters inside the ambiguous band are resolved from the
+    other clusters in the video.
+    """
+    kinds = {}
+    for label, pitch in cluster_pitches.items():
+        if pitch < MALE_MAX_HZ:
+            kinds[label] = "male"
+        elif pitch > FEMALE_MIN_HZ:
+            kinds[label] = "female"
+    ambiguous = sorted((l for l in cluster_pitches if l not in kinds), key=cluster_pitches.get)
+    if not ambiguous:
+        return kinds
+    if kinds:
+        confident = dict(kinds)
+        for label in ambiguous:
+            nearest = min(confident, key=lambda l: abs(cluster_pitches[l] - cluster_pitches[label]))
+            if abs(cluster_pitches[nearest] - cluster_pitches[label]) <= AMBIGUOUS_NEIGHBOUR_HZ:
+                kinds[label] = confident[nearest]
+            else:
+                kinds[label] = "female" if cluster_pitches[label] >= AMBIGUOUS_MID_HZ else "male"
+        return kinds
+    low, high = cluster_pitches[ambiguous[0]], cluster_pitches[ambiguous[-1]]
+    if len(ambiguous) >= 2 and high - low >= AMBIGUOUS_SPLIT_GAP_HZ:
+        mid = (low + high) / 2.0
+        for label in ambiguous:
+            kinds[label] = "female" if cluster_pitches[label] >= mid else "male"
+    else:
+        mean = sum(cluster_pitches[l] for l in ambiguous) / len(ambiguous)
+        for label in ambiguous:
+            kinds[label] = "female" if mean >= AMBIGUOUS_MID_HZ else "male"
+    return kinds
+
+
 def identify(audio_path: str, segments: list[dict], video_id: str, progress=None, *,
              model_directory: str = "", runtime_callback=None) -> list[dict]:
     """Use the built-in CPU backend in an isolated worker; release before TTS."""
     import numpy as np
-    from haizflow.pipeline.speaker_runtime import SpeakerSession
 
-    model = verify_model(Path(model_directory) if model_directory else model_root())
-    session = SpeakerSession(model, runtime_callback)
-    embeddings, valid_indices, pitches = [], [], {}
+    # The WeSpeaker model is still verified so the resource pack gate is unchanged,
+    # but gender is decided per segment from pitch: clustering merged a man and a
+    # woman into one speaker, so a cluster-level gender was wrong for mixed turns.
+    verify_model(Path(model_directory) if model_directory else model_root())
+    if runtime_callback:
+        runtime_callback("cpu", "")
+    valid_indices, pitches = [], {}
     with tempfile.TemporaryDirectory(prefix="speaker-audio-", dir=TMP_DIR) as directory:
         decoded = Path(directory) / "speech.wav"
         process = subprocess.Popen(
@@ -194,107 +309,43 @@ def identify(audio_path: str, segments: list[dict], video_id: str, progress=None
                 audio = np.frombuffer(stream.readframes(end - start), dtype="<i2").astype(np.float32)
                 if np.sqrt(np.mean(audio**2)) < 20:
                     continue
-                embedding = session.run(_features(audio)[None, :, :])[0].reshape(-1)
-                if not np.isfinite(embedding).all():
-                    raise RuntimeError("Speaker model returned invalid embeddings.")
-                embeddings.append(embedding)
+                pitch = _segment_pitch(audio)
+                if pitch is not None:
+                    pitches[index] = pitch
                 valid_indices.append(index)
-                # Pitch is used only to choose a natural target-language preset,
-                # never as the identity classifier.
-                estimates = []
-                for offset in range(0, len(audio) - 640, 1600):
-                    frame = audio[offset : offset + 640]
-                    frame = (frame - frame.mean()) * np.hanning(640)
-                    correlation = np.correlate(frame, frame, mode="full")[639:]
-                    lag = 40 + int(np.argmax(correlation[40:229]))
-                    if correlation[0] > 0 and correlation[lag] / correlation[0] > 0.65:
-                        estimates.append(16000 / lag)
-                pitches[index] = float(np.median(estimates)) if estimates else 150.0
                 if progress:
                     progress(index + 1, len(segments))
-    if not embeddings:
+    if not valid_indices:
         raise RuntimeError("Không đủ lời nói rõ để nhận diện người nói. Hãy chọn một giọng đọc.")
-    vectors = np.asarray(embeddings, dtype=np.float32)
-    vectors /= np.maximum(np.linalg.norm(vectors, axis=1, keepdims=True), 1e-8)
-    labels, scores = _label_turns(vectors, valid_indices, segments)
-    label_by_index = dict(zip(valid_indices, labels))
-    male = [
-        "omnivoice:male",
-        "omnivoice:deep",
-        "omnivoice:male_mature",
-        "omnivoice:male_high",
-        "omnivoice:male_tenor",
-        "omnivoice:male_narrator",
-        "omnivoice:male_elder_high",
-        "omnivoice:male_soft",
-        "omnivoice:male_broadcast",
-        "omnivoice:tech_presenter",
-        "omnivoice:trailer_deep",
-        "omnivoice:documentary",
-    ]
-    female = [
-        "omnivoice:female",
-        "omnivoice:female_low",
-        "omnivoice:bright",
-        "omnivoice:female_mature",
-        "omnivoice:female_soprano",
-        "omnivoice:female_narrator",
-        "omnivoice:female_elder_high",
-        "omnivoice:female_gentle",
-        "omnivoice:female_confident",
-        "omnivoice:show_host",
-        "omnivoice:radio_warm",
-    ]
-    voices, counts = {}, {"male": 0, "female": 0}
-    unique_labels = sorted(set(labels))
-    cluster_pitches = {
-        label: float(np.median([pitches[idx] for idx, identity in label_by_index.items() if identity == label]))
-        for label in unique_labels
-    }
-    kinds = {}
-    if len(unique_labels) >= 2:
-        sorted_by_pitch = sorted(unique_labels, key=lambda l: cluster_pitches[l])
-        lowest_label, highest_label = sorted_by_pitch[0], sorted_by_pitch[-1]
-        pitch_gap = cluster_pitches[highest_label] - cluster_pitches[lowest_label]
-        # Only assign contrasting male & female if there is a real acoustic pitch distinction
-        # across the male/female boundary (adult male F0: 85-155 Hz, female F0: 165-260 Hz).
-        if pitch_gap >= 35.0 and cluster_pitches[highest_label] >= 155.0 and cluster_pitches[lowest_label] < 165.0:
-            kinds[lowest_label] = "male"
-            kinds[highest_label] = "female"
-            mid_pitch = (cluster_pitches[lowest_label] + cluster_pitches[highest_label]) / 2.0
-            for label in sorted_by_pitch[1:-1]:
-                kinds[label] = "female" if cluster_pitches[label] >= mid_pitch else "male"
-        else:
-            for label in unique_labels:
-                kinds[label] = "female" if cluster_pitches[label] >= 160.0 else "male"
-    elif len(unique_labels) == 1:
-        kinds[unique_labels[0]] = "female" if cluster_pitches[unique_labels[0]] >= 160.0 else "male"
+    if not pitches:
+        raise RuntimeError("Không đo được cao độ giọng nói để chọn giọng nam/nữ. Hãy chọn một giọng đọc.")
+    male_voice = "omnivoice:male"
+    female_voice = "omnivoice:female"
+    kinds = _classify_genders(pitches)
 
-    for label in unique_labels:
-        kind = kinds[label]
-        choices = female if kind == "female" else male
-        voices[label] = choices[0]
-    positions = {index: position for position, index in enumerate(valid_indices)}
-    result = []
+    def source_start(i):
+        return float(segments[i].get("start") or 0)
+
+    # Segments without a reliable pitch (very short, unvoiced) take the nearest measured one.
+    measured = sorted(pitches, key=source_start)
+    result, first_seen = [], {}
     for index, segment in enumerate(segments):
-        label = label_by_index.get(index)
-        if label is None:
-            # Only unvoiced/very short fragments inherit the nearest reliable
-            # turn. No new random identity is introduced for "Go!" etc.
-            nearest = min(valid_indices, key=lambda i: abs(float(segments[i]["start"]) - float(segment["start"])))
-            label = label_by_index[nearest]
-        position = positions.get(index)
-        confidence = round(max(0.0, float(scores[position, label])), 3) if position is not None else 0.0
-        margin = (float(scores[position, label] - np.max(np.delete(scores[position], label)))
-                  if position is not None and scores.shape[1] > 1 else confidence)
+        if index in pitches:
+            kind = kinds[index]
+            pitch = pitches[index]
+            confident = pitch < MALE_MAX_HZ or pitch > FEMALE_MIN_HZ
+            confidence = 0.9 if confident else 0.5
+        else:
+            nearest = min(measured, key=lambda i: abs(source_start(i) - source_start(index)))
+            kind, confidence = kinds[nearest], 0.4
+        first_seen.setdefault(kind, len(first_seen) + 1)
         result.append(
             {
                 **segment,
-                "speaker_id": f"speaker-{label + 1}",
-                "speaker_voice": voices[label],
+                "speaker_id": f"speaker-{first_seen[kind]}",
+                "speaker_voice": female_voice if kind == "female" else male_voice,
                 "speaker_confidence": confidence,
-                "speaker_uncertain": confidence < 0.55 or margin < 0.10
-                or float(segment["end"]) - float(segment["start"]) < 1.8,
+                "speaker_uncertain": confidence < 0.55,
             }
         )
     return result
