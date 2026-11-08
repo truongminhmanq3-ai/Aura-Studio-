@@ -249,7 +249,7 @@ def _recover_gpu_to_cpu(video_id: str, stage: str, error: Exception) -> bool:
     so an unstable driver cannot leave a project in an endless loop.
     """
     video = get_video(video_id)
-    if not video or video.gpu_recovery_attempted or not _is_gpu_runtime_failure(error):
+    if not video or getattr(video, "gpu_recovery_attempted", False) or not _is_gpu_runtime_failure(error):
         return False
 
     detail = f"GPU unavailable during {stage}. Switching this project to CPU and retrying that stage."
@@ -735,7 +735,7 @@ def process_video_sync(
             log_to_video(video_id, "Video cancelled by user.")
             return
         failed_video = get_video(video_id)
-        failed_stage = (failed_video.step if failed_video else "processing") or "processing"
+        failed_stage = (getattr(failed_video, "step", "processing") if failed_video else "processing") or "processing"
         original_device = processing_device_preference()
         original_translation = translation_model_preference()
         if _recover_gpu_to_cpu(video_id, failed_stage, exc):

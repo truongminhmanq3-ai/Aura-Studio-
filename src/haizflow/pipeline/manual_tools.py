@@ -105,6 +105,36 @@ def transcribe(*args, **kwargs):
     model_name = str(kwargs.get("model_name") or "small")
     context = recognition_context(model_name, processing_device_preference())
     model_name = context["model"]
+    if model_name == "groq-whisper":
+        video_store.log_to_video(
+            str(video_id), "Preparing speech recognition (Groq Cloud Whisper Large-v3).",
+            component="ASR", level="INFO",
+        )
+        from haizflow.services.groq_asr import transcribe_with_groq
+
+        segments, detected_language = transcribe_with_groq(
+            audio_path=str(audio_path),
+            output_json_path=str(output_json_path),
+            source_language=str(source_language or "auto"),
+            video_id=str(video_id),
+            progress_callback=callback,
+        )
+        return list(segments or []), str(detected_language or "")
+    if model_name == "sensevoice-small":
+        video_store.log_to_video(
+            str(video_id), "Preparing speech recognition (SenseVoice-Small).",
+            component="ASR", level="INFO",
+        )
+        from haizflow.services.sensevoice_asr import transcribe_with_sensevoice
+
+        segments, detected_language = transcribe_with_sensevoice(
+            audio_path=str(audio_path),
+            output_json_path=str(output_json_path),
+            source_language=str(source_language or "auto"),
+            video_id=str(video_id),
+            progress_callback=callback,
+        )
+        return list(segments or []), str(detected_language or "")
     if context["device"] == "cpu":
         from haizflow.core.memory import require_cpu_memory
         from haizflow.services.external_engine import shared_external_engine_pool

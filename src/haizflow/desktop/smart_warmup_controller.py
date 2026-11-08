@@ -276,6 +276,8 @@ class SmartWarmupController:
             return False
         if not profile.cuda_available and profile.total_ram_gib < 24 and capability in {"translation", "voice", "separation"}:
             return False
+        if capability == "recognition" and str(context.get("model")) in {"groq-whisper", "sensevoice-small"}:
+            return True
         if capability == "recognition" and str(context.get("model")) in {"turbo", "large-v3-turbo"}:
             if not profile.cuda_available or profile.total_vram_gib < 7:
                 return False
@@ -349,6 +351,8 @@ class SmartWarmupController:
 
             provider = str(context.get("provider") or "omnivoice")
             warm_runtime(str(context.get("language") or "vi"), device="gpu" if provider.endswith("-gpu") else "cpu")
+            return
+        if capability == "recognition" and str(context.get("model")) in {"groq-whisper", "sensevoice-small"}:
             return
         if self._external_engines.warm(capability, context):
             return

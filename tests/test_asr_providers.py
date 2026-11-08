@@ -156,3 +156,39 @@ def test_sensevoice_ready_and_live_inference(monkeypatch):
         assert segs[0]["start"] > 0
         assert segs[0]["end"] > segs[0]["start"]
         assert os.path.isfile(out_json)
+
+
+def test_manual_tools_transcribe_routes_groq_and_sensevoice():
+    from haizflow.pipeline import manual_tools
+
+    with patch("haizflow.services.external_tasks.run_external_task") as mock_run_external:
+        with patch("haizflow.services.groq_asr.transcribe_with_groq", return_value=([{"text": "hi"}], "en")) as mock_groq:
+            segs, lang = manual_tools.transcribe(
+                "audio.wav", "out.json", "auto", "test-vid", model_name="groq-whisper"
+            )
+            assert segs == [{"text": "hi"}]
+            assert lang == "en"
+            mock_groq.assert_called_once_with(
+                audio_path="audio.wav",
+                output_json_path="out.json",
+                source_language="auto",
+                video_id="test-vid",
+                progress_callback=None,
+            )
+            mock_run_external.assert_not_called()
+
+        with patch("haizflow.services.sensevoice_asr.transcribe_with_sensevoice", return_value=([{"text": "nihao"}], "zh")) as mock_sense:
+            segs, lang = manual_tools.transcribe(
+                "audio.wav", "out.json", "auto", "test-vid", model_name="sensevoice-small"
+            )
+            assert segs == [{"text": "nihao"}]
+            assert lang == "zh"
+            mock_sense.assert_called_once_with(
+                audio_path="audio.wav",
+                output_json_path="out.json",
+                source_language="auto",
+                video_id="test-vid",
+                progress_callback=None,
+            )
+            mock_run_external.assert_not_called()
+

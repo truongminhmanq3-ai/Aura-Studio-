@@ -524,32 +524,24 @@ class ManualWorkflowTests(unittest.TestCase):
             transcript_path.parent.mkdir(parents=True)
             input_path.write_bytes(b"video")
             transcript_path.write_text('[{"start": 0, "end": 1, "text": "xin chào"}]', encoding="utf-8")
-            signature = process_video._signature(
-                process_video._file_state(str(input_path)),
-                process_video.TIMING_SOURCE,
-                "hymt2-semantic-source-context-retry-v21",
-                "vi",
-                True,
-                "small",
-                "hymt2",
-                process_video.HYMT2_MODEL_REVISION,
-            )
             video = SimpleNamespace(
                 video_id="manual-video",
                 mode="A",
-                translator_provider="hymt2",
+                translator_provider="gemini",
+                translation_model="gemini-3.5-flash-lite",
                 target_language="vi",
                 enable_audio_separation=True,
                 speech_recognition_model="small",
                 project_type="manual",
                 manual_completed_stages=["translation", "subtitles"],
                 resume_step="",
-                checkpoints={"translation": signature},
+                checkpoints={},
                 files={
                     "video_input": str(input_path),
                     "transcript_json": str(transcript_path),
                 },
             )
+            video.checkpoints["translation"] = process_video._translation_signature(video, str(input_path))
             reporter = SimpleNamespace(update=lambda *_args: None)
 
             with (
