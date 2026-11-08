@@ -15,7 +15,7 @@ from haizflow.utils.ffmpeg import _binary
 from haizflow.utils.atomic_file import atomic_json
 
 from haizflow.core.bundled_models import MODEL_FILE, MODEL_SIZE, MODEL_SHA256, MODEL_REVISION, MODEL_URL as MODEL_URL
-IDENTITY_VERSION = "wespeaker-stable-target-voices-v3-short-dialogue"
+IDENTITY_VERSION = "wespeaker-stable-target-voices-v4-dialogue-consistency"
 
 
 def verify_model(root: Path) -> Path:
