@@ -304,7 +304,6 @@ Item {
                             Repeater {
                                 model: [
                                     { id: "all", label: "Tất cả" },
-                                    { id: "douyin_hot", label: "📊 Douyin Hot" },
                                     { id: "beauty", label: "💄 Làm đẹp" },
                                     { id: "food", label: "🍳 Nấu ăn" },
                                     { id: "fitness", label: "💪 Thể hình" },
