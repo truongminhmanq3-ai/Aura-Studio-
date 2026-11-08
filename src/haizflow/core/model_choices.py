@@ -5,28 +5,25 @@ RECOGNITION_CHOICES = frozenset({"small", "small-cpu", "small-gpu", "large-v3-tu
 
 def project_recognition_choice(choice: str, app_device: str) -> str:
     """Resolve the old automatic default without replacing explicit choices."""
-    if not choice or choice == "small":
-        return project_model_defaults(app_device)["_speech_recognition_model"]
+    if not choice or choice in {"small", "small-cpu", "small-gpu", "large-v3-turbo"}:
+        return "groq-whisper"
     return choice
 
 
 def project_model_defaults(app_device: str) -> dict[str, str]:
     gpu = app_device == "gpu"
     return {
-        # GPU mode is admitted only after the hardware policy's 8 GB-class
-        # VRAM check. Turbo is the default; an explicit Small/CPU choice stays
-        # project-local and is never overwritten on reopening a project.
-        "_speech_recognition_model": "large-v3-turbo" if gpu else "small-cpu",
-        "_translation_model": "full" if gpu else "q4",
-        "_tts_provider": "omnivoice-gpu" if gpu else "omnivoice",
+        "_speech_recognition_model": "groq-whisper",
+        "_translation_model": "gemini-3.5-flash-lite",
+        "_tts_provider": "vieneu",
     }
 
 
 def models_for_device(app_device: str, *, recognition: str, translation: str, voice: str) -> dict[str, str]:
-    """Keep compatible project choices, replacing GPU-only choices in CPU mode."""
+    """Keep compatible project choices, replacing legacy choices."""
+    if recognition in {"small", "small-cpu", "small-gpu", "large-v3-turbo"}:
+        recognition = "groq-whisper"
     if app_device == "cpu":
-        if recognition in {"small-gpu", "large-v3-turbo"}:
-            recognition = "small-cpu"
         if translation == "full":
             translation = "q4"
         if voice == "omnivoice-gpu":

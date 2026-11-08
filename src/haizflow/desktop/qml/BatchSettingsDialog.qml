@@ -64,8 +64,8 @@ FloatingToolDialog {
         draftTargetLanguage, draftTtsProvider, AppController.settingsLanguage)
     readonly property int draftTtsProviderIndex: findIndex(draftProviderOptions, "provider", draftTtsProvider)
     readonly property int draftSpeechRecognitionIndex: findIndex(
-        AppController.speechRecognitionModelOptions, "value", draftSpeechRecognitionModel === "small"
-            ? (AppController.processingDevice === "gpu" ? "small-gpu" : "small-cpu") : draftSpeechRecognitionModel)
+        AppController.speechRecognitionModelOptions, "value", (draftSpeechRecognitionModel === "small" || draftSpeechRecognitionModel === "small-cpu" || draftSpeechRecognitionModel === "small-gpu" || draftSpeechRecognitionModel === "large-v3-turbo")
+            ? "groq-whisper" : draftSpeechRecognitionModel)
 
     function findIndex(options, role, value) {
         for (let index = 0; index < options.length; ++index) {
@@ -124,7 +124,7 @@ FloatingToolDialog {
         draftSubtitleStyle = settings.subtitleStyle || ({});
         baselineSettings = settings
         draftTargetLanguage = settings.targetLanguage || "vi"
-        draftSpeechRecognitionModel = settings.speechRecognitionModel || "small"
+        draftSpeechRecognitionModel = (settings.speechRecognitionModel && settings.speechRecognitionModel !== "small" && settings.speechRecognitionModel !== "small-cpu" && settings.speechRecognitionModel !== "small-gpu" && settings.speechRecognitionModel !== "large-v3-turbo") ? settings.speechRecognitionModel : "groq-whisper"
         draftTranslationModel = settings.translationModel || "auto"
         draftTtsProvider = settings.ttsProvider || "vieneu"
         draftTtsVoice = normalizedDraftVoice(draftTargetLanguage, draftTtsProvider, settings.ttsVoice || "")

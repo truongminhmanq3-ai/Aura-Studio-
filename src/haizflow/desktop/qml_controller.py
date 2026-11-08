@@ -334,7 +334,7 @@ class HaizFlowController(QObject):
         self._video_path = ""
         self._video_thumbnail_source = ""
         self._target_language = "vi"
-        self._speech_recognition_model = "small"
+        self._speech_recognition_model = "groq-whisper"
         self._translation_model = "auto"
         self._tts_provider = "vieneu"
         self._tts_voice = "Hải Đăng"
@@ -1450,43 +1450,23 @@ class HaizFlowController(QObject):
 
     @Property(str, notify=speechRecognitionModelChanged)
     def speechRecognitionModel(self):
+        if self._speech_recognition_model in {"small", "small-cpu", "small-gpu", "large-v3-turbo", None, ""}:
+            return "groq-whisper"
         return self._speech_recognition_model
 
     @speechRecognitionModel.setter
     def speechRecognitionModel(self, value):
-        requested = str(value or "small").strip().lower()
-        if requested not in {"small", "small-cpu", "small-gpu", "large-v3-turbo", "groq-whisper", "sensevoice-small"}:
-            requested = "small"
-        if requested in {"small-gpu", "large-v3-turbo"} and getattr(self, "_settings_processing_device", "cpu") != "gpu":
-            self._show_app_alert("Đang dùng chế độ CPU", "Chọn Whisper CPU hoặc chuyển sang GPU trong Cài đặt → Chung.", "warning")
-            return
-        if requested in {"small-gpu", "large-v3-turbo"} and not self._ensure_hardware_ready_for_action():
-            return
-        capabilities = getattr(self, "_hardware_capabilities", None)
-        gpu_available = HaizFlowController._project_gpu_available(self)
-        if requested in {"small-gpu", "large-v3-turbo"} and not gpu_available:
-            reason = validate_processing_device("gpu", capabilities)[1] if capabilities else "GPU NVIDIA chưa khả dụng."
-            self._show_app_alert("Máy không đáp ứng", reason, "warning")
-            return
-        if requested == "large-v3-turbo" and not getattr(self, "_whisper_turbo_model_ready", False):
-            self._show_app_alert(
-                "Thiếu Whisper Turbo",
-                "Hãy cài Whisper Turbo trong Gói tài nguyên trước khi nhận dạng.",
-                "warning",
-            )
-        resource_packs = getattr(self, "_resource_packs", None)
-        if requested in {"small", "small-cpu", "small-gpu"} and resource_packs is not None:
-            if resource_packs.manager.status("model-whisper-small") not in {"installed", "bundled"}:
-                self._show_app_alert(
-                    "Thiếu Whisper Small", "Hãy cài Whisper Small trong Gói tài nguyên trước khi nhận dạng.", "warning"
-                )
+        requested = str(value or "groq-whisper").strip().lower()
+        if requested in {"small", "small-cpu", "small-gpu", "large-v3-turbo"}:
+            requested = "groq-whisper"
+        if requested not in {"groq-whisper", "sensevoice-small"}:
+            requested = "groq-whisper"
         if self._speech_recognition_model != requested:
             self._speech_recognition_model = requested
             self.speechRecognitionModelChanged.emit()
 
     @Property("QVariantList", notify=speechRecognitionModelOptionsChanged)
     def speechRecognitionModelOptions(self):
-        turbo_available = HaizFlowController._project_gpu_available(self)
         if getattr(self, "_settings_language", "en") == "vi":
             return [
                 {
@@ -1498,13 +1478,6 @@ class HaizFlowController(QObject):
                     "value": "sensevoice-small",
                     "label": "SenseVoice-Small · AI Tiếng Trung / Douyin (Offline)",
                     "available": True,
-                },
-                {"value": "small-cpu", "label": "Whisper Small · CPU", "available": True},
-                {"value": "small-gpu", "label": "Whisper Small · GPU", "available": turbo_available},
-                {
-                    "value": "large-v3-turbo",
-                    "label": "Whisper Turbo · GPU NVIDIA",
-                    "available": turbo_available,
                 },
             ]
         return [
@@ -1518,20 +1491,11 @@ class HaizFlowController(QObject):
                 "label": "SenseVoice-Small · Chinese / Douyin AI (Offline)",
                 "available": True,
             },
-            {"value": "small-cpu", "label": "Whisper Small · CPU", "available": True},
-            {"value": "small-gpu", "label": "Whisper Small · GPU", "available": turbo_available},
-            {
-                "value": "large-v3-turbo",
-                "label": "Whisper Turbo · NVIDIA GPU",
-                "available": turbo_available,
-            },
         ]
 
     @Property(int, notify=speechRecognitionModelChanged)
     def speechRecognitionModelIndex(self):
-        current = self._speech_recognition_model
-        if current == "small":
-            current = "small-gpu" if getattr(self, "_settings_processing_device", "cpu") == "gpu" else "small-cpu"
+        current = self.speechRecognitionModel
         for idx, opt in enumerate(self.speechRecognitionModelOptions):
             if opt.get("value") == current:
                 return idx

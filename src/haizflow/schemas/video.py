@@ -82,7 +82,7 @@ class VideoConfig(BaseModel):
     source_language: str = "auto"  # Automatic detection is performed for every speech segment.
     target_language: str = "vi"
     translator_provider: TranslatorProvider = "gemini"
-    speech_recognition_model: SpeechRecognitionModel = "small"
+    speech_recognition_model: SpeechRecognitionModel = "groq-whisper"
     translation_model: TranslationModel = "gemini-3.5-flash-lite"
     tts_provider: TTSProvider = "vieneu"
     tts_voice: str = "Hải Đăng"
@@ -133,7 +133,7 @@ class VideoInfo(BaseModel):
     source_language: str
     target_language: str
     translator_provider: TranslatorProvider = "gemini"
-    speech_recognition_model: SpeechRecognitionModel = "small"
+    speech_recognition_model: SpeechRecognitionModel = "groq-whisper"
     translation_model: TranslationModel = "gemini-3.5-flash-lite"
     tts_provider: TTSProvider = "vieneu"
     tts_voice: str
