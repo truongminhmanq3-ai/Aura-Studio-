@@ -12,6 +12,24 @@ from haizflow.pipeline import speaker_identity as identity
 
 
 class SpeakerIdentityTests(unittest.TestCase):
+    def test_gender_split_needs_support_on_both_sides(self):
+        classify = identity._classify_genders
+        male_video = {i: 105.0 + 3 * i for i in range(20)}
+        male_video[20] = 176.0  # lone outlier just over the female threshold
+        self.assertEqual(set(classify(male_video).values()), {"male"})
+        two_men = {0: 105.0, 1: 135.0, 2: 110.0, 3: 130.0}
+        self.assertEqual(set(classify(two_men).values()), {"male"})
+        women = {i: 200.0 + 4 * i for i in range(6)}
+        self.assertEqual(set(classify(women).values()), {"female"})
+
+    def test_mixed_gender_dialogue_gets_both_voices(self):
+        classify = identity._classify_genders
+        pitches = {0: 118.0, 1: 125.0, 2: 122.0, 3: 230.0, 4: 250.0, 5: 240.0, 6: 160.0, 7: 205.0}
+        kinds = classify(pitches)
+        self.assertEqual([kinds[i] for i in range(6)], ["male"] * 3 + ["female"] * 3)
+        self.assertEqual(kinds[6], "male")  # ambiguous band goes to the nearer median
+        self.assertEqual(classify({0: 110.0, 1: 220.0}), {0: "male", 1: "female"})
+
     def test_short_only_dialogue_is_not_forced_to_one_person(self):
         vectors = np.array([[1, 0], [0, 1], [.99, .02], [.01, .99]], dtype=np.float32)
         vectors /= np.linalg.norm(vectors, axis=1, keepdims=True)

@@ -15,7 +15,7 @@ from haizflow.utils.ffmpeg import _binary
 from haizflow.utils.atomic_file import atomic_json
 
 from haizflow.core.bundled_models import MODEL_FILE, MODEL_SIZE, MODEL_SHA256, MODEL_REVISION, MODEL_URL as MODEL_URL
-IDENTITY_VERSION = "gender-by-segment-pitch-v6"
+IDENTITY_VERSION = "gender-by-segment-pitch-v7"
 
 
 def verify_model(root: Path) -> Path:
@@ -216,44 +216,40 @@ def _segment_pitch(audio) -> float | None:
 MALE_MAX_HZ = 150.0
 FEMALE_MIN_HZ = 175.0
 AMBIGUOUS_MID_HZ = (MALE_MAX_HZ + FEMALE_MIN_HZ) / 2.0
-AMBIGUOUS_NEIGHBOUR_HZ = 25.0
-AMBIGUOUS_SPLIT_GAP_HZ = 40.0
 
 
 def _classify_genders(cluster_pitches: dict) -> dict:
-    """Map each speaker cluster to "male" or "female".
+    """Map each key (a segment index) to "male" or "female" from its pitch.
 
-    Absolute pitch decides first, so a video whose speakers are all one gender
-    never splits. Only clusters inside the ambiguous band are resolved from the
-    other clusters in the video.
+    Absolute pitch decides clear cases. A second gender is accepted only when
+    enough segments sit clearly on its side of the ambiguous band; a lone
+    outlier (one segment just above the female threshold) must not create a
+    second voice, so the video falls back to one gender by median pitch.
+    Segments inside the band go to the nearer gender's median.
     """
+    import math
+    import statistics
+
+    if not cluster_pitches:
+        return {}
+    male = [l for l, p in cluster_pitches.items() if p < MALE_MAX_HZ]
+    female = [l for l, p in cluster_pitches.items() if p > FEMALE_MIN_HZ]
+    count = len(cluster_pitches)
+    support = min(count // 2, max(2, math.ceil(0.05 * count)))
+    if len(male) < support or len(female) < support:
+        kind = "female" if statistics.median(cluster_pitches.values()) >= AMBIGUOUS_MID_HZ else "male"
+        return {label: kind for label in cluster_pitches}
+    male_median = statistics.median(cluster_pitches[l] for l in male)
+    female_median = statistics.median(cluster_pitches[l] for l in female)
     kinds = {}
     for label, pitch in cluster_pitches.items():
         if pitch < MALE_MAX_HZ:
             kinds[label] = "male"
         elif pitch > FEMALE_MIN_HZ:
             kinds[label] = "female"
-    ambiguous = sorted((l for l in cluster_pitches if l not in kinds), key=cluster_pitches.get)
-    if not ambiguous:
-        return kinds
-    if kinds:
-        confident = dict(kinds)
-        for label in ambiguous:
-            nearest = min(confident, key=lambda l: abs(cluster_pitches[l] - cluster_pitches[label]))
-            if abs(cluster_pitches[nearest] - cluster_pitches[label]) <= AMBIGUOUS_NEIGHBOUR_HZ:
-                kinds[label] = confident[nearest]
-            else:
-                kinds[label] = "female" if cluster_pitches[label] >= AMBIGUOUS_MID_HZ else "male"
-        return kinds
-    low, high = cluster_pitches[ambiguous[0]], cluster_pitches[ambiguous[-1]]
-    if len(ambiguous) >= 2 and high - low >= AMBIGUOUS_SPLIT_GAP_HZ:
-        mid = (low + high) / 2.0
-        for label in ambiguous:
-            kinds[label] = "female" if cluster_pitches[label] >= mid else "male"
-    else:
-        mean = sum(cluster_pitches[l] for l in ambiguous) / len(ambiguous)
-        for label in ambiguous:
-            kinds[label] = "female" if mean >= AMBIGUOUS_MID_HZ else "male"
+        else:
+            nearer_male = abs(math.log(pitch / male_median)) <= abs(math.log(pitch / female_median))
+            kinds[label] = "male" if nearer_male else "female"
     return kinds
 
 
