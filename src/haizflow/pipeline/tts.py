@@ -247,21 +247,14 @@ def _vieneu_voices_by_segment(
         name = str(item.get("speaker_voice") or "")
         gender_of.setdefault(speaker, "female" if ("female" in name or name in _FEMALE_SPEAKER_VOICES) else "male")
 
-    # In dialogue / multi-speaker mode: enforce distinct 1 Male - 1 Female for primary protagonists
+    # In dialogue / multi-speaker mode: preserve natural detected genders of protagonists.
+    # Only if ALL detected speakers have identical gender do we force the secondary speaker to the opposite gender,
+    # ensuring the primary narrator (spk1) keeps their true detected gender.
     sorted_speakers = sorted(speaker_turns.keys(), key=lambda s: speaker_turns[s], reverse=True)
-    if len(sorted_speakers) >= 2:
+    if len(sorted_speakers) >= 2 and len(set(gender_of.values())) == 1:
         spk1, spk2 = sorted_speakers[0], sorted_speakers[1]
-        if gender_of.get(spk1) == gender_of.get(spk2):
-            # When the top two characters have identical detected gender, force 1 Female and 1 Male
-            gender_of[spk1] = "female"
-            gender_of[spk2] = "male"
-        elif len(set(gender_of.values())) == 1:
-            # If all speakers somehow mapped to the same gender, break the monopoly
-            gender_of[spk2] = "male" if list(gender_of.values())[0] == "female" else "female"
-    elif len(gender_of) == 2 and len(set(gender_of.values())) == 1:
-        keys = sorted(gender_of.keys())
-        gender_of[keys[0]] = "female"
-        gender_of[keys[1]] = "male"
+        opposite_gender = "female" if gender_of[spk1] == "male" else "male"
+        gender_of[spk2] = opposite_gender
 
     if "|" in default_voice:
         parts = default_voice.split("|", 1)

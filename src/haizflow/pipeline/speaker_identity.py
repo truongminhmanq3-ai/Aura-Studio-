@@ -262,6 +262,8 @@ def identify(audio_path: str, segments: list[dict], video_id: str, progress=None
             kinds[label] = "female" if cluster_pitches[label] >= mid_pitch else "male"
     elif len(unique_labels) == 1:
         kinds[unique_labels[0]] = "female" if cluster_pitches[unique_labels[0]] >= 160 else "male"
+
+    for label in unique_labels:
         kind = kinds[label]
         choices = female if kind == "female" else male
         voices[label] = choices[counts[kind] % len(choices)]
@@ -345,22 +347,29 @@ def prepare_speakers(audio_path: str, segments: list[dict], video_id: str, progr
     except (OSError, ValueError, TypeError):
         pass
     try:
-        result = run_external_task(
-            "speaker",
-            "speaker_identification",
-            {"audio_path": audio_path, "segments": segments, "video_id": video_id,
-             "model_directory": str(directory), "device": selected_device},
-            video_id,
-            context={"device": selected_device},
-            progress_callback=progress,
-            isolate_source=True,
-        )
-        if result is None:
-            raise RuntimeError("Cần cài bộ xử lý ONNX để nhận diện người nói.")
-        identified = result.get("segments")
+        identified = identify(audio_path, segments, video_id, progress, model_directory=str(directory))
         if not _valid_map(identified, segments):
-            raise RuntimeError("Speaker engine returned an invalid identity map.")
-    finally:
-        shared_external_engine_pool().release({"speaker"})
+            raise RuntimeError("Speaker model returned an invalid identity map.")
+    except Exception as direct_exc:
+        from haizflow.services.external_tasks import run_external_task
+        from haizflow.services.external_engine import shared_external_engine_pool
+        try:
+            result = run_external_task(
+                "speaker",
+                "speaker_identification",
+                {"audio_path": audio_path, "segments": segments, "video_id": video_id,
+                 "model_directory": str(directory), "device": selected_device},
+                video_id,
+                context={"device": selected_device},
+                progress_callback=progress,
+                isolate_source=True,
+            )
+            if result is None:
+                raise RuntimeError("Cần cài bộ xử lý ONNX để nhận diện người nói.")
+            identified = result.get("segments")
+            if not _valid_map(identified, segments):
+                raise RuntimeError("Speaker engine returned an invalid identity map.") from direct_exc
+        finally:
+            shared_external_engine_pool().release({"speaker"})
     atomic_json(path, identified)
     return identified
