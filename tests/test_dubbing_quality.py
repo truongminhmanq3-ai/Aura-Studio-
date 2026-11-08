@@ -149,3 +149,9 @@ def test_tts_speaks_rv_as_words():
     from haizflow.pipeline.tts import preprocess_text_for_tts
 
     assert preprocess_text_for_tts("Lái xe RV ở Tân Đô Kiều") == "Lái xe nhà di động ở Tân Đô Kiều."
+
+
+def test_borderline_sparse_real_cases_are_caught():
+    # test 2 video: 9.9 s with 12 characters and 6.4 s with 8 characters
+    assert asr_sparse.is_sparse({"start": 1.3, "end": 11.2, "text": "没有看到门口就是办公楼吗"})
+    assert asr_sparse.is_sparse({"start": 20.4, "end": 26.8, "text": "白他喵的想去西藏"})

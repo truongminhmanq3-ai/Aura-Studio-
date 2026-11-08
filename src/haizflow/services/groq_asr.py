@@ -212,7 +212,7 @@ def transcribe_with_groq(
             "Chưa cấu hình Groq API key. Vui lòng vào Cài đặt → API key → Groq Whisper để dán key (miễn phí tại console.groq.com/keys)."
         )
 
-    log_to_video(video_id, f"Initializing Groq Cloud Whisper API with model '{GROQ_ACCURATE_MODEL}' (fallback '{GROQ_MODEL}').")
+    log_to_video(video_id, f"Initializing Groq Cloud Whisper API with model '{GROQ_ACCURATE_MODEL}' (backup '{GROQ_MODEL}').")
     if progress_callback:
         progress_callback("loading_model", "Connecting to Groq Cloud Whisper")
 
