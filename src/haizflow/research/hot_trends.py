@@ -121,13 +121,23 @@ def fetch_douyin_hot_board(limit: int = 20) -> list[dict[str, Any]]:
     ]
 
 
+CATEGORY_KEYWORDS_FILTER: dict[str, list[str]] = {
+    "pets": ["猫", "狗", "宠", "动物", "幼犬", "小猫", "毛孩子"],
+    "home": ["家", "房", "居家", "收纳", "改造", "好物", "厨房", "清洁", "卫生间", "租房", "宿舍"],
+    "camping": ["露营", "户外", "野外", "帐篷", "徒步", "旅行", "自驾", "野炊", "登山", "探险"],
+    "food": ["美食", "吃", "饭", "菜", "做饭", "火锅", "甜品", "奶茶", "减脂餐", "小吃", "早餐", "夜宵", "烘焙"],
+    "beauty": ["妆", "美", "护肤", "穿搭", "发型", "素颜", "口红", "粉底", "变美", "防晒", "精华", "洗面奶"],
+}
+
+
 def get_trending_keywords(category: str = "all", limit: int = 15) -> list[dict[str, Any]]:
     """Return categorized trending keywords or live Douyin hot board."""
     if category == "douyin_hot":
         return fetch_douyin_hot_board(limit=limit)
 
     items = NICHE_TRENDS.get(category, NICHE_TRENDS["all"])
-    # If category is "all", include top 4 live Douyin hot keywords at the front
+    
+    # If category is "all", include top 3 live Douyin hot keywords at the front
     if category == "all":
         live_hot = fetch_douyin_hot_board(limit=3)
         combined = []
@@ -140,6 +150,22 @@ def get_trending_keywords(category: str = "all", limit: int = 15) -> list[dict[s
         for item in items:
             combined.append(item)
         return combined[:limit]
+
+    # For specific niche category, check if any current Douyin live hot search matches this niche
+    filter_words = CATEGORY_KEYWORDS_FILTER.get(category, [])
+    if filter_words:
+        live_hot = fetch_douyin_hot_board(limit=50)
+        matched_live = []
+        for h in live_hot:
+            if any(w in h["keyword"] for w in filter_words):
+                matched_live.append({
+                    "keyword": h["keyword"],
+                    "label": f"🔥 {h['keyword']} ({h['hot_value']})",
+                    "category": category,
+                })
+        if matched_live:
+            combined = matched_live[:3] + list(items)
+            return combined[:limit]
 
     return items[:limit]
 

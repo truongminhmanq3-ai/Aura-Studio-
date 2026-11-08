@@ -259,27 +259,30 @@ Item {
         Rectangle {
             id: trendingSection
             Layout.fillWidth: true
-            Layout.preferredHeight: 74
-            radius: 14
+            Layout.preferredHeight: 98
+            radius: 16
             color: "#08000000"
             border.width: 1
             border.color: "#18000000"
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 8
-                spacing: 6
+                anchors.leftMargin: 14
+                anchors.rightMargin: 14
+                anchors.topMargin: 10
+                anchors.bottomMargin: 10
+                spacing: 8
 
                 // Category selector bar
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
+                    spacing: 8
 
                     Text {
                         text: qsTr("🔥 Xu hướng hôm nay:")
                         font.family: Theme.fontFamily
                         font.bold: true
-                        font.pixelSize: 12
+                        font.pixelSize: 13
                         color: Theme.text
                     }
 
@@ -299,20 +302,21 @@ Item {
                             id: catChip
                             required property var modelData
                             readonly property bool isSelected: Boolean(root.controller && root.controller.trendingCategory === modelData.id)
-                            Layout.preferredHeight: 22
-                            Layout.preferredWidth: catText.implicitWidth + 14
-                            radius: 6
-                            color: isSelected ? Theme.interactive : (catMouse.containsMouse ? "#20000000" : "transparent")
+                            Layout.preferredHeight: 28
+                            Layout.preferredWidth: catText.implicitWidth + 20
+                            radius: 8
+                            color: isSelected ? Theme.interactive : (catMouse.containsMouse ? "#1C000000" : "#0A000000")
                             border.width: 1
-                            border.color: isSelected ? Theme.interactive : "#22000000"
+                            border.color: isSelected ? Theme.interactive : (catMouse.containsMouse ? "#2E000000" : "#18000000")
 
                             Text {
                                 id: catText
                                 anchors.centerIn: parent
                                 text: catChip.modelData.label
-                                font.pixelSize: 11
+                                font.family: Theme.fontFamily
+                                font.pixelSize: 12
                                 font.weight: catChip.isSelected ? Font.Bold : Font.Normal
-                                color: catChip.isSelected ? Theme.textOnAccent : Theme.textMuted
+                                color: catChip.isSelected ? Theme.textOnAccent : Theme.text
                             }
 
                             MouseArea {
@@ -348,14 +352,14 @@ Item {
                 Flickable {
                     id: tagFlickable
                     Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    Layout.preferredHeight: 34
                     contentWidth: tagRow.implicitWidth
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
 
                     RowLayout {
                         id: tagRow
-                        spacing: 8
+                        spacing: 10
                         height: parent.height
 
                         Repeater {
@@ -364,20 +368,21 @@ Item {
                             Rectangle {
                                 id: tagChip
                                 required property var modelData
-                                Layout.preferredHeight: 26
-                                Layout.preferredWidth: tagChipText.implicitWidth + 18
-                                radius: 8
-                                color: chipMouse.containsMouse ? "#2563EB" : "#10000000"
+                                Layout.preferredHeight: 32
+                                Layout.preferredWidth: tagChipText.implicitWidth + 24
+                                radius: 9
+                                color: chipMouse.containsMouse ? Theme.interactive : "#0D000000"
                                 border.width: 1
-                                border.color: chipMouse.containsMouse ? "#2563EB" : "#1C000000"
+                                border.color: chipMouse.containsMouse ? Theme.interactive : "#1A000000"
 
                                 Text {
                                     id: tagChipText
                                     anchors.centerIn: parent
                                     text: tagChip.modelData.label || tagChip.modelData.keyword
-                                    font.pixelSize: 11
-                                    font.bold: chipMouse.containsMouse
-                                    color: chipMouse.containsMouse ? "#FFFFFF" : Theme.text
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 12
+                                    font.weight: chipMouse.containsMouse ? Font.DemiBold : Font.Medium
+                                    color: chipMouse.containsMouse ? Theme.textOnAccent : Theme.text
                                 }
 
                                 MouseArea {
