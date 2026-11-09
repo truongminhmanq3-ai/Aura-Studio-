@@ -328,6 +328,21 @@ GridLayout {
                     onClicked: root.subtitleLayoutRequested()
                 }
             }
+            RowLayout {
+                Layout.fillWidth: true
+                SettingLabel {
+                    Layout.fillWidth: true
+                    text: qsTr("Chữ Trung Quốc")
+                    helpText: qsTr("Tự quét mọi chữ Trung Quốc xuất hiện trên video (tiêu đề, tên kênh, sticker, phụ đề) và làm mờ đúng lúc chúng hiện.")
+                }
+                StudioButton {
+                    objectName: "chineseTextButton"
+                    text: qsTr("Xem & chọn vùng mờ")
+                    enabled: root.hasSource
+                    onClicked: chineseTextDialog.open()
+                }
+            }
+            ChineseTextDialog { id: chineseTextDialog }
             SegmentedControl {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 38

@@ -2158,6 +2158,45 @@ class HaizFlowController(QObject):
         self.subtitleSettingsChanged.emit()
         return True
 
+    @Slot(result="QVariantMap")
+    def chineseTextOverview(self):
+        """Detected Chinese text regions of the selected video and which are kept for blurring."""
+        from haizflow.services import chinese_text
+
+        video = self._selected_video()
+        overview = chinese_text.listing(video.video_id) if video else {"enabled": True, "items": []}
+        for item in overview["items"]:
+            item["thumbnailUrl"] = QUrl.fromLocalFile(item["thumbnail"]).toString() if item["thumbnail"] else ""
+        return overview
+
+    def _chinese_text_call(self, action) -> bool:
+        video = self._selected_video()
+        if not video:
+            return False
+        try:
+            action(video.video_id)
+        except OSError:
+            return False
+        return True
+
+    @Slot(str, bool, result=bool)
+    def setChineseTextTrackEnabled(self, track_id, enabled):
+        from haizflow.services import chinese_text
+
+        return self._chinese_text_call(lambda video_id: chinese_text.set_track_enabled(video_id, str(track_id), bool(enabled)))
+
+    @Slot(bool, result=bool)
+    def setChineseTextAllEnabled(self, enabled):
+        from haizflow.services import chinese_text
+
+        return self._chinese_text_call(lambda video_id: chinese_text.set_all_enabled(video_id, bool(enabled)))
+
+    @Slot(bool, result=bool)
+    def setChineseTextBlurEnabled(self, enabled):
+        from haizflow.services import chinese_text
+
+        return self._chinese_text_call(lambda video_id: chinese_text.set_enabled(video_id, bool(enabled)))
+
     @Slot(str, bool, bool, result=float)
     def subtitleCapEm(self, family, bold, italic):
         """Capital height / em of a subtitle font, so the preview box matches the exported one."""

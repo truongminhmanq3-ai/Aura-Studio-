@@ -1622,6 +1622,7 @@ def render_video(
     subtitle_style_overrides: dict[int, dict] | None = None,
     encoding_quality: int | None = None,
     preview_source_scale: bool = False,
+    text_blur_layers: list[dict] | None = None,
 ):
     """Render cropped video, positioned subtitles, and dubbed audio with FFmpeg."""
     subtitle_style = SubtitleStyle.model_validate(subtitle_style.model_dump())
@@ -1840,6 +1841,21 @@ def render_video(
             original_subtitle_region, source_width, source_height, removal_mode, source_start_seconds,
             static_mask=compatibility_preview,
         )
+    if text_blur_layers:
+        # Timed blur of every detected Chinese text region. It runs first; the original-subtitle
+        # treatment (if any) then works on its output.
+        text_prefix = _ordered_subtitle_removal_prefix(
+            {"treatment_layers": text_blur_layers, "timeline_offset_seconds": source_start_seconds},
+            source_width, source_height, "blur", source_start_seconds, static_mask=compatibility_preview,
+        )
+        if text_prefix:
+            if removal_prefix:
+                text_prefix = text_prefix.replace("[source_without_original]", "[text_blurred]")
+                removal_prefix = text_prefix + removal_prefix.replace("[0:v]", "[text_blurred]")
+            else:
+                removal_prefix = text_prefix
+            log_to_video(video_id, f"Blurring {len(text_blur_layers)} detected Chinese text region(s).",
+                         component="RENDER")
     if removal_region:
         x, y, width, height = removal_region
         log_to_video(

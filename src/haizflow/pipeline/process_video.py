@@ -752,6 +752,31 @@ def process_video_sync(
         clean_video(video_id)
 
 
+def _chinese_text_layers_for_render(video, reporter, video_dir, *, pipeline_progress: int = 62) -> list[dict]:
+    """Timed blur layers for every detected Chinese text region the user kept enabled."""
+    from haizflow.pipeline.chinese_text_detect import detect_chinese_text
+    from haizflow.services import chinese_text
+
+    video_id = video.video_id
+    prefs = chinese_text.load_prefs(video_id)
+    if not prefs["enabled"]:
+        return []
+
+    def report(current: int, total: int) -> None:
+        reporter.update(pipeline_progress, "detecting_original_subtitles",
+                        f"Scanning Chinese text ({current}/{total})", current, total)
+
+    try:
+        tracks = detect_chinese_text(
+            _required_video_path(video, "video_input", must_exist=True),
+            os.path.join(video_dir, "temp"), video_id, progress_callback=report)
+    except (RuntimeError, OSError, ValueError) as exc:
+        # A failed scan must not stop the export; the picture is simply left unchanged.
+        log_to_video(video_id, f"Chinese text detection skipped: {exc}", level="WARNING", component="OCR")
+        return []
+    return chinese_text.render_layers(tracks, prefs)
+
+
 def _original_subtitle_region_for_render(video, reporter, video_dir, *, pipeline_progress: int = 87):
     """Return the OCR region, or bypass OCR when the user keeps source pixels."""
     video_id = video.video_id
@@ -1003,6 +1028,8 @@ def _finish_after_translation(video, reporter, video_dir, original_audio_target,
     # choices. The alignment checkbox controls whether the OCR region wins.
     manual_subtitle_layout = _manual_subtitle_layout_for_render(video)
     original_subtitle_region = _original_subtitle_region_for_render(video, reporter, video_dir)
+    chinese_text_layers = _chinese_text_layers_for_render(video, reporter, video_dir)
+    from haizflow.services import chinese_text as chinese_text_service
     original_subtitle_intervals = _source_subtitle_intervals(
         os.path.join(video_dir, "temp", "source_segments.json")
     )
@@ -1022,6 +1049,7 @@ def _finish_after_translation(video, reporter, video_dir, original_audio_target,
         original_subtitle_removal_mode,
         original_subtitle_region,
         original_subtitle_intervals,
+        chinese_text_service.signature(chinese_text_layers),
         "watermark-media-and-text-style-v4",
         getattr(video, "watermark_text", ""),
         getattr(video, "watermark_scale_percent", 100),
@@ -1087,6 +1115,7 @@ def _finish_after_translation(video, reporter, video_dir, original_audio_target,
             watermark_bold=getattr(video, "watermark_bold", True),
             watermark_italic=getattr(video, "watermark_italic", True),
             encoding_quality=int(preset_settings(getattr(video, "export_preset", "source"))["crf"]),
+            text_blur_layers=chinese_text_layers,
         )
         if getattr(video, "export_preset", "source") != "source":
             from haizflow.pipeline.sequence_compiler import finish_export_resolution
