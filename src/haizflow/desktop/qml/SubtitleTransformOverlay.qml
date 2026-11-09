@@ -245,12 +245,13 @@ Item {
                 visible: root.sampleMode && root.sampleBackgroundOpacity > 0
                 readonly property real cap: root.sampleCapEm * root.previewFontSize
                 readonly property real rows: Math.max(1, sampleLabel.lineCount)
-                readonly property real padV: cap * 0.5
+                readonly property real padTop: cap * 0.6
+                readonly property real padBottom: cap * 0.5
                 readonly property real padH: cap * 1.35
                 width: sampleLabel.contentWidth + 2 * padH
-                height: cap + (rows - 1) * (sampleLabel.contentHeight / rows) + 2 * padV
+                height: cap + (rows - 1) * (sampleLabel.contentHeight / rows) + padTop + padBottom
                 x: sampleLabel.x + (sampleLabel.width - sampleLabel.contentWidth) / 2 - padH
-                y: sampleLabel.y + sampleLabel.baselineOffset - cap - padV
+                y: sampleLabel.y + sampleLabel.baselineOffset - cap - padTop
                 radius: Math.min(width, height) / 2 * Math.max(0, Math.min(100, root.sampleBackgroundRadius)) / 100
                 color: Qt.rgba(root.sampleBackgroundColor.r, root.sampleBackgroundColor.g,
                                root.sampleBackgroundColor.b, Math.max(0, Math.min(100, root.sampleBackgroundOpacity)) / 100)
@@ -282,6 +283,7 @@ Item {
                     width: Number(root.sprite.outputWidth || 1) * selection.rasterScale
                     height: Number(root.sprite.outputHeight || 1) * selection.rasterScale
                     source: root.sprite.box || ""
+                    opacity: root.sprite.boxOpacity === undefined ? 1 : Number(root.sprite.boxOpacity)
                     visible: !root.sampleMode && String(root.sprite.box || "").length > 0
                     sourceSize: Qt.size(Number(root.sprite.outputWidth || 1), Number(root.sprite.outputHeight || 1))
                     asynchronous: true

@@ -14,7 +14,7 @@ def test_box_is_about_twice_the_cap_height_with_wide_side_padding():
     metrics = box.face_metrics(path, 80)
     left, top, width, height = box.box_geometry(metrics, ["HEHE"], 80, 540, 960, 5)
     assert 1.8 <= height / metrics.cap_px <= 2.2
-    assert (height - metrics.cap_px) / 2 / metrics.cap_px == pytest.approx(box.PAD_V_RATIO, abs=0.01)
+    assert (height - metrics.cap_px) / metrics.cap_px == pytest.approx(box.PAD_TOP_RATIO + box.PAD_BOTTOM_RATIO, abs=0.01)
     assert (width - metrics.advance("HEHE")) / 2 / metrics.cap_px == pytest.approx(box.PAD_H_RATIO, abs=0.01)
     assert left + width / 2 == pytest.approx(540, abs=0.5)
 
@@ -107,3 +107,26 @@ def test_every_bundled_font_covers_all_vietnamese_letters():
 
 def test_picker_offers_at_least_a_dozen_fonts():
     assert len(font_catalog.available()) >= 12
+
+
+def test_preview_box_is_opaque_and_carries_its_opacity_separately(tmp_path):
+    """ffmpeg's ass filter mangles partial alpha on a transparent canvas, so the sprite stays opaque."""
+    import os
+
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    from PIL import Image
+
+    from haizflow.desktop import subtitle_overlay_renderer as renderer
+
+    layout = dict(outputWidth=540, outputHeight=960, layoutWidth=400, layoutHeight=80, fontSize=40, outline=3,
+                  positionXPercent=50, positionYPercent=70, fontFamily="Montserrat", textColor="#FFFFFF",
+                  karaokeColor="#FFEF00", outlineColor="#000000", bold=True, italic=False, uppercase=False,
+                  shadow=0, letterSpacing=0, alignment="center", backgroundColor="#FFD400",
+                  backgroundOpacityPercent=50, backgroundRadiusPercent=50)
+    _header, events = renderer.export_events([{"start": 0, "end": 2, "text": "Xin chào"}], layout, True, tmp_path)
+    assert "\\1a&H80&" in events[0]["box"]
+    sprite = renderer.rasterize(events[0]["header"], events[0]["body"], events[0]["layout"], tmp_path / "cache", events[0]["box"])
+    assert sprite["boxOpacity"] == pytest.approx(0.498, abs=0.01)
+    box_png = next((tmp_path / "cache").glob("*/box.png"))
+    alpha = Image.open(box_png).convert("RGBA").getchannel("A")
+    assert alpha.getextrema()[1] == 255

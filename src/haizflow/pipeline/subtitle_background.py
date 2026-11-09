@@ -12,7 +12,8 @@ import struct
 from functools import lru_cache
 from typing import NamedTuple
 
-PAD_V_RATIO = 0.5      # top and bottom each, x cap height (box height ~= 2.0 x cap)
+PAD_TOP_RATIO = 0.6    # above the capitals, x cap height; a little more room for Vietnamese accents
+PAD_BOTTOM_RATIO = 0.5 # below the baseline, x cap height (box height ~= 2.1 x cap)
 PAD_H_RATIO = 1.35     # left and right each, x cap height
 _KAPPA = 0.5522847498
 
@@ -88,17 +89,18 @@ def face_metrics(path: str, font_size: float, letter_spacing: float = 0.0, scale
 
 def box_geometry(
     metrics: FaceMetrics, lines: list[str], font_size: float, x: float, y: float, alignment_tag: int,
-    *, pad_v_ratio: float = PAD_V_RATIO, pad_h_ratio: float = PAD_H_RATIO,
+    *, pad_top_ratio: float = PAD_TOP_RATIO, pad_bottom_ratio: float = PAD_BOTTOM_RATIO,
+    pad_h_ratio: float = PAD_H_RATIO,
 ) -> tuple[float, float, float, float]:
     """(left, top, width, height) of the box around ``lines`` anchored like the ASS text."""
     lines = lines or [""]
     cap = metrics.cap_px
-    pad_v, pad_h = cap * pad_v_ratio, cap * pad_h_ratio
+    pad_top, pad_bottom, pad_h = cap * pad_top_ratio, cap * pad_bottom_ratio, cap * pad_h_ratio
     text_width = max(metrics.advance(line) for line in lines)
     first_baseline = y - len(lines) * font_size / 2 + metrics.win_ascent_px
     last_baseline = first_baseline + (len(lines) - 1) * font_size
-    top = first_baseline - cap - pad_v
-    height = (last_baseline + pad_v) - top
+    top = first_baseline - cap - pad_top
+    height = (last_baseline + pad_bottom) - top
     width = text_width + 2 * pad_h
     if alignment_tag == 4:       # \an4: text starts at x
         left = x - pad_h

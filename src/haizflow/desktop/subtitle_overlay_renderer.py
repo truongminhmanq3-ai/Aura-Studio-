@@ -233,7 +233,14 @@ def rasterize(header, body, layout, directory, box=""):
             f"{{\\1c&H{color}&\\2c&H{color}&}}{clean}\n", encoding="utf-8")
     fonts = str(_karaoke_font_directory()).replace("\\", "/").replace(":", "\\:")
     width, height = int(layout["outputWidth"]), int(layout["outputHeight"])
+    box_opacity = 1.0
     if box:
+        # The ffmpeg ass filter premultiplies partial alpha twice on a transparent canvas, so the
+        # box is drawn opaque and its opacity is applied by the preview image instead.
+        alpha = re.search(r"\\1a&H([0-9A-Fa-f]{2})&", box)
+        if alpha:
+            box_opacity = round(1 - int(alpha.group(1), 16) / 255, 3)
+            box = box.replace(alpha.group(0), "\\1a&H00&")
         (directory / "box.ass").write_text(
             header + f"Dialogue: 0,0:00:00.00,0:00:10.00,Default,,0,0,0,,{box}\n", encoding="utf-8")
     split = "split=3[a][b][c]" if box else "split[a][b]"
@@ -254,6 +261,7 @@ def rasterize(header, body, layout, directory, box=""):
     value = {"normal": QUrl.fromLocalFile(str(directory / "normal.png")).toString(),
              "karaoke": QUrl.fromLocalFile(str(directory / "karaoke.png")).toString(),
              "box": QUrl.fromLocalFile(str(directory / "box.png")).toString() if box else "",
+             "boxOpacity": box_opacity,
              "x": bounds[0], "y": bounds[1], "width": bounds[2] - bounds[0],
              "height": bounds[3] - bounds[1], "fontSize": int(layout["fontSize"]),
              "outputWidth": width, "outputHeight": height,
