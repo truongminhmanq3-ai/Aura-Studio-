@@ -18,6 +18,7 @@ ColumnLayout {
         Layout.fillWidth: true
         style: root.projectStyle
         karaokeEnabled: true
+        backgroundEnabled: true
         enabled: root.editable
         onChangeRequested: function(patch) {
             if (AppController.applyTextStyle([], patch, "project"))

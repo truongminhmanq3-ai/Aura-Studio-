@@ -105,7 +105,16 @@ def render_text_overlay_sprite(
     )
     text_width = max(1, bounds[2] - bounds[0])
     text_height = max(1, bounds[3] - bounds[1])
-    padding = max(0, round(style.background_padding))
+    ratio_fit = style.background_fit == "text_ratio"
+    ascent, descent = font.getmetrics()
+    if ratio_fit:
+        from haizflow.pipeline import subtitle_background as box
+
+        cap = font.getbbox("H")[3] - font.getbbox("H")[1]
+        padding_x, padding_y = round(cap * box.PAD_H_RATIO), round(cap * box.PAD_V_RATIO)
+    else:
+        padding_x = padding_y = max(0, round(style.background_padding))
+    padding = max(padding_x, padding_y)
     shadow_extent = max(
         0,
         round(style.shadow_blur * 2),
@@ -120,15 +129,19 @@ def render_text_overlay_sprite(
     image = Image.new("RGBA", (sprite_width, sprite_height), (0, 0, 0, 0))
     if style.background_opacity_percent > 0:
         background = ImageDraw.Draw(image)
+        if ratio_fit:
+            baseline = origin[1] + ascent
+            pitch = ascent + descent + spacing
+            rect = (
+                margin - padding_x, baseline - cap - padding_y,
+                margin + text_width + padding_x, baseline + (content.count("\n")) * pitch + padding_y,
+            )
+            radius = round(min(rect[2] - rect[0], rect[3] - rect[1]) / 2 * style.background_radius_percent / 100)
+        else:
+            rect = (margin - padding, margin - padding, margin + text_width + padding, margin + text_height + padding)
+            radius = max(0, round(style.background_radius))
         background.rounded_rectangle(
-            (
-                margin - padding,
-                margin - padding,
-                margin + text_width + padding,
-                margin + text_height + padding,
-            ),
-            radius=max(0, round(style.background_radius)),
-            fill=_rgba(style.background_color, style.background_opacity_percent),
+            rect, radius=radius, fill=_rgba(style.background_color, style.background_opacity_percent),
         )
 
     if style.shadow_opacity_percent > 0 and (

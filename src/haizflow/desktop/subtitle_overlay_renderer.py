@@ -29,9 +29,9 @@ def timestamp(value):
     return int(hours) * 3600 + int(minutes) * 60 + float(seconds)
 
 
-def sprite_key(header, body, layout):
+def sprite_key(header, body, layout, box=""):
     return hashlib.sha256((
-        "subtitle-sprite-v4\n" + header + body
+        "subtitle-sprite-v5\n" + header + body + "\n" + box
         + json.dumps(layout, sort_keys=True, ensure_ascii=False)
     ).encode()).hexdigest()
 
@@ -61,6 +61,11 @@ def export_events(segments, layout, fixed, directory):
                 uppercase=bool(style_payload.get("uppercase", False)),
                 letterSpacing=style_payload.get("letter_spacing", resolved.get("letterSpacing", 0)),
                 alignment=style_payload.get("alignment", resolved.get("alignment", "center")),
+                backgroundColor=style_payload.get("background_color", resolved.get("backgroundColor")),
+                backgroundOpacityPercent=style_payload.get(
+                    "background_opacity_percent", resolved.get("backgroundOpacityPercent", 0)),
+                backgroundRadiusPercent=style_payload.get(
+                    "background_radius_percent", resolved.get("backgroundRadiusPercent", 50)),
                 shadow=round(max(
                     abs(float(style_payload.get("shadow_offset_x", 0) or 0)),
                     abs(float(style_payload.get("shadow_offset_y", 0) or 0)),
@@ -93,6 +98,9 @@ def export_events(segments, layout, fixed, directory):
             shadow=round(float(resolved.get("shadow", 2))),
             letter_spacing=float(resolved.get("letterSpacing", resolved.get("letter_spacing", 0)) or 0),
             alignment=str(resolved.get("alignment") or "center"),
+            background_color=str(resolved.get("backgroundColor") or "#000000"),
+            background_opacity_percent=round(float(resolved.get("backgroundOpacityPercent", 0) or 0)),
+            background_radius_percent=round(float(resolved.get("backgroundRadiusPercent", 50) or 0)),
         )
         subtitles = [
             srt.Subtitle(
@@ -125,11 +133,18 @@ def export_events(segments, layout, fixed, directory):
         header = text.split("Dialogue:", 1)[0]
         if not first_header:
             first_header = header
+        pending_box = ""
         for line in text.splitlines():
             if not line.startswith("Dialogue:"):
                 continue
             fields = line.split(",", 9)
+            if "\\p1" in fields[9]:
+                # The rounded caption box is rasterized on its own layer image.
+                pending_box = fields[9]
+                continue
+            box, pending_box = pending_box, ""
             events.append({
+                "box": box,
                 "start": timestamp(fields[1]),
                 "end": timestamp(fields[2]),
                 "body": fields[9],
@@ -174,10 +189,10 @@ def _karaoke_line_regions(body, alpha):
     return result
 
 
-def rasterize(header, body, layout, directory):
+def rasterize(header, body, layout, directory, box=""):
     # Bump this prefix whenever sprite composition changes. Otherwise a frame
     # produced by an older renderer can silently survive an application update.
-    key = sprite_key(header, body, layout)[:24]
+    key = sprite_key(header, body, layout, box)[:24]
     directory = directory / key
     directory.mkdir(parents=True, exist_ok=True)
     marker = directory / "complete.json"
@@ -187,7 +202,8 @@ def rasterize(header, body, layout, directory):
             if (isinstance(value, dict) and "normal" in value and "karaoke" in value
                     and all((directory / name).is_file()
                             and (directory / name).stat().st_size > 0
-                            for name in ("normal.png", "karaoke.png"))):
+                            for name in ("normal.png", "karaoke.png"))
+                    and (not box or (directory / "box.png").is_file())):
                 for name in ("normal.png", "karaoke.png"):
                     with Image.open(directory / name) as image:
                         if image.size != (int(layout["outputWidth"]), int(layout["outputHeight"])):
@@ -217,12 +233,18 @@ def rasterize(header, body, layout, directory):
             f"{{\\1c&H{color}&\\2c&H{color}&}}{clean}\n", encoding="utf-8")
     fonts = str(_karaoke_font_directory()).replace("\\", "/").replace(":", "\\:")
     width, height = int(layout["outputWidth"]), int(layout["outputHeight"])
+    if box:
+        (directory / "box.ass").write_text(
+            header + f"Dialogue: 0,0:00:00.00,0:00:10.00,Default,,0,0,0,,{box}\n", encoding="utf-8")
+    split = "split=3[a][b][c]" if box else "split[a][b]"
+    box_branch = f";[c]ass=box.ass:fontsdir='{fonts}':alpha=1[x]" if box else ""
     command = [_binary("ffmpeg"), "-v", "error", "-y", "-f", "lavfi", "-i",
         f"color=c=black@0:s={width}x{height}:r=1,format=rgba", "-filter_complex",
-        f"[0:v]split[a][b];[a]ass=normal.ass:fontsdir='{fonts}':alpha=1[n];"
-        f"[b]ass=karaoke.ass:fontsdir='{fonts}':alpha=1[k]",
+        f"[0:v]{split};[a]ass=normal.ass:fontsdir='{fonts}':alpha=1[n];"
+        f"[b]ass=karaoke.ass:fontsdir='{fonts}':alpha=1[k]{box_branch}",
         "-map", "[n]", "-frames:v", "1", "-threads", "1", "normal.png",
-        "-map", "[k]", "-frames:v", "1", "-threads", "1", "karaoke.png"]
+        "-map", "[k]", "-frames:v", "1", "-threads", "1", "karaoke.png",
+        *(["-map", "[x]", "-frames:v", "1", "-threads", "1", "box.png"] if box else [])]
     subprocess.run(command, cwd=directory, check=True, capture_output=True, timeout=20,
                    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     with Image.open(directory / "normal.png") as image:
@@ -231,6 +253,7 @@ def rasterize(header, body, layout, directory):
         karaoke_lines = _karaoke_line_regions(body, alpha)
     value = {"normal": QUrl.fromLocalFile(str(directory / "normal.png")).toString(),
              "karaoke": QUrl.fromLocalFile(str(directory / "karaoke.png")).toString(),
+             "box": QUrl.fromLocalFile(str(directory / "box.png")).toString() if box else "",
              "x": bounds[0], "y": bounds[1], "width": bounds[2] - bounds[0],
              "height": bounds[3] - bounds[1], "fontSize": int(layout["fontSize"]),
              "outputWidth": width, "outputHeight": height,
@@ -406,7 +429,7 @@ class SubtitleOverlayRenderer(QObject):
 
     def _event_key(self, event):
         return sprite_key(str(event.get("header") or self._header), event["body"],
-                          event.get("layout") or self._layout)
+                          event.get("layout") or self._layout, str(event.get("box") or ""))
 
     def _request_frame(self, event, cache_key=None):
         cache_key = cache_key or self._event_key(event)
@@ -416,12 +439,13 @@ class SubtitleOverlayRenderer(QObject):
         self._pending.add(key)
         header = str(event.get("header") or self._header)
         body = event["body"]
+        box = str(event.get("box") or "")
         layout = dict(event.get("layout") or self._layout)
         def render():
             try:
                 if key[0] != self._generation:
                     return ("failed_frame", key, "superseded")
-                return ("frame", key, rasterize(header, body, layout, self._root))
+                return ("frame", key, rasterize(header, body, layout, self._root, box))
             except Exception as exc:
                 return ("failed_frame", key, str(exc))
         self._frame_futures[key] = self._submit(render)

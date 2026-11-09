@@ -5,6 +5,16 @@ from typing import Any, Dict, Literal, Optional
 VIDEO_METADATA_SCHEMA_VERSION = 19
 VIDEO_METADATA_TYPE = "haizflow.video"
 SUBTITLE_FONT_FAMILY = "Bangers"
+# Families a subtitle may use. Bundled ones always exist; "Arial Rounded MT Bold"
+# and "SVN-Gilroy" are used only when installed on the machine (licensed fonts).
+SUBTITLE_FONT_FAMILIES = (
+    "Bangers", "Montserrat", "Be Vietnam Pro", "Nunito", "Arial Rounded MT Bold", "SVN-Gilroy",
+)
+
+
+def normalize_subtitle_font(value) -> str:
+    wanted = str(value or "").strip().casefold()
+    return next((name for name in SUBTITLE_FONT_FAMILIES if name.casefold() == wanted), SUBTITLE_FONT_FAMILY)
 WorkflowMode = Literal["A", "review"]
 TranslatorProvider = Literal["gemini", "deepseek", "hymt2"]
 TranslationModel = Literal["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.8-flash", "deepseek-flash", "deepseek-v4-pro", "auto", "q4", "full"]
@@ -49,11 +59,15 @@ class SubtitleStyle(BaseModel):
     shadow: int = Field(default=2, ge=0, le=100)
     letter_spacing: float = Field(default=0.0, ge=-20, le=100)
     alignment: Literal["left", "center", "right"] = "center"
+    # Rounded caption box behind the text. Opacity 0 keeps the current look.
+    background_color: str = Field(default="#000000", pattern=r"^#[0-9A-Fa-f]{6}$")
+    background_opacity_percent: int = Field(default=0, ge=0, le=100)
+    background_radius_percent: int = Field(default=50, ge=0, le=100)
 
     @field_validator("font_family", mode="before")
     @classmethod
-    def bundled_subtitle_font(cls, value):
-        return SUBTITLE_FONT_FAMILY
+    def catalog_subtitle_font(cls, value):
+        return normalize_subtitle_font(value)
 
 
 def subtitle_style_for_project(project_type: str, style: SubtitleStyle, *, overridden: bool = False) -> SubtitleStyle:

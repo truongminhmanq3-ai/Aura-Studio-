@@ -254,6 +254,17 @@ Item {
                 anchors.fill: parent
                 visible: root.livePreviewVisible
                 Image {
+                    objectName: "subtitleTransformBox"
+                    x: selection.rasterX - selection.x - Number(root.sprite.x || 0) * selection.rasterScale
+                    y: selection.rasterY - selection.y - Number(root.sprite.y || 0) * selection.rasterScale
+                    width: Number(root.sprite.outputWidth || 1) * selection.rasterScale
+                    height: Number(root.sprite.outputHeight || 1) * selection.rasterScale
+                    source: root.sprite.box || ""
+                    visible: !root.sampleMode && String(root.sprite.box || "").length > 0
+                    sourceSize: Qt.size(Number(root.sprite.outputWidth || 1), Number(root.sprite.outputHeight || 1))
+                    asynchronous: true
+                }
+                Image {
                     objectName: "subtitleTransformSprite"
                     x: selection.rasterX - selection.x - Number(root.sprite.x || 0) * selection.rasterScale
                     y: selection.rasterY - selection.y - Number(root.sprite.y || 0) * selection.rasterScale

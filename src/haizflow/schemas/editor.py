@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-from haizflow.schemas.video import SUBTITLE_FONT_FAMILY
+from haizflow.schemas.video import SUBTITLE_FONT_FAMILY, normalize_subtitle_font
 
 
 EDITOR_DOCUMENT_SCHEMA_VERSION = 3
@@ -81,6 +81,10 @@ class EditorTextStyle(BaseModel):
     background_opacity_percent: int = Field(default=0, ge=0, le=100)
     background_padding: float = Field(default=0.0, ge=0, le=100)
     background_radius: float = Field(default=0.0, ge=0, le=100)
+    # Share of the half-height: 0 square corners, 100 fully rounded ends.
+    background_radius_percent: float = Field(default=50.0, ge=0, le=100)
+    # "text_ratio" sizes the box from the capital-letter height (see subtitle_background).
+    background_fit: Literal["manual", "text_ratio"] = "manual"
     position_x_percent: float = Field(default=50.0, ge=0, le=100)
     position_y_percent: float = Field(default=88.0, ge=0, le=100)
     max_width_percent: float = Field(default=72.0, ge=10, le=100)
@@ -90,10 +94,22 @@ class EditorTextStyle(BaseModel):
 
     @model_validator(mode="after")
     def bundled_subtitle_font(self):
-        if self.target_type == "subtitle" and self.font_family != SUBTITLE_FONT_FAMILY:
-            self.font_family = SUBTITLE_FONT_FAMILY
+        if self.target_type == "subtitle" and self.font_family != normalize_subtitle_font(self.font_family):
+            self.font_family = normalize_subtitle_font(self.font_family)
             self.font_fingerprint = ""
         return self
+
+
+def title_text_style(style_id: str = "title-default") -> EditorTextStyle:
+    """Fixed look for video titles: black bold text on a yellow rounded box."""
+    return EditorTextStyle(
+        style_id=style_id, name="Tiêu đề", target_type="text_overlay",
+        font_family="Montserrat", font_weight=700, font_size=56.0,
+        text_color="#111111", outline_width=0.0, shadow_opacity_percent=0,
+        background_color="#FFD400", background_opacity_percent=100,
+        background_radius_percent=40.0, background_fit="text_ratio",
+        position_x_percent=50.0, position_y_percent=14.0, max_width_percent=84.0, max_lines=2,
+    )
 
 
 class EditorAsset(BaseModel):
@@ -138,8 +154,9 @@ class EditorClip(BaseModel):
     @model_validator(mode="after")
     def bundled_subtitle_font(self):
         if self.kind == "subtitle" and "font_family" in self.style_override:
-            if self.style_override["font_family"] != SUBTITLE_FONT_FAMILY:
-                self.style_override = {**self.style_override, "font_family": SUBTITLE_FONT_FAMILY}
+            wanted = normalize_subtitle_font(self.style_override["font_family"])
+            if self.style_override["font_family"] != wanted:
+                self.style_override = {**self.style_override, "font_family": wanted}
                 self.style_override.pop("font_fingerprint", None)
         return self
 

@@ -123,6 +123,10 @@ def _font_path_details(
     family = str(font_family or "Arial").strip().lower()
     if family == "bangers":
         return _karaoke_font_directory() / KARAOKE_FONT_FILENAME, True
+    from haizflow.services import font_catalog
+    catalog_path = font_catalog.resolve(family, bold, italic)
+    if catalog_path is not None:
+        return catalog_path, True
     if sys.platform == "darwin":
         native_family = {"arial": "Arial", "times new roman": "Times New Roman", "impact": "Impact"}.get(family)
         if native_family:
@@ -774,6 +778,24 @@ def subtitle_preview_frame_for_layout(
     return {"text": parts[-1], "karaokeProgress": 1.0}
 
 
+def _caption_box_lines(
+    cue_style: SubtitleStyle, content: str, font_size: float, scale_x: float, x: float, y: float,
+    alignment_tag: int, start: str, end: str,
+) -> list[str]:
+    """Rounded background event for one caption, empty when the box is off."""
+    if cue_style.background_opacity_percent <= 0:
+        return []
+    from haizflow.pipeline import subtitle_background as box
+
+    path, _exact = _font_path_details(cue_style.font_family, cue_style.bold, cue_style.italic)
+    text = content.upper() if cue_style.uppercase else content
+    metrics = box.face_metrics(str(path), font_size, cue_style.letter_spacing, scale_x)
+    left, top, width, height = box.box_geometry(
+        metrics, text.split("\n"), font_size, x, y, alignment_tag)
+    return [box.box_event(start, end, left, top, width, height, cue_style.background_color,
+                          cue_style.background_opacity_percent, cue_style.background_radius_percent)]
+
+
 def _write_positioned_ass(
     srt_path: str,
     ass_path: str,
@@ -874,8 +896,13 @@ def _write_positioned_ass(
                     f"\\i{1 if cue_style.italic else 0}"
                     f"\\fsp{cue_style.letter_spacing}"
                 )
+                part_start = _ass_timestamp(start_time)
+                part_end = _ass_timestamp(subtitle.end if part_index == len(visual_parts) - 1 else end_time)
+                box_lines = _caption_box_lines(cue_style, content, font_size, scale_x, x, y,
+                                               alignment_tag, part_start, part_end)
+                lines.extend(box_lines)
                 lines.append(
-                    f"Dialogue: 0,{_ass_timestamp(start_time)},{_ass_timestamp(subtitle.end if part_index == len(visual_parts) - 1 else end_time)},Default,,0,0,0,,"
+                    f"Dialogue: {1 if box_lines else 0},{part_start},{part_end},Default,,0,0,0,,"
                     f"{{\\an{alignment_tag}\\pos({x},{y})\\fs{font_size}\\fscx{scale_x}{inline_style}\\bord{cue_outline}"
                     f"\\shad{cue_style.shadow}}}{karaoke}"
                 )
@@ -890,8 +917,11 @@ def _write_positioned_ass(
                 cue_style.font_size,
                 cue_style.outline,
             )
+            box_lines = _caption_box_lines(cue_style, subtitle.content, cue_style.font_size, 100, x, y,
+                                           alignment_tag, start_time, end_time)
+            lines.extend(box_lines)
             lines.append(
-                f"Dialogue: 0,{start_time},{end_time},Default,,0,0,0,,"
+                f"Dialogue: {1 if box_lines else 0},{start_time},{end_time},Default,,0,0,0,,"
                 f"{{\\an{alignment_tag}\\pos({x},{y})\\fsp{cue_style.letter_spacing}"
                 f"\\bord{cue_outline}\\shad{cue_style.shadow}}}{karaoke}"
             )
@@ -1184,6 +1214,9 @@ def resolve_subtitle_preview_layout(
         "shadow": effective_style.shadow,
         "letterSpacing": effective_style.letter_spacing,
         "alignment": effective_style.alignment,
+        "backgroundColor": effective_style.background_color,
+        "backgroundOpacityPercent": effective_style.background_opacity_percent,
+        "backgroundRadiusPercent": effective_style.background_radius_percent,
     }
 
 
@@ -1675,6 +1708,11 @@ def render_video(
             )),
             letter_spacing=float(raw.get("letter_spacing", payload.get("letter_spacing", 0))),
             alignment=str(raw.get("alignment", payload.get("alignment", "center"))),
+            background_color=str(raw.get("background_color", payload["background_color"])),
+            background_opacity_percent=round(float(raw.get(
+                "background_opacity_percent", payload["background_opacity_percent"]))),
+            background_radius_percent=round(float(raw.get(
+                "background_radius_percent", payload["background_radius_percent"]))),
             position_x_percent=round(float(raw.get("position_x_percent", payload["position_x_percent"]))),
             position_y_percent=round(float(raw.get("position_y_percent", payload["position_y_percent"]))),
         )

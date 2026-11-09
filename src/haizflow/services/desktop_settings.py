@@ -24,6 +24,8 @@ DEFAULT_SETTINGS = {
     "manual_editor_inspector_width": 356,
     "manual_editor_timeline_height": 280,
     "manual_editor_compare": False,
+    # Caption box look kept for every new video once the user presses "lock".
+    "subtitle_box_lock": {},
     "manual_editor_workspace": {
         "placements": {
             "tools": "left",
@@ -34,6 +36,32 @@ DEFAULT_SETTINGS = {
     },
 }
 _SETTINGS_LOCK = threading.RLock()
+
+
+def normalize_subtitle_box_lock(value) -> dict:
+    """{} (unlocked) or a validated background colour/opacity/radius/font."""
+    import re
+
+    from haizflow.schemas.video import normalize_subtitle_font
+
+    if not isinstance(value, dict) or not value:
+        return {}
+    color = str(value.get("background_color") or "").upper()
+    if not re.fullmatch(r"#[0-9A-F]{6}", color):
+        color = "#000000"
+
+    def percent(key: str, default: int) -> int:
+        try:
+            return max(0, min(100, int(value.get(key, default))))
+        except (TypeError, ValueError):
+            return default
+
+    return {
+        "background_color": color,
+        "background_opacity_percent": percent("background_opacity_percent", 0),
+        "background_radius_percent": percent("background_radius_percent", 50),
+        "font_family": normalize_subtitle_font(value.get("font_family")),
+    }
 
 
 def _normalize_manual_workspace(value) -> dict:
@@ -145,6 +173,7 @@ def save_settings(settings: dict) -> dict:
         "manual_editor_timeline_height": bounded_integer("manual_editor_timeline_height", 280, 200, 520),
         "manual_editor_compare": bool(merged.get("manual_editor_compare", False)),
         "manual_editor_workspace": workspace,
+        "subtitle_box_lock": normalize_subtitle_box_lock(merged.get("subtitle_box_lock")),
     }
     with _SETTINGS_LOCK:
         if isinstance(existing, dict) and all(existing.get(key) == value for key, value in normalized.items()):

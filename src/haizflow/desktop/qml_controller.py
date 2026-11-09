@@ -498,6 +498,9 @@ class HaizFlowController(QObject):
 
         for attribute, value in project_model_defaults(self._settings_processing_device).items():
             setattr(self, attribute, value)
+        self._subtitle_box_lock = desktop_settings.normalize_subtitle_box_lock(settings.get("subtitle_box_lock"))
+        if self._subtitle_box_lock:
+            self._subtitle_style = self._subtitle_style.model_copy(update=self._subtitle_box_lock)
         self._draft_processing_device = self._settings_processing_device
         self._processing_device_origin = settings["processing_device_origin"]
         self._settings_translation_model = settings["translation_model"]
@@ -2016,8 +2019,8 @@ class HaizFlowController(QObject):
 
     @subtitleFontFamily.setter
     def subtitleFontFamily(self, value):
-        from haizflow.schemas.video import SUBTITLE_FONT_FAMILY
-        self._set_subtitle_style_option("font_family", SUBTITLE_FONT_FAMILY)
+        from haizflow.schemas.video import normalize_subtitle_font
+        self._set_subtitle_style_option("font_family", normalize_subtitle_font(value))
 
     @Property(str, notify=subtitleSettingsChanged)
     def subtitleTextColor(self):
@@ -2100,7 +2103,11 @@ class HaizFlowController(QObject):
     @Slot("QVariantMap", result=bool)
     def applySubtitleAppearance(self, patch):
         allowed = {"font_family", "font_size", "text_color", "karaoke_color", "outline_color",
-                   "outline", "bold", "italic", "uppercase", "shadow", "letter_spacing", "alignment"}
+                   "outline", "bold", "italic", "uppercase", "shadow", "letter_spacing", "alignment",
+                   "background_color", "background_opacity_percent", "background_radius_percent"}
+        box_lock = getattr(self, "_subtitle_box_lock", None)
+        if box_lock and isinstance(patch, dict) and set(patch) & set(box_lock):
+            return False  # the caption box is locked; unlock it first
         if not isinstance(patch, dict) or not patch or set(patch) - allowed:
             return False
         try:
@@ -2115,6 +2122,41 @@ class HaizFlowController(QObject):
             self._subtitle_style = style
             self.subtitleSettingsChanged.emit()
         return True
+
+    @Property(bool, notify=subtitleSettingsChanged)
+    def subtitleBoxLocked(self):
+        return bool(getattr(self, "_subtitle_box_lock", None))
+
+    @Slot(bool, "QVariantMap", result=bool)
+    def setSubtitleBoxLocked(self, locked, values):
+        """Keep (or release) the box colour, opacity, radius and font shown in the style panel for new videos."""
+        lock = {}
+        if locked:
+            style = self._subtitle_style
+            shown = dict(values or {})
+            lock = {"background_color": shown.get("background_color", style.background_color),
+                    "background_opacity_percent": shown.get(
+                        "background_opacity_percent", style.background_opacity_percent),
+                    "background_radius_percent": shown.get(
+                        "background_radius_percent", style.background_radius_percent),
+                    "font_family": shown.get("font_family", style.font_family)}
+        try:
+            desktop_settings.save_settings({"subtitle_box_lock": lock})
+        except OSError:
+            return False
+        self._subtitle_box_lock = desktop_settings.normalize_subtitle_box_lock(lock)
+        self.subtitleSettingsChanged.emit()
+        return True
+
+    @Property("QVariantList", constant=True)
+    def subtitleFontChoices(self):
+        from haizflow.services import font_catalog
+
+        return font_catalog.available()
+
+    def _with_locked_box(self, style):
+        lock = getattr(self, "_subtitle_box_lock", None)
+        return style.model_copy(update=lock) if lock else style
 
     @Property(QObject, constant=True)
     def subtitleSampleOverlayRenderer(self):
@@ -6171,8 +6213,8 @@ class HaizFlowController(QObject):
         patch = dict(style or {})
         scope = str(scope or "project")
         if "font_family" in patch:
-            from haizflow.schemas.video import SUBTITLE_FONT_FAMILY
-            patch["font_family"] = SUBTITLE_FONT_FAMILY
+            from haizflow.schemas.video import normalize_subtitle_font
+            patch["font_family"] = normalize_subtitle_font(patch["font_family"])
 
         def with_font_fingerprint(payload: dict) -> dict:
             if "font_family" not in patch:
@@ -7188,7 +7230,7 @@ class HaizFlowController(QObject):
             tts_provider=self._tts_provider,
             tts_voice=self._tts_voice,
             speaker_mode=self._speaker_mode,
-            subtitle_style=self._subtitle_style,
+            subtitle_style=self._with_locked_box(self._subtitle_style),
             subtitle_layout_override=manual_subtitle_layout,
             remove_original_subtitles=self._remove_original_subtitles,
             original_subtitle_removal_mode=self._original_subtitle_removal_mode,

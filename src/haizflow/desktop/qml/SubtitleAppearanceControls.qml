@@ -19,6 +19,7 @@ ColumnLayout {
         Layout.fillWidth: true
         style: root.compactStyle
         karaokeEnabled: true
+        backgroundEnabled: true
         onChangeRequested: function (patch) {
             const mapped = Object.assign({}, patch);
             if (mapped.font_weight !== undefined) {

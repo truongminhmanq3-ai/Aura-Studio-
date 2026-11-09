@@ -416,7 +416,14 @@ Item {
         shadow: Math.max(
             Math.abs(Number(editorSubtitleStyle.shadow_offset_x || 0)),
             Math.abs(Number(editorSubtitleStyle.shadow_offset_y || AppController.subtitleShadow))
-        )
+        ),
+        backgroundColor: editorSubtitleStyle.background_color || AppController.subtitleAppearance.background_color,
+        backgroundOpacityPercent: editorSubtitleStyle.background_opacity_percent === undefined
+            ? AppController.subtitleAppearance.background_opacity_percent
+            : Number(editorSubtitleStyle.background_opacity_percent),
+        backgroundRadiusPercent: editorSubtitleStyle.background_radius_percent === undefined
+            ? AppController.subtitleAppearance.background_radius_percent
+            : Number(editorSubtitleStyle.background_radius_percent)
     })
     function requestSubtitleOverlay() {
         if (!subtitleTransformDraft) overlayTimer.restart();
