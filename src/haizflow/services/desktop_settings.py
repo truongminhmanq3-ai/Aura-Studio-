@@ -60,6 +60,10 @@ def normalize_subtitle_box_lock(value) -> dict:
         "background_color": color,
         "background_opacity_percent": percent("background_opacity_percent", 0),
         "background_radius_percent": percent("background_radius_percent", 50),
+        "background_pad_top_percent": max(0, min(300, int(value.get("background_pad_top_percent", 60) or 0))),
+        "background_pad_bottom_percent": max(0, min(300, int(value.get("background_pad_bottom_percent", 50) or 0))),
+        "background_pad_left_percent": max(0, min(300, int(value.get("background_pad_left_percent", 135) or 0))),
+        "background_pad_right_percent": max(0, min(300, int(value.get("background_pad_right_percent", 135) or 0))),
         "font_family": normalize_subtitle_font(value.get("font_family")),
     }
 

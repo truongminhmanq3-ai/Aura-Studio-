@@ -791,7 +791,11 @@ def _caption_box_lines(
     text = content.upper() if cue_style.uppercase else content
     metrics = box.face_metrics(str(path), font_size, cue_style.letter_spacing, scale_x)
     left, top, width, height = box.box_geometry(
-        metrics, text.split("\n"), font_size, x, y, alignment_tag)
+        metrics, text.split("\n"), font_size, x, y, alignment_tag,
+        pad_top_ratio=cue_style.background_pad_top_percent / 100,
+        pad_bottom_ratio=cue_style.background_pad_bottom_percent / 100,
+        pad_left_ratio=cue_style.background_pad_left_percent / 100,
+        pad_right_ratio=cue_style.background_pad_right_percent / 100)
     return [box.box_event(start, end, left, top, width, height, cue_style.background_color,
                           cue_style.background_opacity_percent, cue_style.background_radius_percent)]
 
@@ -1217,6 +1221,10 @@ def resolve_subtitle_preview_layout(
         "backgroundColor": effective_style.background_color,
         "backgroundOpacityPercent": effective_style.background_opacity_percent,
         "backgroundRadiusPercent": effective_style.background_radius_percent,
+        "backgroundPadTopPercent": effective_style.background_pad_top_percent,
+        "backgroundPadBottomPercent": effective_style.background_pad_bottom_percent,
+        "backgroundPadLeftPercent": effective_style.background_pad_left_percent,
+        "backgroundPadRightPercent": effective_style.background_pad_right_percent,
     }
 
 
@@ -1713,6 +1721,14 @@ def render_video(
                 "background_opacity_percent", payload["background_opacity_percent"]))),
             background_radius_percent=round(float(raw.get(
                 "background_radius_percent", payload["background_radius_percent"]))),
+            background_pad_top_percent=round(float(raw.get(
+                "background_pad_top_percent", payload["background_pad_top_percent"]))),
+            background_pad_bottom_percent=round(float(raw.get(
+                "background_pad_bottom_percent", payload["background_pad_bottom_percent"]))),
+            background_pad_left_percent=round(float(raw.get(
+                "background_pad_left_percent", payload["background_pad_left_percent"]))),
+            background_pad_right_percent=round(float(raw.get(
+                "background_pad_right_percent", payload["background_pad_right_percent"]))),
             position_x_percent=round(float(raw.get("position_x_percent", payload["position_x_percent"]))),
             position_y_percent=round(float(raw.get("position_y_percent", payload["position_y_percent"]))),
         )

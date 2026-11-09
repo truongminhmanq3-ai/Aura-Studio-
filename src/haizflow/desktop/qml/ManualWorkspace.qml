@@ -423,7 +423,19 @@ Item {
             : Number(editorSubtitleStyle.background_opacity_percent),
         backgroundRadiusPercent: editorSubtitleStyle.background_radius_percent === undefined
             ? AppController.subtitleAppearance.background_radius_percent
-            : Number(editorSubtitleStyle.background_radius_percent)
+            : Number(editorSubtitleStyle.background_radius_percent),
+        backgroundPadTopPercent: editorSubtitleStyle.background_pad_top_percent === undefined
+            ? AppController.subtitleAppearance.background_pad_top_percent
+            : Number(editorSubtitleStyle.background_pad_top_percent),
+        backgroundPadBottomPercent: editorSubtitleStyle.background_pad_bottom_percent === undefined
+            ? AppController.subtitleAppearance.background_pad_bottom_percent
+            : Number(editorSubtitleStyle.background_pad_bottom_percent),
+        backgroundPadLeftPercent: editorSubtitleStyle.background_pad_left_percent === undefined
+            ? AppController.subtitleAppearance.background_pad_left_percent
+            : Number(editorSubtitleStyle.background_pad_left_percent),
+        backgroundPadRightPercent: editorSubtitleStyle.background_pad_right_percent === undefined
+            ? AppController.subtitleAppearance.background_pad_right_percent
+            : Number(editorSubtitleStyle.background_pad_right_percent)
     })
     function requestSubtitleOverlay() {
         if (!subtitleTransformDraft) overlayTimer.restart();

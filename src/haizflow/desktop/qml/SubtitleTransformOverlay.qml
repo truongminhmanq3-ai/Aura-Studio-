@@ -20,6 +20,10 @@ Item {
     property real sampleBackgroundOpacity: 0
     property real sampleBackgroundRadius: 50
     property real sampleCapEm: 0.7
+    property real sampleBackgroundPadTop: 60
+    property real sampleBackgroundPadBottom: 50
+    property real sampleBackgroundPadLeft: 135
+    property real sampleBackgroundPadRight: 135
     property var sprite: ({})
     property real karaokeProgress: 0
     property int fontSize: 60
@@ -245,12 +249,13 @@ Item {
                 visible: root.sampleMode && root.sampleBackgroundOpacity > 0
                 readonly property real cap: root.sampleCapEm * root.previewFontSize
                 readonly property real rows: Math.max(1, sampleLabel.lineCount)
-                readonly property real padTop: cap * 0.6
-                readonly property real padBottom: cap * 0.5
-                readonly property real padH: cap * 1.35
-                width: sampleLabel.contentWidth + 2 * padH
+                readonly property real padTop: cap * root.sampleBackgroundPadTop / 100
+                readonly property real padBottom: cap * root.sampleBackgroundPadBottom / 100
+                readonly property real padLeft: cap * root.sampleBackgroundPadLeft / 100
+                readonly property real padRight: cap * root.sampleBackgroundPadRight / 100
+                width: sampleLabel.contentWidth + padLeft + padRight
                 height: cap + (rows - 1) * (sampleLabel.contentHeight / rows) + padTop + padBottom
-                x: sampleLabel.x + (sampleLabel.width - sampleLabel.contentWidth) / 2 - padH
+                x: sampleLabel.x + (sampleLabel.width - sampleLabel.contentWidth) / 2 - padLeft
                 y: sampleLabel.y + sampleLabel.baselineOffset - cap - padTop
                 radius: Math.min(width, height) / 2 * Math.max(0, Math.min(100, root.sampleBackgroundRadius)) / 100
                 color: Qt.rgba(root.sampleBackgroundColor.r, root.sampleBackgroundColor.g,

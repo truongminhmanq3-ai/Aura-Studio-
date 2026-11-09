@@ -66,7 +66,12 @@ def test_box_lock_setting_is_validated():
     lock = desktop_settings.normalize_subtitle_box_lock(
         {"background_color": "bad", "background_opacity_percent": 400, "background_radius_percent": -5, "font_family": "Nope"})
     assert lock == {"background_color": "#000000", "background_opacity_percent": 100,
-                    "background_radius_percent": 0, "font_family": "Bangers"}
+                    "background_radius_percent": 0, "background_pad_top_percent": 60,
+                    "background_pad_bottom_percent": 50, "background_pad_left_percent": 135,
+                    "background_pad_right_percent": 135, "font_family": "Bangers"}
+    kept = desktop_settings.normalize_subtitle_box_lock(
+        {"background_pad_top_percent": 90, "background_pad_left_percent": 999})
+    assert kept["background_pad_top_percent"] == 90 and kept["background_pad_left_percent"] == 300
 
 
 def test_title_preset_draws_a_yellow_box_sized_from_the_cap_height(tmp_path, monkeypatch):
@@ -130,3 +135,26 @@ def test_preview_box_is_opaque_and_carries_its_opacity_separately(tmp_path):
     box_png = next((tmp_path / "cache").glob("*/box.png"))
     alpha = Image.open(box_png).convert("RGBA").getchannel("A")
     assert alpha.getextrema()[1] == 255
+
+
+def test_each_margin_moves_only_its_own_edge():
+    metrics = box.face_metrics(str(font_catalog.resolve("Montserrat", True)), 80)
+    base = box.box_geometry(metrics, ["HEHE"], 80, 540, 960, 5)
+    wider_top = box.box_geometry(metrics, ["HEHE"], 80, 540, 960, 5, pad_top_ratio=1.0)
+    assert wider_top[1] < base[1] and wider_top[0] == base[0] and wider_top[2] == base[2]
+    assert wider_top[1] + wider_top[3] == pytest.approx(base[1] + base[3])      # bottom edge unchanged
+    wider_left = box.box_geometry(metrics, ["HEHE"], 80, 540, 960, 5, pad_left_ratio=2.5)
+    assert wider_left[0] < base[0] and wider_left[0] + wider_left[2] == pytest.approx(base[0] + base[2])  # right edge unchanged
+    zero = box.box_geometry(metrics, ["HEHE"], 80, 540, 960, 5, pad_top_ratio=0, pad_bottom_ratio=0,
+                            pad_left_ratio=0, pad_right_ratio=0)
+    assert zero[3] == pytest.approx(metrics.cap_px) and zero[2] == pytest.approx(metrics.advance("HEHE"))
+
+
+def test_margins_reach_the_ass_box_event(tmp_path):
+    def box_width(**margins):
+        text = _ass(tmp_path, background_opacity_percent=100, **margins)
+        event = next(line for line in text.splitlines() if "\\p1" in line)
+        return int(event.split("}m ", 1)[1].split(" l ")[1].split()[0]) + 0  # first horizontal run
+
+    assert box_width(background_pad_left_percent=300, background_pad_right_percent=300) > box_width()
+    assert box_width(background_pad_left_percent=0, background_pad_right_percent=0) < box_width()

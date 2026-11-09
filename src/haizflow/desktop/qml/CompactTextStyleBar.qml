@@ -16,6 +16,11 @@ ColumnLayout {
     readonly property real boxOpacity: Number(root.style.background_opacity_percent || 0)
     readonly property real boxRadius: Number(root.style.background_radius_percent === undefined
         ? 50 : root.style.background_radius_percent)
+    readonly property var padDefaults: ({ "top": 60, "bottom": 50, "left": 135, "right": 135 })
+    function pad(side) {
+        const value = root.style["background_pad_" + side + "_percent"];
+        return Number(value === undefined ? root.padDefaults[side] : value);
+    }
     signal changeRequested(var patch)
 
     spacing: Theme.space16
@@ -146,6 +151,52 @@ ColumnLayout {
             onMoved: function(value) { root.changeRequested({ "background_radius_percent": value }) }
         }
 
+        Text {
+            Layout.fillWidth: true
+            text: qsTr("Biên khung (so với chiều cao chữ hoa)")
+            color: Theme.textMuted
+            font.family: Theme.fontFamily
+            font.pixelSize: Theme.caption
+            wrapMode: Text.WordWrap
+            textFormat: Text.PlainText
+        }
+
+        Repeater {
+            model: [
+                { "side": "top", "label": qsTr("Biên trên") },
+                { "side": "bottom", "label": qsTr("Biên dưới") },
+                { "side": "left", "label": qsTr("Biên trái") },
+                { "side": "right", "label": qsTr("Biên phải") }
+            ]
+            delegate: StyleSliderRow {
+                id: padRow
+                required property var modelData
+                Layout.fillWidth: true
+                label: padRow.modelData.label
+                sliderObjectName: "subtitleBackgroundPad" + padRow.modelData.side
+                enabled: !root.boxLocked
+                from: 0
+                to: 300
+                value: root.pad(padRow.modelData.side)
+                onMoved: function(value) {
+                    const patch = {};
+                    patch["background_pad_" + padRow.modelData.side + "_percent"] = value;
+                    root.changeRequested(patch);
+                }
+            }
+        }
+
+        AppButton {
+            objectName: "subtitleBackgroundPadReset"
+            Layout.fillWidth: true
+            text: qsTr("Đặt lại biên mặc định")
+            enabled: !root.boxLocked
+            onClicked: root.changeRequested({
+                "background_pad_top_percent": 60, "background_pad_bottom_percent": 50,
+                "background_pad_left_percent": 135, "background_pad_right_percent": 135
+            })
+        }
+
         AppCheckBox {
             objectName: "subtitleBoxLockToggle"
             Layout.fillWidth: true
@@ -155,6 +206,10 @@ ColumnLayout {
                 "background_color": String(root.style.background_color || "#000000"),
                 "background_opacity_percent": root.boxOpacity,
                 "background_radius_percent": root.boxRadius,
+                "background_pad_top_percent": root.pad("top"),
+                "background_pad_bottom_percent": root.pad("bottom"),
+                "background_pad_left_percent": root.pad("left"),
+                "background_pad_right_percent": root.pad("right"),
                 "font_family": String(root.style.font_family || "Bangers")
             })
         }

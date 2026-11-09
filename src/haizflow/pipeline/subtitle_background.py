@@ -90,24 +90,25 @@ def face_metrics(path: str, font_size: float, letter_spacing: float = 0.0, scale
 def box_geometry(
     metrics: FaceMetrics, lines: list[str], font_size: float, x: float, y: float, alignment_tag: int,
     *, pad_top_ratio: float = PAD_TOP_RATIO, pad_bottom_ratio: float = PAD_BOTTOM_RATIO,
-    pad_h_ratio: float = PAD_H_RATIO,
+    pad_left_ratio: float = PAD_H_RATIO, pad_right_ratio: float = PAD_H_RATIO,
 ) -> tuple[float, float, float, float]:
     """(left, top, width, height) of the box around ``lines`` anchored like the ASS text."""
     lines = lines or [""]
     cap = metrics.cap_px
-    pad_top, pad_bottom, pad_h = cap * pad_top_ratio, cap * pad_bottom_ratio, cap * pad_h_ratio
+    pad_top, pad_bottom = cap * pad_top_ratio, cap * pad_bottom_ratio
+    pad_left, pad_right = cap * pad_left_ratio, cap * pad_right_ratio
     text_width = max(metrics.advance(line) for line in lines)
     first_baseline = y - len(lines) * font_size / 2 + metrics.win_ascent_px
     last_baseline = first_baseline + (len(lines) - 1) * font_size
     top = first_baseline - cap - pad_top
     height = (last_baseline + pad_bottom) - top
-    width = text_width + 2 * pad_h
+    width = text_width + pad_left + pad_right
     if alignment_tag == 4:       # \an4: text starts at x
-        left = x - pad_h
+        left = x - pad_left
     elif alignment_tag == 6:     # \an6: text ends at x
-        left = x + pad_h - width
+        left = x + pad_right - width
     else:
-        left = x - width / 2
+        left = x - text_width / 2 - pad_left
     return left, top, width, height
 
 

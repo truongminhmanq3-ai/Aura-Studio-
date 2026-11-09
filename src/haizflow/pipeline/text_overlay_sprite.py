@@ -111,11 +111,13 @@ def render_text_overlay_sprite(
         from haizflow.pipeline import subtitle_background as box
 
         cap = font.getbbox("H")[3] - font.getbbox("H")[1]
-        padding_x = round(cap * box.PAD_H_RATIO)
-        padding_top, padding_bottom = round(cap * box.PAD_TOP_RATIO), round(cap * box.PAD_BOTTOM_RATIO)
+        padding_left = round(cap * style.background_pad_left_percent / 100)
+        padding_right = round(cap * style.background_pad_right_percent / 100)
+        padding_top = round(cap * style.background_pad_top_percent / 100)
+        padding_bottom = round(cap * style.background_pad_bottom_percent / 100)
     else:
-        padding_x = padding_top = padding_bottom = max(0, round(style.background_padding))
-    padding = max(padding_x, padding_top, padding_bottom)
+        padding_left = padding_right = padding_top = padding_bottom = max(0, round(style.background_padding))
+    padding = max(padding_left, padding_right, padding_top, padding_bottom)
     shadow_extent = max(
         0,
         round(style.shadow_blur * 2),
@@ -134,8 +136,8 @@ def render_text_overlay_sprite(
             baseline = origin[1] + ascent
             pitch = ascent + descent + spacing
             rect = (
-                margin - padding_x, baseline - cap - padding_top,
-                margin + text_width + padding_x, baseline + (content.count("\n")) * pitch + padding_bottom,
+                margin - padding_left, baseline - cap - padding_top,
+                margin + text_width + padding_right, baseline + (content.count("\n")) * pitch + padding_bottom,
             )
             radius = round(min(rect[2] - rect[0], rect[3] - rect[1]) / 2 * style.background_radius_percent / 100)
         else:

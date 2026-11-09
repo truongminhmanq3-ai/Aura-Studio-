@@ -2104,7 +2104,9 @@ class HaizFlowController(QObject):
     def applySubtitleAppearance(self, patch):
         allowed = {"font_family", "font_size", "text_color", "karaoke_color", "outline_color",
                    "outline", "bold", "italic", "uppercase", "shadow", "letter_spacing", "alignment",
-                   "background_color", "background_opacity_percent", "background_radius_percent"}
+                   "background_color", "background_opacity_percent", "background_radius_percent",
+                   "background_pad_top_percent", "background_pad_bottom_percent",
+                   "background_pad_left_percent", "background_pad_right_percent"}
         box_lock = getattr(self, "_subtitle_box_lock", None)
         if box_lock and isinstance(patch, dict) and set(patch) & set(box_lock):
             return False  # the caption box is locked; unlock it first
@@ -2139,6 +2141,14 @@ class HaizFlowController(QObject):
                         "background_opacity_percent", style.background_opacity_percent),
                     "background_radius_percent": shown.get(
                         "background_radius_percent", style.background_radius_percent),
+                    "background_pad_top_percent": shown.get(
+                        "background_pad_top_percent", style.background_pad_top_percent),
+                    "background_pad_bottom_percent": shown.get(
+                        "background_pad_bottom_percent", style.background_pad_bottom_percent),
+                    "background_pad_left_percent": shown.get(
+                        "background_pad_left_percent", style.background_pad_left_percent),
+                    "background_pad_right_percent": shown.get(
+                        "background_pad_right_percent", style.background_pad_right_percent),
                     "font_family": shown.get("font_family", style.font_family)}
         try:
             desktop_settings.save_settings({"subtitle_box_lock": lock})

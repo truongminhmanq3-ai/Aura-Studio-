@@ -87,7 +87,15 @@ FloatingToolDialog {
             backgroundColor: style.background_color || "#000000",
             backgroundOpacityPercent: Number(style.background_opacity_percent || 0),
             backgroundRadiusPercent: style.background_radius_percent === undefined
-                ? 50 : Number(style.background_radius_percent)
+                ? 50 : Number(style.background_radius_percent),
+            backgroundPadTopPercent: style.background_pad_top_percent === undefined
+                ? 60 : Number(style.background_pad_top_percent),
+            backgroundPadBottomPercent: style.background_pad_bottom_percent === undefined
+                ? 50 : Number(style.background_pad_bottom_percent),
+            backgroundPadLeftPercent: style.background_pad_left_percent === undefined
+                ? 135 : Number(style.background_pad_left_percent),
+            backgroundPadRightPercent: style.background_pad_right_percent === undefined
+                ? 135 : Number(style.background_pad_right_percent)
         };
         sampleRenderer.configure(JSON.stringify([
             {
@@ -219,6 +227,14 @@ FloatingToolDialog {
                     sampleBackgroundOpacity: Number(root.draftAppearance.background_opacity_percent || 0)
                     sampleBackgroundRadius: root.draftAppearance.background_radius_percent === undefined
                         ? 50 : Number(root.draftAppearance.background_radius_percent)
+                    sampleBackgroundPadTop: root.draftAppearance.background_pad_top_percent === undefined
+                        ? 60 : Number(root.draftAppearance.background_pad_top_percent)
+                    sampleBackgroundPadBottom: root.draftAppearance.background_pad_bottom_percent === undefined
+                        ? 50 : Number(root.draftAppearance.background_pad_bottom_percent)
+                    sampleBackgroundPadLeft: root.draftAppearance.background_pad_left_percent === undefined
+                        ? 135 : Number(root.draftAppearance.background_pad_left_percent)
+                    sampleBackgroundPadRight: root.draftAppearance.background_pad_right_percent === undefined
+                        ? 135 : Number(root.draftAppearance.background_pad_right_percent)
                     sampleCapEm: AppController.subtitleCapEm(
                         String(root.draftAppearance.font_family || "Bangers"),
                         Boolean(root.draftAppearance.bold), Boolean(root.draftAppearance.italic))

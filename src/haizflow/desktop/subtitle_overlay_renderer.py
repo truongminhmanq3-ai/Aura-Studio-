@@ -66,6 +66,14 @@ def export_events(segments, layout, fixed, directory):
                     "background_opacity_percent", resolved.get("backgroundOpacityPercent", 0)),
                 backgroundRadiusPercent=style_payload.get(
                     "background_radius_percent", resolved.get("backgroundRadiusPercent", 50)),
+                backgroundPadTopPercent=style_payload.get(
+                    "background_pad_top_percent", resolved.get("backgroundPadTopPercent", 60)),
+                backgroundPadBottomPercent=style_payload.get(
+                    "background_pad_bottom_percent", resolved.get("backgroundPadBottomPercent", 50)),
+                backgroundPadLeftPercent=style_payload.get(
+                    "background_pad_left_percent", resolved.get("backgroundPadLeftPercent", 135)),
+                backgroundPadRightPercent=style_payload.get(
+                    "background_pad_right_percent", resolved.get("backgroundPadRightPercent", 135)),
                 shadow=round(max(
                     abs(float(style_payload.get("shadow_offset_x", 0) or 0)),
                     abs(float(style_payload.get("shadow_offset_y", 0) or 0)),
@@ -101,6 +109,10 @@ def export_events(segments, layout, fixed, directory):
             background_color=str(resolved.get("backgroundColor") or "#000000"),
             background_opacity_percent=round(float(resolved.get("backgroundOpacityPercent", 0) or 0)),
             background_radius_percent=round(float(resolved.get("backgroundRadiusPercent", 50) or 0)),
+            background_pad_top_percent=round(float(resolved.get("backgroundPadTopPercent", 60) or 0)),
+            background_pad_bottom_percent=round(float(resolved.get("backgroundPadBottomPercent", 50) or 0)),
+            background_pad_left_percent=round(float(resolved.get("backgroundPadLeftPercent", 135) or 0)),
+            background_pad_right_percent=round(float(resolved.get("backgroundPadRightPercent", 135) or 0)),
         )
         subtitles = [
             srt.Subtitle(

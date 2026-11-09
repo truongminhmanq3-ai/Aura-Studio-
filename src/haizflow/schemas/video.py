@@ -65,6 +65,11 @@ class SubtitleStyle(BaseModel):
     background_color: str = Field(default="#000000", pattern=r"^#[0-9A-Fa-f]{6}$")
     background_opacity_percent: int = Field(default=0, ge=0, le=100)
     background_radius_percent: int = Field(default=50, ge=0, le=100)
+    # Box margins around the text as a percent of the capital-letter height.
+    background_pad_top_percent: int = Field(default=60, ge=0, le=300)
+    background_pad_bottom_percent: int = Field(default=50, ge=0, le=300)
+    background_pad_left_percent: int = Field(default=135, ge=0, le=300)
+    background_pad_right_percent: int = Field(default=135, ge=0, le=300)
 
     @field_validator("font_family", mode="before")
     @classmethod

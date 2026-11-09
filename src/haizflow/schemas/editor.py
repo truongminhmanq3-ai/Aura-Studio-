@@ -83,6 +83,10 @@ class EditorTextStyle(BaseModel):
     background_radius: float = Field(default=0.0, ge=0, le=100)
     # Share of the half-height: 0 square corners, 100 fully rounded ends.
     background_radius_percent: float = Field(default=50.0, ge=0, le=100)
+    background_pad_top_percent: float = Field(default=60.0, ge=0, le=300)
+    background_pad_bottom_percent: float = Field(default=50.0, ge=0, le=300)
+    background_pad_left_percent: float = Field(default=135.0, ge=0, le=300)
+    background_pad_right_percent: float = Field(default=135.0, ge=0, le=300)
     # "text_ratio" sizes the box from the capital-letter height (see subtitle_background).
     background_fit: Literal["manual", "text_ratio"] = "manual"
     position_x_percent: float = Field(default=50.0, ge=0, le=100)
