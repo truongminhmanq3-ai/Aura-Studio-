@@ -1,20 +1,22 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import Any, Dict, Literal, Optional
 
+from haizflow.services.font_catalog import LABELS as _FONT_LABELS
+
 
 VIDEO_METADATA_SCHEMA_VERSION = 19
 VIDEO_METADATA_TYPE = "haizflow.video"
 SUBTITLE_FONT_FAMILY = "Bangers"
 # Families a subtitle may use. Bundled ones always exist; "Arial Rounded MT Bold"
 # and "SVN-Gilroy" are used only when installed on the machine (licensed fonts).
-SUBTITLE_FONT_FAMILIES = (
-    "Bangers", "Montserrat", "Be Vietnam Pro", "Nunito", "Arial Rounded MT Bold", "SVN-Gilroy",
-)
+SUBTITLE_FONT_FAMILIES = tuple(_FONT_LABELS)
 
 
 def normalize_subtitle_font(value) -> str:
     wanted = str(value or "").strip().casefold()
     return next((name for name in SUBTITLE_FONT_FAMILIES if name.casefold() == wanted), SUBTITLE_FONT_FAMILY)
+
+
 WorkflowMode = Literal["A", "review"]
 TranslatorProvider = Literal["gemini", "deepseek", "hymt2"]
 TranslationModel = Literal["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.8-flash", "deepseek-flash", "deepseek-v4-pro", "auto", "q4", "full"]

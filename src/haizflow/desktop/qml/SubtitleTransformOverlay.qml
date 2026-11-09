@@ -15,6 +15,11 @@ Item {
     property color sampleOutlineColor: "black"
     property bool sampleBold: false
     property bool sampleItalic: false
+    // Rounded caption box behind the sample text; opacity is a percent, 0 = off.
+    property color sampleBackgroundColor: "#000000"
+    property real sampleBackgroundOpacity: 0
+    property real sampleBackgroundRadius: 50
+    property real sampleCapEm: 0.7
     property var sprite: ({})
     property real karaokeProgress: 0
     property int fontSize: 60
@@ -233,6 +238,23 @@ Item {
             activeFocusOnTab: root.interactive
             Accessible.role: Accessible.Slider
             Accessible.name: qsTr("Vị trí và cỡ phụ đề")
+            Rectangle {
+                id: sampleBox
+                objectName: "subtitleSampleBox"
+                z: -1
+                visible: root.sampleMode && root.sampleBackgroundOpacity > 0
+                readonly property real cap: root.sampleCapEm * root.previewFontSize
+                readonly property real rows: Math.max(1, sampleLabel.lineCount)
+                readonly property real padV: cap * 0.5
+                readonly property real padH: cap * 1.35
+                width: sampleLabel.contentWidth + 2 * padH
+                height: cap + (rows - 1) * (sampleLabel.contentHeight / rows) + 2 * padV
+                x: sampleLabel.x + (sampleLabel.width - sampleLabel.contentWidth) / 2 - padH
+                y: sampleLabel.y + sampleLabel.baselineOffset - cap - padV
+                radius: Math.min(width, height) / 2 * Math.max(0, Math.min(100, root.sampleBackgroundRadius)) / 100
+                color: Qt.rgba(root.sampleBackgroundColor.r, root.sampleBackgroundColor.g,
+                               root.sampleBackgroundColor.b, Math.max(0, Math.min(100, root.sampleBackgroundOpacity)) / 100)
+            }
             Text {
                 id: sampleLabel
                 anchors.centerIn: parent

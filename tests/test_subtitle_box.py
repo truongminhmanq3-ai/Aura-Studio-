@@ -87,3 +87,23 @@ def test_title_preset_draws_a_yellow_box_sized_from_the_cap_height(tmp_path, mon
     box_height, ink_height = box_y.max() - box_y.min() + 1, ink_y.max() - ink_y.min() + 1
     assert 1.8 <= box_height / ink_height <= 2.2
     assert 1.1 <= (ink_x.min() - box_x.min()) / ink_height <= 1.6
+
+
+def test_every_bundled_font_covers_all_vietnamese_letters():
+    import os
+
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    from PySide6.QtGui import QGuiApplication, QRawFont
+
+    app = QGuiApplication.instance() or QGuiApplication([])  # noqa: F841 - QRawFont needs one
+    letters = "ắằẳẵặấầẩẫậếềểễệốồổỗộớờởỡợứừửữựỳỷỹỵđĐơưăâêôẤỀỔỠỨỮỲỴ"
+    for family, files in font_catalog.BUNDLED.items():
+        for name in set(files.values()):
+            raw = QRawFont(str(font_catalog.ASSETS / name), 20)
+            assert raw.isValid(), name
+            missing = [ch for ch in letters if not raw.supportsCharacter(ord(ch))]
+            assert not missing, f"{family}/{name} lacks {missing}"
+
+
+def test_picker_offers_at_least_a_dozen_fonts():
+    assert len(font_catalog.available()) >= 12

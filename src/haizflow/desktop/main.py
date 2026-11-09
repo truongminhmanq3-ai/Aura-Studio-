@@ -123,6 +123,16 @@ def _destroy_windows_icons(icon_handles: tuple[int, ...]) -> None:
         pass
 
 
+def _register_bundled_fonts() -> None:
+    """Let QML preview text use the same bundled font files as the exported captions."""
+    from PySide6.QtGui import QFontDatabase
+
+    from haizflow.services import font_catalog
+
+    for path in sorted(font_catalog.ASSETS.glob("*.ttf")):
+        QFontDatabase.addApplicationFont(str(path))
+
+
 def main(*, smoke_test: bool = False) -> None:
     configure_app_logging()
     _configure_windows_app_identity()
@@ -135,6 +145,7 @@ def main(*, smoke_test: bool = False) -> None:
     input_method_commit_filter = InputMethodCommitFilter(app)
     app.setApplicationName("Aura Studio")
     app.setApplicationDisplayName("Aura Studio")
+    _register_bundled_fonts()
     install_ui_translator(desktop_settings.load_settings().get("language", "vi"))
     app_icon_path = _app_icon_path()
     app_icon = QIcon(str(app_icon_path)) if app_icon_path is not None else QIcon()

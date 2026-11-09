@@ -211,6 +211,13 @@ FloatingToolDialog {
                     sampleOutlineColor: root.draftAppearance.outline_color || "#000000"
                     sampleBold: Boolean(root.draftAppearance.bold)
                     sampleItalic: Boolean(root.draftAppearance.italic)
+                    sampleBackgroundColor: root.draftAppearance.background_color || "#000000"
+                    sampleBackgroundOpacity: Number(root.draftAppearance.background_opacity_percent || 0)
+                    sampleBackgroundRadius: root.draftAppearance.background_radius_percent === undefined
+                        ? 50 : Number(root.draftAppearance.background_radius_percent)
+                    sampleCapEm: AppController.subtitleCapEm(
+                        String(root.draftAppearance.font_family || "Bangers"),
+                        Boolean(root.draftAppearance.bold), Boolean(root.draftAppearance.italic))
                     fontSize: root.layoutLocked ? Number(root.coverLayout.fontSize || root.draftFontSize) : root.draftFontSize
                     positionXPercent: root.layoutLocked ? Number(root.coverLayout.positionXPercent !== undefined ? root.coverLayout.positionXPercent : 50) : root.draftPositionX
                     positionYPercent: root.layoutLocked ? Number(root.coverLayout.positionYPercent !== undefined ? root.coverLayout.positionYPercent : 80) : root.draftPositionY
@@ -240,9 +247,9 @@ FloatingToolDialog {
 
             Flickable {
                 objectName: "subtitleAppearanceScroll"
-                Layout.preferredWidth: 290
-                Layout.minimumWidth: 260
-                Layout.maximumWidth: 310
+                Layout.preferredWidth: 350
+                Layout.minimumWidth: 320
+                Layout.maximumWidth: 400
                 Layout.fillHeight: true
                 contentHeight: appearanceControls.implicitHeight
                 clip: true

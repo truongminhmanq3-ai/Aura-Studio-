@@ -65,6 +65,13 @@ def _pil_font(path: str):
     return ImageFont.truetype(path, 1000)
 
 
+def cap_em(path: str) -> float:
+    """Capital-letter height as a fraction of the em, for previews that size text in em pixels."""
+    font = _pil_font(path)
+    box = font.getbbox("H")
+    return (box[3] - box[1]) / 1000
+
+
 def face_metrics(path: str, font_size: float, letter_spacing: float = 0.0, scale_x: float = 100.0) -> FaceMetrics:
     em, ascent, descent = _face_units(path)
     px_per_em = font_size * em / (ascent + descent)

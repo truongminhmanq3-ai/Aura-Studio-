@@ -2148,6 +2148,15 @@ class HaizFlowController(QObject):
         self.subtitleSettingsChanged.emit()
         return True
 
+    @Slot(str, bool, bool, result=float)
+    def subtitleCapEm(self, family, bold, italic):
+        """Capital height / em of a subtitle font, so the preview box matches the exported one."""
+        from haizflow.pipeline import subtitle_background
+        from haizflow.pipeline.render import _font_path_details
+
+        path, _exact = _font_path_details(str(family or "Bangers"), bool(bold), bool(italic))
+        return float(subtitle_background.cap_em(str(path)))
+
     @Property("QVariantList", constant=True)
     def subtitleFontChoices(self):
         from haizflow.services import font_catalog

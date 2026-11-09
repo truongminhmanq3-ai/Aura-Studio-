@@ -2167,6 +2167,7 @@ Module {
         Method { name: "subtitleSampleText"; type: "string"; Parameter { name: "text"; type: "string" } Parameter { name: "fontSize"; type: "int" } Parameter { name: "boxWidth"; type: "int" } Parameter { name: "boxHeight"; type: "int" } Parameter { name: "width"; type: "int" } Parameter { name: "height"; type: "int" } }
         Method { name: "subtitleSampleText"; type: "string"; Parameter { name: "text"; type: "string" } Parameter { name: "fontSize"; type: "int" } Parameter { name: "boxWidth"; type: "int" } Parameter { name: "boxHeight"; type: "int" } Parameter { name: "width"; type: "int" } Parameter { name: "height"; type: "int" } Parameter { name: "appearance"; type: "QVariantMap" } }
         Method { name: "applySubtitleAppearance"; type: "bool"; Parameter { name: "patch"; type: "QVariantMap" } }
+        Method { name: "subtitleCapEm"; type: "double"; Parameter { name: "family"; type: "QString" }; Parameter { name: "bold"; type: "bool" }; Parameter { name: "italic"; type: "bool" } }
         Method { name: "setSubtitleBoxLocked"; type: "bool"; Parameter { name: "locked"; type: "bool" }; Parameter { name: "values"; type: "QVariantMap" } }
         Method { name: "clearVoiceCloneReference"; type: "bool" }
         Method {

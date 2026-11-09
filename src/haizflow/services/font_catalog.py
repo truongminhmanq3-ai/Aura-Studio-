@@ -7,23 +7,49 @@ from pathlib import Path
 
 ASSETS = Path(__file__).resolve().parent.parent / "assets" / "fonts"
 
-# family -> {(bold, italic): bundled file}
+def _static(regular: str, bold: str | None = None, italic: str | None = None, bold_italic: str | None = None) -> dict:
+    bold = bold or regular
+    italic = italic or regular
+    return {(False, False): regular, (True, False): bold, (False, True): italic, (True, True): bold_italic or bold}
+
+
+# family -> {(bold, italic): bundled file}; every family below covers all Vietnamese letters.
 BUNDLED = {
-    "Bangers": {(False, False): "Bangers-Regular.ttf", (True, False): "Bangers-Regular.ttf",
-                (False, True): "Bangers-Regular.ttf", (True, True): "Bangers-Regular.ttf"},
-    "Montserrat": {(False, False): "Montserrat-Regular.ttf", (True, False): "Montserrat-Bold.ttf",
-                   (False, True): "Montserrat-Regular.ttf", (True, True): "Montserrat-Bold.ttf"},
-    "Be Vietnam Pro": {(False, False): "BeVietnamPro-Regular.ttf", (True, False): "BeVietnamPro-Bold.ttf",
-                       (False, True): "BeVietnamPro-Italic.ttf", (True, True): "BeVietnamPro-BoldItalic.ttf"},
-    "Nunito": {(False, False): "Nunito-Regular.ttf", (True, False): "Nunito-Bold.ttf",
-               (False, True): "Nunito-Regular.ttf", (True, True): "Nunito-Bold.ttf"},
+    "Bangers": _static("Bangers-Regular.ttf"),
+    "Montserrat": _static("Montserrat-Regular.ttf", "Montserrat-Bold.ttf"),
+    "Be Vietnam Pro": _static("BeVietnamPro-Regular.ttf", "BeVietnamPro-Bold.ttf",
+                              "BeVietnamPro-Italic.ttf", "BeVietnamPro-BoldItalic.ttf"),
+    "Nunito": _static("Nunito-Regular.ttf", "Nunito-Bold.ttf"),
+    "Lexend": _static("Lexend-Regular.ttf", "Lexend-Bold.ttf"),
+    "Quicksand": _static("Quicksand-Regular.ttf", "Quicksand-Bold.ttf"),
+    "Baloo 2": _static("Baloo2-Regular.ttf", "Baloo2-Bold.ttf"),
+    "Anton": _static("Anton-Regular.ttf"),
+    "Oswald": _static("Oswald-Regular.ttf", "Oswald-Bold.ttf"),
+    "Barlow Condensed": _static("BarlowCondensed-Regular.ttf", "BarlowCondensed-Bold.ttf"),
+    "Roboto Condensed": _static("RobotoCondensed-Regular.ttf", "RobotoCondensed-Bold.ttf"),
+    "Paytone One": _static("PaytoneOne-Regular.ttf"),
+    "Sigmar One": _static("SigmarOne-Regular.ttf"),
+    "Pacifico": _static("Pacifico-Regular.ttf"),
+    "Patrick Hand": _static("PatrickHand-Regular.ttf"),
 }
 
+# Shown in the picker, grouped the way short-video editors group them.
 LABELS = {
-    "Bangers": "Bangers",
-    "Montserrat": "Montserrat",
-    "Be Vietnam Pro": "Be Vietnam Pro",
-    "Nunito": "Nunito (bo tròn)",
+    "Bangers": "Bangers · hoạt hình",
+    "Montserrat": "Montserrat · phổ biến nhất",
+    "Be Vietnam Pro": "Be Vietnam Pro · hiện đại",
+    "Lexend": "Lexend · dễ đọc",
+    "Nunito": "Nunito · bo tròn",
+    "Quicksand": "Quicksand · bo tròn mảnh",
+    "Baloo 2": "Baloo 2 · bo tròn vui nhộn",
+    "Anton": "Anton · tiêu đề đậm",
+    "Oswald": "Oswald · cao, gọn",
+    "Barlow Condensed": "Barlow Condensed · cao, gọn",
+    "Roboto Condensed": "Roboto Condensed · gọn",
+    "Paytone One": "Paytone One · dày, nổi bật",
+    "Sigmar One": "Sigmar One · dày, nổi bật",
+    "Pacifico": "Pacifico · chữ viết tay",
+    "Patrick Hand": "Patrick Hand · chữ viết tay",
     "Arial Rounded MT Bold": "Arial Rounded",
     "SVN-Gilroy": "SVN-Gilroy",
 }
