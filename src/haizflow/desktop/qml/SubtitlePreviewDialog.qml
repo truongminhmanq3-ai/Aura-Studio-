@@ -83,7 +83,11 @@ FloatingToolDialog {
             italic: Boolean(style.italic),
             uppercase: Boolean(style.uppercase),
             letterSpacing: Number(style.letter_spacing ?? 0),
-            alignment: style.alignment || "center"
+            alignment: style.alignment || "center",
+            backgroundColor: style.background_color || "#000000",
+            backgroundOpacityPercent: Number(style.background_opacity_percent || 0),
+            backgroundRadiusPercent: style.background_radius_percent === undefined
+                ? 50 : Number(style.background_radius_percent)
         };
         sampleRenderer.configure(JSON.stringify([
             {
