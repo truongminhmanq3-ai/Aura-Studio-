@@ -23,7 +23,8 @@ Popup {
     signal colorApplied(string value)
 
     width: 466
-    height: 328
+    // Size to the content: the right column (swatches, 3 channels, HEX) is taller than a fixed 328 px.
+    height: implicitHeight
     x: parent ? Math.round((parent.width - width) / 2) : 0
     y: parent ? Math.round((parent.height - height) / 2) : 0
     padding: Theme.space16
@@ -112,6 +113,7 @@ Popup {
                 id: saturationArea
                 objectName: "colorSaturationArea"
                 Layout.preferredWidth: 232
+                Layout.minimumHeight: 220
                 Layout.fillHeight: true
                 activeFocusOnTab: true
                 Accessible.role: Accessible.Slider
@@ -176,6 +178,7 @@ Popup {
                 id: hueArea
                 objectName: "colorHueArea"
                 Layout.preferredWidth: 18
+                Layout.minimumHeight: 220
                 Layout.fillHeight: true
                 activeFocusOnTab: true
                 Accessible.role: Accessible.Slider
@@ -297,6 +300,8 @@ Popup {
 
         RowLayout {
             Layout.fillWidth: true
+            Layout.topMargin: Theme.space4
+            spacing: Theme.space8
             Item { Layout.fillWidth: true }
             StudioButton {
                 text: qsTr("Hủy")
