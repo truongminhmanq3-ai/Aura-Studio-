@@ -537,6 +537,7 @@ def scan_channel(
     existing_remote_keys: Iterable[str] = (),
     progress_callback: ProgressCallback | None = None,
     cancel_event: threading.Event | None = None,
+    ledger_keys: Iterable[str] = (),
 ) -> tuple[str, str, list[ChannelVideoCandidate]]:
     normalized_url, platform = validate_channel_url(request.url, request.platform)
     request.url = normalized_url
@@ -548,6 +549,7 @@ def scan_channel(
     warning = getattr(candidates, "warning", "")
     existing = {str(value).lower() for value in existing_remote_keys}
     existing.update(normalize_remote_url(value) for value in existing_remote_keys)
+    ledger = {str(value).lower() for value in ledger_keys}
     candidates = [candidate for candidate in candidates if _passes_duration(candidate, request.duration_filter)]
     if request.ranking == "popular":
         candidates.sort(
@@ -571,7 +573,10 @@ def scan_channel(
     for candidate in candidates:
         key = f"{candidate.platform.lower()}:{candidate.remote_video_id}".lower()
         url_key = normalize_remote_url(candidate.source_url)
-        candidate.duplicate = key in existing or url_key in existing
+        in_project = key in existing or url_key in existing
+        in_ledger = key in ledger
+        candidate.duplicate = in_project or in_ledger
+        candidate.previously_downloaded = in_ledger and not in_project
         candidate.selected = not candidate.duplicate
         if candidate.duplicate:
             candidate.status = "duplicate"

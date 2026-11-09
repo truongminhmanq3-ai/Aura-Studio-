@@ -46,6 +46,7 @@ class ChannelVideoCandidate(BaseModel):
     thumbnail_url: str = ""
     selected: bool = True
     duplicate: bool = False
+    previously_downloaded: bool = False     # a duplicate because the download ledger knows it, not because a project has it
     status: str = "ready"
     progress: int = 0
     error: str = ""

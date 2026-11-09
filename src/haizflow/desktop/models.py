@@ -756,6 +756,9 @@ class DownloadProjectSourceListModel(QAbstractListModel):
     FilePathRole = Qt.ItemDataRole.UserRole + 5
     FileSizeRole = Qt.ItemDataRole.UserRole + 6
     SelectedRole = Qt.ItemDataRole.UserRole + 7
+    ChannelRole = Qt.ItemDataRole.UserRole + 8
+    PublishedRole = Qt.ItemDataRole.UserRole + 9
+    ImportedRole = Qt.ItemDataRole.UserRole + 10
 
     def __init__(self):
         super().__init__()
@@ -776,10 +779,16 @@ class DownloadProjectSourceListModel(QAbstractListModel):
             self.FilePathRole: item["file_path"],
             self.FileSizeRole: item["file_size"],
             self.SelectedRole: item["selected"],
+            self.ChannelRole: item.get("channel", ""),
+            self.PublishedRole: item.get("published", ""),
+            self.ImportedRole: bool(item.get("imported", False)),
         }.get(role)
 
     def roleNames(self):
         return {
+            self.ChannelRole: b"downloadChannel",
+            self.PublishedRole: b"downloadPublished",
+            self.ImportedRole: b"downloadImported",
             self.ItemIdRole: b"downloadItemId",
             self.ProjectNameRole: b"downloadProjectName",
             self.CategoryRole: b"downloadCategory",
@@ -814,6 +823,19 @@ class DownloadProjectSourceListModel(QAbstractListModel):
             self.dataChanged.emit(model_index, model_index, [self.SelectedRole])
         return True
 
+    def select_all_not_imported(self) -> bool:
+        """Tick every listed video the current project does not have yet; untick the rest."""
+        changed_rows = []
+        for index, item in enumerate(self._items):
+            wanted = not item.get("imported", False)
+            if item["selected"] != wanted:
+                item["selected"] = wanted
+                changed_rows.append(index)
+        for row in changed_rows:
+            model_index = self.index(row, 0)
+            self.dataChanged.emit(model_index, model_index, [self.SelectedRole])
+        return bool(changed_rows)
+
     def selected_items(self) -> list[dict]:
         return [dict(item) for item in self._items if item["selected"]]
 
@@ -836,6 +858,7 @@ class ChannelCandidateListModel(QAbstractListModel):
     StatusRole = Qt.ItemDataRole.UserRole + 11
     ProgressRole = Qt.ItemDataRole.UserRole + 12
     ErrorRole = Qt.ItemDataRole.UserRole + 13
+    PreviouslyDownloadedRole = Qt.ItemDataRole.UserRole + 14
 
     def __init__(self):
         super().__init__()
@@ -860,6 +883,7 @@ class ChannelCandidateListModel(QAbstractListModel):
             self.ViewCountRole: candidate.view_count_label,
             self.ThumbnailRole: candidate.thumbnail_url,
             self.DuplicateRole: candidate.duplicate,
+            self.PreviouslyDownloadedRole: candidate.previously_downloaded,
             self.StatusRole: candidate.status,
             self.ProgressRole: candidate.progress,
             self.ErrorRole: candidate.error,
@@ -877,6 +901,7 @@ class ChannelCandidateListModel(QAbstractListModel):
             self.ViewCountRole: b"viewCountLabel",
             self.ThumbnailRole: b"thumbnailSource",
             self.DuplicateRole: b"duplicate",
+            self.PreviouslyDownloadedRole: b"previouslyDownloaded",
             self.StatusRole: b"candidateStatus",
             self.ProgressRole: b"candidateProgress",
             self.ErrorRole: b"candidateError",

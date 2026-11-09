@@ -26,6 +26,38 @@ AppDialog {
         open()
     }
 
+    RowLayout {
+        Layout.fillWidth: true
+        spacing: Theme.space8
+
+        Text {
+            text: qsTr("Kênh")
+            color: Theme.textMuted
+            font.family: Theme.fontFamily
+            font.pixelSize: TypeScale.metadata
+        }
+        AppComboBox {
+            id: channelFilter
+            objectName: "downloadSourceChannelFilter"
+            Layout.fillWidth: true
+            model: [qsTr("Tất cả kênh")].concat(AppController.downloadProjectSourceChannels)
+            currentIndex: {
+                const index = AppController.downloadProjectSourceChannels.indexOf(AppController.downloadProjectSourceChannel);
+                return index < 0 ? 0 : index + 1;
+            }
+            onActivated: function(index) {
+                AppController.setDownloadProjectSourceChannel(index === 0 ? "" : AppController.downloadProjectSourceChannels[index - 1])
+            }
+        }
+        StudioButton {
+            objectName: "downloadSourceSelectNew"
+            visible: root.multipleSelection
+            text: qsTr("Chọn tất cả chưa nhập")
+            variant: "secondary"
+            onClicked: AppController.selectAllDownloadProjectSourcesNotImported()
+        }
+    }
+
     ListView {
         id: sourceList
 
@@ -48,6 +80,9 @@ AppDialog {
             required property string downloadFilePath
             required property real downloadFileSize
             required property bool downloadSelected
+            required property string downloadChannel
+            required property string downloadPublished
+            required property bool downloadImported
 
             width: ListView.view.width
             height: 58
@@ -89,7 +124,8 @@ AppDialog {
 
                     Text {
                         Layout.fillWidth: true
-                        text: sourceDelegate.downloadProjectName
+                        text: [sourceDelegate.downloadChannel, sourceDelegate.downloadPublished,
+                               sourceDelegate.downloadProjectName].filter(function(part) { return part.length > 0 }).join(" · ")
                         color: Theme.textMuted
                         font.family: Theme.fontFamily
                         font.pixelSize: TypeScale.metadata
@@ -99,9 +135,9 @@ AppDialog {
                 }
 
                 StatusBadge {
-                    status: "ready"
-                    label: sourceDelegate.downloadCategory === "channel"
-                        ? qsTr("Kênh") : qsTr("Video")
+                    status: sourceDelegate.downloadImported ? "done" : "ready"
+                    label: sourceDelegate.downloadImported ? qsTr("Đã nhập")
+                        : sourceDelegate.downloadCategory === "channel" ? qsTr("Kênh") : qsTr("Video")
                 }
 
                 Text {

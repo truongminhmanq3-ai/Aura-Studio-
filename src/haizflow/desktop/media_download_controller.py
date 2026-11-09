@@ -19,7 +19,7 @@ from haizflow.config import MEDIA_PROCESS_TIMEOUT_SECONDS, TMP_DIR
 from haizflow.desktop.channel_import import ChannelImportCoordinator
 from haizflow.desktop.localization import QFileDialog, native_media_dialog_directory
 from haizflow.desktop.url_import import VideoUrlImportCoordinator
-from haizflow.services import link_batch, project_store
+from haizflow.services import download_ledger, download_naming, link_batch, project_store
 from haizflow.services.video_download import (
     DownloadCancelled,
     download_audio,
@@ -58,6 +58,7 @@ class MediaDownloadController(QObject):
     _progress = Signal(int, str)
     _finished = Signal(str)
     _failed = Signal(str)
+    _skipped = Signal(str, str)
     _channel_file_saved = Signal(str, str, bool, str)
 
     def __init__(self, parent=None):
@@ -88,6 +89,7 @@ class MediaDownloadController(QObject):
         # Downloads save valid picture-only posts too. Project imports use the
         # coordinator's default picture-and-audio requirement for dubbing.
         self._channel_importer = ChannelImportCoordinator(self, require_audio=False)
+        self._channel_importer.ledger_keys_provider = download_ledger.keys
         self._video_preview = VideoUrlImportCoordinator(self)
         self._request_guard = None
         self._channel_workspace = ""
@@ -95,6 +97,8 @@ class MediaDownloadController(QObject):
         self._progress.connect(self._set_progress)
         self._finished.connect(self._set_finished)
         self._failed.connect(self._set_failed)
+        self._skipped.connect(self._set_skipped)
+        self._last_skipped_url = ""
         self._channel_file_saved.connect(self._finish_channel_file_save)
         self._channel_importer.changed.connect(self._on_channel_changed)
         self._channel_importer.videoReady.connect(self._save_channel_video)
@@ -476,6 +480,14 @@ class MediaDownloadController(QObject):
     def batchStoppedReason(self):
         return self._batch.stopped_reason
 
+    @Property(int, notify=changed)
+    def batchExistingCount(self):
+        return len(self._batch.existing)
+
+    @Property(str, notify=changed)
+    def lastSkippedUrl(self):
+        return self._last_skipped_url
+
     @Property(str, notify=changed)
     def batchRetryText(self):
         return self._batch.retry_text()
@@ -511,14 +523,38 @@ class MediaDownloadController(QObject):
         if error:
             self._reject(error)
             return False
-        self._batch.start(len(parsed.urls))
-        for index, url in enumerate(parsed.urls):
+        self._start_batch(parsed.urls, force=False)
+        return True
+
+    @Slot(result=bool)
+    def redownloadBatchExisting(self):
+        """Download again the links the ledger skipped, after the user asked for it."""
+        urls = [url for url, _path in self._batch.existing]
+        if not urls or self._batch.active:
+            return False
+        self._start_batch(urls, force=True)
+        return True
+
+    def _start_batch(self, urls: list[str], *, force: bool) -> None:
+        self._batch.start(len(urls))
+        self._last_skipped_url = ""
+        queue_index = 0
+        for url in urls:
+            key = link_batch.ledger_key(url)
+            entry = download_ledger.get(*key) if key and not force else None
+            if entry:                       # the link names the video, so no request is needed to know it is a repeat
+                self._batch.already_had(url, str(entry.get("file_path") or ""))
+                continue
             douyin = "douyin" in url.lower()
             self._enqueue({
                 "kind": "video", "label": "video download", "value": url, "output": self._video_output_directory,
-                "batch": True, "pace": 0.0 if index == 0 else link_batch.pace_seconds(douyin),
+                "batch": True, "force": force,
+                "pace": 0.0 if queue_index == 0 else link_batch.pace_seconds(douyin),
             })
-        return True
+            queue_index += 1
+        if not queue_index:
+            self._status = f"{len(self._batch.existing)} link(s) already downloaded before."
+        self.changed.emit()
 
     def _drop_pending_batch(self, reason: str) -> None:
         kept, dropped = deque(), []
@@ -530,7 +566,14 @@ class MediaDownloadController(QObject):
 
     @Slot(str)
     def downloadVideo(self, url):
+        self._last_skipped_url = ""
         self._queue_download(url, "video", self._video_output_directory, "video download")
+
+    @Slot(str)
+    def downloadVideoAgain(self, url):
+        """Same as downloadVideo, but ignores the ledger: the user chose to download it again."""
+        self._last_skipped_url = ""
+        self._queue_download(url, "video", self._video_output_directory, "video download", force=True)
 
     @Slot(str)
     def downloadAudio(self, url):
@@ -596,6 +639,11 @@ class MediaDownloadController(QObject):
         )
 
     @Slot(int, result=bool)
+    def redownloadChannelVideo(self, row):
+        """Tick a video the ledger remembers so the next channel download fetches it again."""
+        return self._channel_importer.redownload(int(row))
+
+    @Slot(int, result=bool)
     def retryChannelVideo(self, row):
         candidate = self._channel_importer.candidates.candidate_at(int(row))
         if not candidate or candidate.duplicate or candidate.status != "failed":
@@ -638,7 +686,7 @@ class MediaDownloadController(QObject):
     def channelCookieFile(self):
         return self._channel_importer.cookieFile
 
-    def _queue_download(self, value: str, mode: str, output_directory: str, label: str):
+    def _queue_download(self, value: str, mode: str, output_directory: str, label: str, *, force: bool = False):
         error = self._request_guard(value) if self._request_guard and mode != "extract" else ""
         if error:
             self._reject(error)
@@ -655,6 +703,7 @@ class MediaDownloadController(QObject):
                 "label": label,
                 "value": str(value).strip(),
                 "output": output_directory,
+                "force": force,
             }
         )
 
@@ -753,9 +802,9 @@ class MediaDownloadController(QObject):
             attempts = link_batch.MAX_RETRIES + 1 if batch else 1
             for attempt in range(1, attempts + 1):
                 try:
-                    destination = self._download_once(value, mode, output_directory)
+                    destination = self._download_once(value, mode, output_directory, bool(task and task.get("force")))
                     break
-                except DownloadCancelled:
+                except (DownloadCancelled, link_batch.AlreadyHave):
                     raise
                 except Exception as exc:
                     if attempt >= attempts or not link_batch.is_transient(str(exc)):
@@ -765,10 +814,12 @@ class MediaDownloadController(QObject):
             # Moving the validated file commits the operation. A late cancel
             # must not report failure after the completed file was saved.
             self._finished.emit(str(destination))
+        except link_batch.AlreadyHave as skip:
+            self._skipped.emit(skip.url, skip.path)
         except Exception as exc:
             self._failed.emit(str(exc))
 
-    def _download_once(self, value: str, mode: str, output_directory: str) -> Path:
+    def _download_once(self, value: str, mode: str, output_directory: str, force: bool = False) -> Path:
         output = Path(output_directory)
         if mode == "extract":
             workspace = output / ".haizflow-downloads" / uuid.uuid4().hex
@@ -783,6 +834,10 @@ class MediaDownloadController(QObject):
                 shutil.rmtree(workspace, ignore_errors=True)
         else:
             metadata = inspect_video_url(value, self._cancel)
+            if mode == "video" and metadata.remote_video_id and not force:
+                entry = download_ledger.get(metadata.platform, metadata.remote_video_id)
+                if entry:
+                    raise link_batch.AlreadyHave(value, entry)
             workspace = output / ".haizflow-downloads" / uuid.uuid4().hex
             workspace.mkdir(parents=True, exist_ok=True)
             try:
@@ -791,9 +846,18 @@ class MediaDownloadController(QObject):
                                                 require_audio=False)
                     if self._cancel.is_set():
                         raise DownloadCancelled("Download cancelled.")
+                    stem = download_naming.build_stem(
+                        metadata.published, metadata.uploader, metadata.title,
+                        metadata.remote_video_id or Path(downloaded).stem)
                     destination = self._move_to_unique_path(
-                        Path(downloaded), output / Path(downloaded).name,
+                        Path(downloaded), output / f"{stem}{Path(downloaded).suffix}",
                     )
+                    if metadata.remote_video_id:
+                        download_ledger.record(
+                            metadata.platform, metadata.remote_video_id, url=metadata.url,
+                            channel=metadata.uploader, title=metadata.title,
+                            published=download_naming.published_date(metadata.published),
+                            file_path=str(destination))
                 else:
                     downloaded = workspace / "audio.m4a"
                     download_audio(metadata.url, downloaded, self._report, self._cancel)
@@ -887,6 +951,14 @@ class MediaDownloadController(QObject):
             self._batch.succeeded()
         self._finish_active(f"Saved to {destination}")
 
+    def _set_skipped(self, url, path):
+        task = self._active_task
+        if task and task.get("batch"):
+            self._batch.already_had(url, path)
+        self._last_skipped_url = str(url)
+        where = f" ({path})" if path else ""
+        self._finish_active(f"Already downloaded before{where}. Choose download again if you want another copy.", "done")
+
     def _set_failed(self, message):
         task = self._active_task
         if task and task.get("batch"):
@@ -927,7 +999,16 @@ class MediaDownloadController(QObject):
                 if not source.is_file():
                     raise RuntimeError("The channel video download was not found.")
                 output.mkdir(parents=True, exist_ok=True)
-                self._move_to_unique_path(source, output / source.name)
+                stem = download_naming.build_stem(
+                    candidate.get("published_at") or "", candidate.get("uploader") or "",
+                    candidate.get("title") or "", remote_id or source.stem)
+                saved = self._move_to_unique_path(source, output / f"{stem}{source.suffix}")
+                if remote_id:
+                    download_ledger.record(
+                        str(candidate.get("platform") or ""), remote_id, url=str(candidate.get("source_url") or ""),
+                        channel=str(candidate.get("uploader") or ""), title=str(candidate.get("title") or ""),
+                        published=download_naming.published_date(str(candidate.get("published_at") or "")),
+                        file_path=str(saved))
                 self._channel_file_saved.emit(str(session_id), remote_id, True, "")
             except Exception as exc:
                 self._channel_file_saved.emit(str(session_id), remote_id, False, str(exc))

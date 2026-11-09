@@ -154,6 +154,8 @@ class VideoMetadata:
     duration_seconds: int
     thumbnail_url: str
     uploader: str
+    remote_video_id: str = ""
+    published: str = ""        # YYYYMMDD when the service says so
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -519,6 +521,8 @@ def inspect_video_url(url: str, cancel_event: threading.Event | None = None, aut
         duration_seconds=max(0, int(info.get("duration") or 0)),
         thumbnail_url=str(info.get("thumbnail") or ""),
         uploader=str(info.get("uploader") or info.get("channel") or "").strip(),
+        remote_video_id=str(info.get("id") or "").strip(),
+        published=str(info.get("upload_date") or "").strip(),
     )
 
 

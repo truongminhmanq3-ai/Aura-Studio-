@@ -258,6 +258,8 @@ Module {
             index: 141
             isReadonly: true
         }
+        Property { name: "downloadProjectSourceChannels"; type: "QVariantList"; read: "downloadProjectSourceChannels"; notify: "downloadProjectSourcesChanged"; isReadonly: true }
+        Property { name: "downloadProjectSourceChannel"; type: "QString"; read: "downloadProjectSourceChannel"; notify: "downloadProjectSourcesChanged"; isReadonly: true }
         Property {
             name: "tiktokPublishBusy"
             type: "bool"
@@ -1980,6 +1982,8 @@ Module {
             Parameter { name: "a1"; type: "QString" }
         }
         Method { name: "refreshDownloadProjectSources" }
+        Method { name: "setDownloadProjectSourceChannel"; Parameter { name: "channel"; type: "QString" } }
+        Method { name: "selectAllDownloadProjectSourcesNotImported"; type: "bool" }
         Method {
             name: "setDownloadProjectSourceSelected"
             type: "bool"

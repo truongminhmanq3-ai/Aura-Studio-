@@ -157,6 +157,28 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
+                        visible: root.downloader.lastSkippedUrl.length > 0 && !root.downloader.hasWork
+                        spacing: Theme.space8
+                        Text {
+                            Layout.fillWidth: true
+                            text: qsTr("Video này đã được tải trước đó. Bấm “Tải lại” nếu bạn muốn có thêm một bản.")
+                            color: Theme.textMuted
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.caption
+                            wrapMode: Text.WordWrap
+                            textFormat: Text.PlainText
+                        }
+                        StudioButton {
+                            objectName: "singleRedownloadButton"
+                            text: qsTr("Tải lại")
+                            variant: "secondary"
+                            enabled: douyinAction.permitsRequest
+                            onClicked: root.downloader.downloadVideoAgain(root.downloader.lastSkippedUrl)
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
                         Item { Layout.fillWidth: true }
                         StudioButton {
                             text: qsTr("Tải video")
@@ -287,6 +309,28 @@ Item {
                                 elide: Text.ElideMiddle
                                 textFormat: Text.PlainText
                             }
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        visible: root.downloader.batchExistingCount > 0 && !root.downloader.batchActive
+                        spacing: Theme.space8
+                        Text {
+                            Layout.fillWidth: true
+                            text: qsTr("%1 link đã được tải trước đó nên đã bị bỏ qua.").arg(root.downloader.batchExistingCount)
+                            color: Theme.textMuted
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.caption
+                            wrapMode: Text.WordWrap
+                            textFormat: Text.PlainText
+                        }
+                        StudioButton {
+                            objectName: "batchRedownloadButton"
+                            text: qsTr("Tải lại các video đã có")
+                            variant: "secondary"
+                            enabled: batchDouyinAction.permitsRequest && !root.downloader.hasWork
+                            onClicked: root.downloader.redownloadBatchExisting()
                         }
                     }
 

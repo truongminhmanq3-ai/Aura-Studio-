@@ -299,6 +299,7 @@ Item {
                             downloadsEnabled: root.downloader.channelOutputDirectory.length > 0 && douyinAction.permitsRequest
                             onSelectionChanged: function(selected) { root.downloader.setChannelSelected(index, selected) }
                             onRetryRequested: root.downloader.retryChannelVideo(index)
+                            onRedownloadRequested: root.downloader.redownloadChannelVideo(index)
                         }
                         ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
                     }

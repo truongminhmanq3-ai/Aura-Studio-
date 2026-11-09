@@ -18,6 +18,28 @@ MAX_LINKS = 500
 MAX_RETRIES = 2
 
 
+class AlreadyHave(Exception):
+    """The ledger says this video was downloaded before; it is skipped unless the user asks again."""
+
+    def __init__(self, url: str, entry: dict):
+        super().__init__("Already downloaded")
+        self.url = url
+        self.entry = entry
+
+    @property
+    def path(self) -> str:
+        return str(self.entry.get("file_path") or "")
+
+
+_DOUYIN_VIDEO = re.compile(r"^https://www\.douyin\.com/video/(\d{10,25})/?$")
+
+
+def ledger_key(url: str) -> tuple[str, str] | None:
+    """(platform, id) when the link itself names the video, so it can be checked without any request."""
+    match = _DOUYIN_VIDEO.match(str(url or ""))
+    return ("douyin", match.group(1)) if match else None
+
+
 @dataclass
 class ParsedLinks:
     urls: list[str] = field(default_factory=list)
@@ -82,15 +104,26 @@ class BatchTracker:
     done: int = 0
     failures: list[tuple[str, str]] = field(default_factory=list)   # (url, reason)
     skipped: list[str] = field(default_factory=list)
+    existing: list[tuple[str, str]] = field(default_factory=list)   # (url, saved file) already in the ledger
     stopped_reason: str = ""
 
     def start(self, total: int) -> None:
         self.total, self.done = total, 0
-        self.failures, self.skipped, self.stopped_reason = [], [], ""
+        self.failures, self.skipped, self.existing, self.stopped_reason = [], [], [], ""
+
+    @property
+    def finished(self) -> int:
+        return self.done + len(self.failures) + len(self.skipped) + len(self.existing)
 
     @property
     def active(self) -> bool:
-        return self.total > 0 and self.done + len(self.failures) + len(self.skipped) < self.total
+        return self.total > 0 and self.finished < self.total
+
+    def already_had(self, url: str, path: str = "") -> None:
+        self.existing.append((url, path))
+
+    def existing_text(self) -> str:
+        return "\n".join(url for url, _path in self.existing)
 
     def succeeded(self) -> None:
         self.done += 1
@@ -105,8 +138,10 @@ class BatchTracker:
     def summary(self) -> str:
         if not self.total:
             return ""
-        finished = self.done + len(self.failures) + len(self.skipped)
+        finished = self.finished
         parts = [f"{self.done}/{self.total} đã tải"]
+        if self.existing:
+            parts.append(f"{len(self.existing)} đã có từ trước")
         if self.failures:
             parts.append(f"{len(self.failures)} lỗi")
         if self.skipped:

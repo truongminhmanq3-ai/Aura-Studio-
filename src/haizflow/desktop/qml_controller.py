@@ -331,6 +331,8 @@ class HaizFlowController(QObject):
         self.tiktok_publish_items = SocialPublishListModel()
         self.tiktok_project_sources = SocialProjectSourceListModel()
         self.download_project_sources = DownloadProjectSourceListModel()
+        self._download_source_channel = ""
+        self._download_source_channels: list[str] = []
         self._video_path = ""
         self._video_thumbnail_source = ""
         self._target_language = "vi"
@@ -1078,6 +1080,26 @@ class HaizFlowController(QObject):
     @Property(QObject, constant=True)
     def researchController(self):
         return self._research_controller
+
+    @Property("QVariantList", notify=downloadProjectSourcesChanged)
+    def downloadProjectSourceChannels(self):
+        return list(self._download_source_channels)
+
+    @Property(str, notify=downloadProjectSourcesChanged)
+    def downloadProjectSourceChannel(self):
+        return self._download_source_channel
+
+    @Slot(str)
+    def setDownloadProjectSourceChannel(self, channel):
+        self._download_source_channel = str(channel or "")
+        HaizFlowController._project_import_for(self).refresh_download_project_sources()
+
+    @Slot(result=bool)
+    def selectAllDownloadProjectSourcesNotImported(self):
+        changed = self.download_project_sources.select_all_not_imported()
+        if changed:
+            self.downloadProjectSourcesChanged.emit()
+        return changed
 
     @Property(int, notify=downloadProjectSourcesChanged)
     def downloadProjectSourceSelectedCount(self):

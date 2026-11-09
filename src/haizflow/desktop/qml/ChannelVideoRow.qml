@@ -18,6 +18,7 @@ Rectangle {
     required property string viewCountLabel
     required property string thumbnailSource
     required property bool duplicate
+    required property bool previouslyDownloaded
     required property string candidateStatus
     required property int candidateProgress
     required property string candidateError
@@ -26,6 +27,7 @@ Rectangle {
 
     signal selectionChanged(bool selected)
     signal retryRequested
+    signal redownloadRequested
 
     function resetFocusState() {
         selectionBox.focus = false;
@@ -45,6 +47,8 @@ Rectangle {
     readonly property bool locked: duplicate || candidateStatus === "downloading" || candidateStatus === "importing" || candidateStatus === "imported"
 
     function statusLabel() {
+        if (duplicate && previouslyDownloaded)
+            return qsTr("Đã tải trước đó");
         if (duplicate)
             return qsTr("Đã có trong dự án");
         switch (candidateStatus) {
@@ -202,9 +206,19 @@ Rectangle {
             Layout.preferredWidth: 180
             Layout.preferredHeight: 40
 
+            StudioButton {
+                id: redownloadButton
+                objectName: "channelRedownloadButton"
+                anchors.fill: parent
+                visible: root.duplicate && root.previouslyDownloaded && root.downloadsEnabled
+                text: qsTr("Tải lại")
+                variant: "secondary"
+                onClicked: root.redownloadRequested()
+            }
+
             StatusPill {
                 anchors.centerIn: parent
-                visible: root.candidateStatus !== "failed"
+                visible: root.candidateStatus !== "failed" && !redownloadButton.visible
                 status: root.candidateStatus === "imported" ? "done" : root.candidateStatus === "downloading" || root.candidateStatus === "importing" ? "processing" : root.duplicate ? "cancelled" : "pending"
                 label: root.statusLabel()
             }

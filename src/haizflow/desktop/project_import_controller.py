@@ -17,7 +17,7 @@ from haizflow.core.model_choices import project_model_defaults
 from haizflow.desktop.localization import QFileDialog, QMessageBox, native_media_dialog_directory
 from haizflow.desktop.media import collect_batch_video_paths, create_video_thumbnail_path, normalize_video_path
 from haizflow.schemas.video import SubtitleStyle, VideoConfig
-from haizflow.services import editor_documents, manual_artifacts, project_store, video_store
+from haizflow.services import download_ledger, editor_documents, manual_artifacts, project_store, video_store
 from haizflow.services.channel_import import normalize_remote_url
 from haizflow.services.desktop_videos import (
     create_desktop_video,
@@ -1329,9 +1329,41 @@ class ProjectImportController:
         host.refreshVideos()
         return True
 
+    @staticmethod
+    def media_source_for_download(entry: dict | None) -> dict | None:
+        """media_source for a file the ledger knows, so the batch project can tell it is already imported."""
+        if not entry:
+            return None
+        return {
+            "type": "channel" if entry.get("channel") else "video_url",
+            "platform": str(entry.get("platform") or ""),
+            "remote_video_id": str(entry.get("remote_id") or ""),
+            "source_url": str(entry.get("url") or ""),
+            "channel_name": str(entry.get("channel") or ""),
+            "imported_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        }
+
     def refresh_download_project_sources(self) -> None:
-        self._host.download_project_sources.set_items(project_store.list_download_project_videos())
-        self._host.downloadProjectSourcesChanged.emit()
+        """List the downloaded videos with the channel/date the ledger knows and whether this project has them."""
+        host = self._host
+        in_project = self.current_project_media_keys() if getattr(host, "_project_type", "") == "batch" else set()
+        wanted = str(getattr(host, "_download_source_channel", "") or "")
+        items, channels = [], set()
+        for item in project_store.list_download_project_videos():
+            entry = download_ledger.by_path(str(item.get("file_path") or ""))
+            channel = str((entry or {}).get("channel") or "")
+            if channel:
+                channels.add(channel)
+            item = {
+                **item, "channel": channel,
+                "published": str((entry or {}).get("published") or ""),
+                "imported": bool(entry) and download_ledger.make_key(entry["platform"], entry["remote_id"]) in in_project,
+            }
+            if not wanted or channel == wanted:
+                items.append(item)
+        host._download_source_channels = sorted(channels, key=str.casefold)
+        host.download_project_sources.set_items(items)
+        host.downloadProjectSourcesChanged.emit()
 
     def set_download_project_source_selected(self, row: int, selected: bool, *, exclusive: bool = False) -> bool:
         changed = self._host.download_project_sources.set_selected(row, selected, exclusive=exclusive)
@@ -1349,7 +1381,9 @@ class ProjectImportController:
             return False
 
         if str(mode or "").strip().lower() == "batch":
-            return bool(self.import_batch_videos(paths))
+            sources = {path: source for path in paths
+                       if (source := self.media_source_for_download(download_ledger.by_path(path)))}
+            return bool(self.import_batch_videos(paths, sources) if sources else self.import_batch_videos(paths))
 
         # The shared single-video editor also handles an individual video
         # opened from a batch. In that case importing means replacing that
@@ -1423,8 +1457,10 @@ class ProjectImportController:
         if folder:
             self.import_batch_videos([folder])
 
-    def import_batch_videos(self, paths) -> bool:
+    def import_batch_videos(self, paths, sources=None) -> bool:
+        """``sources`` maps a path to the media_source to record (which remote video this file is)."""
         host = self._host
+        sources = {self._source_key(key): value for key, value in (sources or {}).items()}
         valid_paths, invalid_names = collect_batch_video_paths(paths)
         if not valid_paths:
             if invalid_names:
@@ -1433,16 +1469,18 @@ class ProjectImportController:
                 QMessageBox.warning(None, "No supported videos", "Choose MP4, MOV, or MKV video files.")
             return False
         if self._can_import_in_background():
-            return self._queue_batch_paths(valid_paths, invalid_names=invalid_names)
+            return self._queue_batch_paths(valid_paths, invalid_names=invalid_names, sources=sources)
         created_ids, errors = [], []
         for path in valid_paths:
             try:
+                extra = {"media_source": sources[self._source_key(path)]} if self._source_key(path) in sources else {}
                 video = self._create_video(
                     path,
                     self._config_for_project_import(force_batch=True),
                     project_name=host._project_name,
                     project_directory=host._project_directory,
                     project_key_value=host._selected_project_key,
+                    **extra,
                 )
                 self._assign_thumbnail(video)
                 created_ids.append(video.video_id)
@@ -1564,11 +1602,16 @@ class ProjectImportController:
             {"operation": "create", "project_key": host._selected_project_key, "url_import": url_import},
         )
 
-    def _queue_batch_paths(self, paths, *, invalid_names=None, url_import: bool = False) -> bool:
+    @staticmethod
+    def _source_key(path: str) -> str:
+        return os.path.normcase(os.path.abspath(str(path)))
+
+    def _queue_batch_paths(self, paths, *, invalid_names=None, url_import: bool = False, sources=None) -> bool:
         host = self._host
         valid_paths = list(paths)
         if not valid_paths:
             return False
+        sources = sources or {}
         jobs = [
             {
                 "operation": "create",
@@ -1579,6 +1622,7 @@ class ProjectImportController:
                     "project_directory": host._project_directory,
                     "project_key_value": host._selected_project_key,
                     "move_input": url_import,
+                    **({"media_source": sources[self._source_key(path)]} if self._source_key(path) in sources else {}),
                 },
             }
             for path in valid_paths

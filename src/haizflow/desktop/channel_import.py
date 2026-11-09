@@ -27,6 +27,7 @@ from haizflow.services.channel_import import (
     save_session,
     scan_channel,
 )
+from haizflow.services import download_ledger, download_naming
 from haizflow.services.video_download import DownloadCancelled
 
 
@@ -57,6 +58,7 @@ class ChannelImportCoordinator(QObject):
         self._sessions: dict[str, ChannelImportSession] = {}
         self._project_sessions: dict[str, str] = {}
         self._existing_remote_keys: dict[str, set[str]] = {}
+        self.ledger_keys_provider = None       # () -> {"platform:id"} remembered by the download ledger
         self._cancel_events: dict[str, threading.Event] = {}
         self._runner_threads: dict[str, threading.Thread] = {}
         self._workspaces: dict[tuple[str, str], str] = {}
@@ -379,6 +381,7 @@ class ChannelImportCoordinator(QObject):
                     self._existing_remote_keys.get(session.project_key, set()),
                     report,
                     cancel_event,
+                    ledger_keys=self.ledger_keys_provider() if self.ledger_keys_provider else (),
                 )
                 self._scanResolved.emit(
                     session.session_id,
@@ -575,6 +578,23 @@ class ChannelImportCoordinator(QObject):
         return session.session_id
 
     @Slot(int, result=bool)
+    def redownload(self, row):
+        """Select a video the ledger remembers so it is downloaded again, as the user asked."""
+        candidate = self.candidates.candidate_at(int(row))
+        if not candidate or not candidate.previously_downloaded or candidate.status in {"downloading", "importing"}:
+            return False
+        download_ledger.forget(candidate.platform, candidate.remote_video_id)
+        candidate.duplicate = candidate.previously_downloaded = False
+        candidate.selected = True
+        candidate.status = "ready"
+        self.candidates.update_candidate(candidate.remote_video_id, [
+            self.candidates.DuplicateRole, self.candidates.PreviouslyDownloadedRole,
+            self.candidates.SelectedRole, self.candidates.StatusRole,
+        ])
+        self._notify(self.countsChanged)
+        return True
+
+    @Slot(int, result=bool)
     def retry(self, row):
         candidate = self.candidates.candidate_at(int(row))
         if not candidate or candidate.duplicate or candidate.status != "failed":
@@ -611,6 +631,10 @@ class ChannelImportCoordinator(QObject):
             project_keys = self._existing_remote_keys.setdefault(session.project_key, set())
             project_keys.add(f"{candidate.platform.lower()}:{candidate.remote_video_id.lower()}")
             project_keys.add(normalize_remote_url(candidate.source_url))
+            download_ledger.record_if_missing(
+                candidate.platform, candidate.remote_video_id, url=candidate.source_url,
+                channel=candidate.uploader, title=candidate.title,
+                published=download_naming.published_date(candidate.published_at), status="imported")
         workspace = self._workspaces.pop((session_id, remote_video_id), "")
         if success:
             cleanup_channel_workspace(workspace)
