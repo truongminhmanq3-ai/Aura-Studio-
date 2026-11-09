@@ -19,7 +19,7 @@ from haizflow.config import MEDIA_PROCESS_TIMEOUT_SECONDS, TMP_DIR
 from haizflow.desktop.channel_import import ChannelImportCoordinator
 from haizflow.desktop.localization import QFileDialog, native_media_dialog_directory
 from haizflow.desktop.url_import import VideoUrlImportCoordinator
-from haizflow.services import project_store
+from haizflow.services import link_batch, project_store
 from haizflow.services.video_download import (
     DownloadCancelled,
     download_audio,
@@ -81,6 +81,7 @@ class MediaDownloadController(QObject):
         self._worker_thread: threading.Thread | None = None
         self._output_file_lock = threading.Lock()
         self._pending_tasks = deque()
+        self._batch = link_batch.BatchTracker()
         self._active_task: dict | None = None
         self._channel_starting = False
         self._active_channel_output_directory = ""
@@ -420,6 +421,8 @@ class MediaDownloadController(QObject):
         if self._active_task["kind"].startswith("channel_"):
             self._channel_importer.cancel()
         else:
+            if self._active_task.get("batch"):
+                self._drop_pending_batch("Cancelled")
             self._cancel.set()
             self._status = "Cancelling download"
             self.changed.emit()
@@ -456,6 +459,74 @@ class MediaDownloadController(QObject):
         if self._pending_tasks:
             self._pending_tasks.clear()
             self.changed.emit()
+
+    @Property(int, notify=changed)
+    def batchTotal(self):
+        return self._batch.total
+
+    @Property(bool, notify=changed)
+    def batchActive(self):
+        return self._batch.active
+
+    @Property(str, notify=changed)
+    def batchSummary(self):
+        return self._batch.summary()
+
+    @Property(str, notify=changed)
+    def batchStoppedReason(self):
+        return self._batch.stopped_reason
+
+    @Property(str, notify=changed)
+    def batchRetryText(self):
+        return self._batch.retry_text()
+
+    @Property("QVariantList", notify=changed)
+    def batchFailures(self):
+        return [{"url": url, "reason": reason} for url, reason in self._batch.failures]
+
+    @Slot(str, result="QVariantMap")
+    def previewLinkBatch(self, text):
+        return link_batch.extract_links(str(text or "")).to_dict()
+
+    @Slot()
+    def clearBatch(self):
+        if not self._batch.active:
+            self._batch = link_batch.BatchTracker()
+            self.changed.emit()
+
+    @Slot(str, result=bool)
+    def downloadVideoBatch(self, text):
+        """Queue every supported link found in ``text``; a failed link never stops the others."""
+        parsed = link_batch.extract_links(str(text or ""))
+        if not parsed.urls:
+            self._reject("No supported video link was found in the pasted text.")
+            return False
+        if self._batch.active:
+            self._reject("A batch is still downloading. Wait for it or cancel it first.")
+            return False
+        if not self._video_output_directory or not os.path.isdir(self._video_output_directory):
+            self._reject("Choose an output folder before downloading.")
+            return False
+        error = self._request_guard(parsed.urls[0]) if self._request_guard else ""
+        if error:
+            self._reject(error)
+            return False
+        self._batch.start(len(parsed.urls))
+        for index, url in enumerate(parsed.urls):
+            douyin = "douyin" in url.lower()
+            self._enqueue({
+                "kind": "video", "label": "video download", "value": url, "output": self._video_output_directory,
+                "batch": True, "pace": 0.0 if index == 0 else link_batch.pace_seconds(douyin),
+            })
+        return True
+
+    def _drop_pending_batch(self, reason: str) -> None:
+        kept, dropped = deque(), []
+        for task in self._pending_tasks:
+            (dropped if task.get("batch") else kept).append(task)
+        if dropped:
+            self._pending_tasks = kept
+            self._batch.skip([task["value"] for task in dropped], reason)
 
     @Slot(str)
     def downloadVideo(self, url):
@@ -668,48 +739,72 @@ class MediaDownloadController(QObject):
         self._status = "Preparing channel download"
         self.changed.emit()
 
+    def _sleep(self, seconds: float) -> None:
+        if self._cancel.wait(max(0.0, seconds)):
+            raise DownloadCancelled("Download cancelled.")
+
     def _run(self, value: str, mode: str, output_directory: str):
+        task = self._active_task          # the queue runs one task at a time, so this is this call's task
         try:
-            output = Path(output_directory)
-            if mode == "extract":
-                workspace = output / ".haizflow-downloads" / uuid.uuid4().hex
-                workspace.mkdir(parents=True, exist_ok=True)
+            batch = bool(task and task.get("batch"))
+            if batch and task.get("pace"):
+                self._report(0, "Waiting a moment between links")
+                self._sleep(float(task["pace"]))
+            attempts = link_batch.MAX_RETRIES + 1 if batch else 1
+            for attempt in range(1, attempts + 1):
                 try:
-                    downloaded = workspace / "audio.m4a"
-                    self._extract(value, downloaded)
-                    if self._cancel.is_set():
-                        raise DownloadCancelled("Audio extraction cancelled.")
-                    destination = self._move_to_unique_path(downloaded, output / f"{Path(value).stem}.m4a")
-                finally:
-                    shutil.rmtree(workspace, ignore_errors=True)
-            else:
-                metadata = inspect_video_url(value, self._cancel)
-                workspace = output / ".haizflow-downloads" / uuid.uuid4().hex
-                workspace.mkdir(parents=True, exist_ok=True)
-                try:
-                    if mode == "video":
-                        downloaded = download_video(metadata, str(workspace), self._report, self._cancel,
-                                                    require_audio=False)
-                        if self._cancel.is_set():
-                            raise DownloadCancelled("Download cancelled.")
-                        destination = self._move_to_unique_path(
-                            Path(downloaded), output / Path(downloaded).name,
-                        )
-                    else:
-                        downloaded = workspace / "audio.m4a"
-                        download_audio(metadata.url, downloaded, self._report, self._cancel)
-                        if self._cancel.is_set():
-                            raise DownloadCancelled("Audio download cancelled.")
-                        destination = self._move_to_unique_path(
-                            downloaded, output / f"{_safe_output_stem(metadata.title, 'audio')}.m4a"
-                        )
-                finally:
-                    shutil.rmtree(workspace, ignore_errors=True)
+                    destination = self._download_once(value, mode, output_directory)
+                    break
+                except DownloadCancelled:
+                    raise
+                except Exception as exc:
+                    if attempt >= attempts or not link_batch.is_transient(str(exc)):
+                        raise
+                    self._report(0, f"Retrying link ({attempt}/{link_batch.MAX_RETRIES})")
+                    self._sleep(link_batch.backoff_seconds(attempt))
             # Moving the validated file commits the operation. A late cancel
             # must not report failure after the completed file was saved.
             self._finished.emit(str(destination))
         except Exception as exc:
             self._failed.emit(str(exc))
+
+    def _download_once(self, value: str, mode: str, output_directory: str) -> Path:
+        output = Path(output_directory)
+        if mode == "extract":
+            workspace = output / ".haizflow-downloads" / uuid.uuid4().hex
+            workspace.mkdir(parents=True, exist_ok=True)
+            try:
+                downloaded = workspace / "audio.m4a"
+                self._extract(value, downloaded)
+                if self._cancel.is_set():
+                    raise DownloadCancelled("Audio extraction cancelled.")
+                destination = self._move_to_unique_path(downloaded, output / f"{Path(value).stem}.m4a")
+            finally:
+                shutil.rmtree(workspace, ignore_errors=True)
+        else:
+            metadata = inspect_video_url(value, self._cancel)
+            workspace = output / ".haizflow-downloads" / uuid.uuid4().hex
+            workspace.mkdir(parents=True, exist_ok=True)
+            try:
+                if mode == "video":
+                    downloaded = download_video(metadata, str(workspace), self._report, self._cancel,
+                                                require_audio=False)
+                    if self._cancel.is_set():
+                        raise DownloadCancelled("Download cancelled.")
+                    destination = self._move_to_unique_path(
+                        Path(downloaded), output / Path(downloaded).name,
+                    )
+                else:
+                    downloaded = workspace / "audio.m4a"
+                    download_audio(metadata.url, downloaded, self._report, self._cancel)
+                    if self._cancel.is_set():
+                        raise DownloadCancelled("Audio download cancelled.")
+                    destination = self._move_to_unique_path(
+                        downloaded, output / f"{_safe_output_stem(metadata.title, 'audio')}.m4a"
+                    )
+            finally:
+                shutil.rmtree(workspace, ignore_errors=True)
+        return destination
 
     def _extract(self, source: str, destination: Path):
         if self._cancel.is_set():
@@ -788,9 +883,17 @@ class MediaDownloadController(QObject):
 
     def _set_finished(self, destination):
         self._progress_value = 100
+        if self._active_task and self._active_task.get("batch"):
+            self._batch.succeeded()
         self._finish_active(f"Saved to {destination}")
 
     def _set_failed(self, message):
+        task = self._active_task
+        if task and task.get("batch"):
+            self._batch.failed(task["value"], message)
+            if link_batch.is_session_problem(message):
+                # Douyin wants a new session or a verification; more requests would only be refused too.
+                self._drop_pending_batch("Douyin needs a new session")
         self._finish_active(message)
 
     def _finish_active(self, status: str, state: str | None = None) -> None:
