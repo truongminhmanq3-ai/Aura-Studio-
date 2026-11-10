@@ -520,7 +520,9 @@ def inspect_video_url(url: str, cancel_event: threading.Event | None = None, aut
         platform=resolved_platform or platform,
         duration_seconds=max(0, int(info.get("duration") or 0)),
         thumbnail_url=str(info.get("thumbnail") or ""),
-        uploader=str(info.get("uploader") or info.get("channel") or "").strip(),
+        # Douyin and TikTok put the author's short handle in "uploader" and the display name in "channel".
+        # The display name is what people recognise, and what the channel scan lists, so prefer it.
+        uploader=str(info.get("channel") or info.get("uploader") or "").strip(),
         remote_video_id=str(info.get("id") or "").strip(),
         published=str(info.get("upload_date") or "").strip(),
     )

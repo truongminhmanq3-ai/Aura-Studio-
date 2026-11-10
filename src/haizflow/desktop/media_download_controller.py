@@ -19,7 +19,7 @@ from haizflow.config import MEDIA_PROCESS_TIMEOUT_SECONDS, TMP_DIR
 from haizflow.desktop.channel_import import ChannelImportCoordinator
 from haizflow.desktop.localization import QFileDialog, native_media_dialog_directory
 from haizflow.desktop.url_import import VideoUrlImportCoordinator
-from haizflow.services import download_ledger, download_naming, link_batch, project_store
+from haizflow.services import download_backfill, download_ledger, download_naming, link_batch, project_store
 from haizflow.services.video_download import (
     DownloadCancelled,
     download_audio,
@@ -59,6 +59,7 @@ class MediaDownloadController(QObject):
     _finished = Signal(str)
     _failed = Signal(str)
     _skipped = Signal(str, str)
+    _backfilled = Signal(str)
     _channel_file_saved = Signal(str, str, bool, str)
 
     def __init__(self, parent=None):
@@ -98,6 +99,9 @@ class MediaDownloadController(QObject):
         self._finished.connect(self._set_finished)
         self._failed.connect(self._set_failed)
         self._skipped.connect(self._set_skipped)
+        self._backfilled.connect(self._set_backfilled)
+        self._backfill_status = ""
+        self._backfill_busy = False
         self._last_skipped_url = ""
         self._channel_file_saved.connect(self._finish_channel_file_save)
         self._channel_importer.changed.connect(self._on_channel_changed)
@@ -483,6 +487,45 @@ class MediaDownloadController(QObject):
     @Property(int, notify=changed)
     def batchExistingCount(self):
         return len(self._batch.existing)
+
+    @Property(int, notify=changed)
+    def ledgerCount(self):
+        try:
+            return download_ledger.count()
+        except Exception:
+            return 0
+
+    @Property(str, notify=changed)
+    def backfillStatus(self):
+        return self._backfill_status
+
+    @Property(bool, notify=changed)
+    def backfillBusy(self):
+        return self._backfill_busy
+
+    @Slot(str)
+    def backfillLedger(self, platform):
+        """Pick a folder of older downloads and add the video IDs found in the file names to the ledger."""
+        if self._backfill_busy:
+            return
+        folder = QFileDialog.getExistingDirectory(
+            None, "Choose a folder of videos downloaded before", native_media_dialog_directory())
+        if not folder:
+            return
+        self._backfill_busy, self._backfill_status = True, "Scanning the folder..."
+        self.changed.emit()
+
+        def work():
+            try:
+                self._backfilled.emit(download_backfill.backfill_folder(folder, str(platform)).summary())
+            except Exception as exc:
+                self._backfilled.emit(f"Could not scan the folder: {exc}")
+
+        threading.Thread(target=work, name="ledger-backfill", daemon=True).start()
+
+    def _set_backfilled(self, summary):
+        self._backfill_busy, self._backfill_status = False, str(summary)
+        self.changed.emit()
 
     @Property(str, notify=changed)
     def lastSkippedUrl(self):

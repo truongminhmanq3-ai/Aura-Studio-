@@ -191,3 +191,69 @@ class IntegrationTests(unittest.TestCase):
                           "file_size": 1, "imported": False}])
         self.assertTrue(model.select_all_not_imported())
         self.assertEqual([item["item_id"] for item in model.selected_items()], ["b"])
+
+
+class BackfillTests(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.root = Path(self.directory.name)
+        self.ledger = self.root / "ledger.sqlite"
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    def test_ids_are_read_from_common_file_name_shapes(self):
+        from haizflow.services import download_backfill as backfill
+
+        self.assertEqual(backfill.video_id_from_name("高原看世界杯 #房车 [7664102029698250725].mp4"), "7664102029698250725")
+        self.assertEqual(backfill.video_id_from_name("2026-11-08_Kênh_Tiêu đề_7664102029698250725.mp4"), "7664102029698250725")
+        self.assertEqual(backfill.video_id_from_name("nam nữ 38.mp4"), "")
+        self.assertEqual(backfill.video_id_from_name("12345678901234567890123456.mp4"), "")   # too long to be a video ID
+
+    def test_folder_scan_adds_new_ids_once_and_reports_the_rest(self):
+        from haizflow.services import download_backfill as backfill
+
+        (self.root / "sub").mkdir()
+        (self.root / "A [7664102029698250725].mp4").write_bytes(b"x")
+        (self.root / "sub" / "2026-11-08_Kênh_Tiêu đề_7662614553771729216.mkv").write_bytes(b"x")
+        (self.root / "no id here.mp4").write_bytes(b"x")
+        (self.root / "notes [7664102029698250999].txt").write_text("not a video")
+        (self.root / ".hidden").mkdir()
+        (self.root / ".hidden" / "B [7664102029698250111].mp4").write_bytes(b"x")
+        ledger.record("douyin", "7662614553771729216", title="kept", path=self.ledger)
+
+        first = backfill.backfill_folder(str(self.root), "Douyin", ledger_path=self.ledger)
+        self.assertEqual((first.scanned, first.added, first.already_known, first.without_id), (3, 1, 1, 1))
+        entry = ledger.get("douyin", "7664102029698250725", path=self.ledger)
+        self.assertEqual(entry["title"], "A")
+        self.assertTrue(entry["file_path"].endswith("A [7664102029698250725].mp4"))
+        self.assertEqual(ledger.get("douyin", "7662614553771729216", path=self.ledger)["title"], "kept")   # not overwritten
+        second = backfill.backfill_folder(str(self.root), "douyin", ledger_path=self.ledger)
+        self.assertEqual((second.added, second.already_known), (0, 2))
+        self.assertIn("không đọc được ID", first.summary())
+
+    def test_missing_folder_or_platform_does_nothing(self):
+        from haizflow.services import download_backfill as backfill
+
+        self.assertEqual(backfill.backfill_folder(str(self.root / "nope"), "douyin", ledger_path=self.ledger).scanned, 0)
+        self.assertEqual(backfill.backfill_folder(str(self.root), "", ledger_path=self.ledger).scanned, 0)
+
+
+class UploaderNameTests(unittest.TestCase):
+    def test_display_name_is_preferred_over_the_author_handle(self):
+        from unittest import mock
+
+        from haizflow.services import video_download
+
+        info = {"id": "7664102029698250725", "title": "T", "uploader": "67542084853", "channel": "Kênh A",
+                "webpage_url": "https://www.douyin.com/video/7664102029698250725", "extractor_key": "Douyin",
+                "upload_date": "20260719", "duration": 10}
+        with mock.patch.object(video_download, "_load_yt_dlp"), \
+                mock.patch.object(video_download, "_inspect_video_info", return_value=info):
+            metadata = video_download.inspect_video_url("https://www.douyin.com/video/7664102029698250725")
+        self.assertEqual((metadata.uploader, metadata.remote_video_id, metadata.published), ("Kênh A", "7664102029698250725", "20260719"))
+        info.pop("channel")
+        with mock.patch.object(video_download, "_load_yt_dlp"), \
+                mock.patch.object(video_download, "_inspect_video_info", return_value=info):
+            self.assertEqual(video_download.inspect_video_url("https://www.douyin.com/video/7664102029698250725").uploader,
+                             "67542084853")                              # the handle is only a fallback

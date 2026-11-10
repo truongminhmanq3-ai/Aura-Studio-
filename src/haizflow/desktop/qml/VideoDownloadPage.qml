@@ -352,6 +352,66 @@ Item {
                     }
                 }
 
+                AppSurface {
+                    id: ledgerSurface
+                    objectName: "ledgerSurface"
+                    Layout.fillWidth: true
+                    padding: Theme.space16
+
+                    SectionHeader {
+                        Layout.fillWidth: true
+                        title: qsTr("Sổ video đã tải")
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: qsTr("Aura nhớ %1 video đã tải để không tải trùng. Video tải từ trước khi có sổ này chưa được nhớ; hãy chọn thư mục chứa chúng để nạp vào sổ (ID video nằm trong tên file).").arg(root.downloader.ledgerCount)
+                        color: Theme.textMuted
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.caption
+                        wrapMode: Text.WordWrap
+                        textFormat: Text.PlainText
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Theme.space8
+                        Text {
+                            text: qsTr("Nền tảng của thư mục")
+                            color: Theme.textMuted
+                            font.family: Theme.fontFamily
+                            font.pixelSize: Theme.caption
+                        }
+                        AppComboBox {
+                            id: backfillPlatform
+                            objectName: "backfillPlatform"
+                            Layout.preferredWidth: 150
+                            model: [{ "label": "Douyin", "value": "douyin" }, { "label": "TikTok", "value": "tiktok" }]
+                            textRole: "label"
+                            valueRole: "value"
+                        }
+                        Item { Layout.fillWidth: true }
+                        StudioButton {
+                            objectName: "backfillButton"
+                            text: qsTr("Nạp từ thư mục cũ…")
+                            variant: "secondary"
+                            enabled: !root.downloader.backfillBusy
+                            onClicked: root.downloader.backfillLedger(backfillPlatform.currentValue)
+                        }
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        visible: root.downloader.backfillStatus.length > 0
+                        text: root.downloader.backfillStatus
+                        color: Theme.text
+                        font.family: Theme.fontFamily
+                        font.pixelSize: Theme.caption
+                        wrapMode: Text.WordWrap
+                        textFormat: Text.PlainText
+                    }
+                }
+
                 Item { Layout.fillHeight: true }
             }
         }
