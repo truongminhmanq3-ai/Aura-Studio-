@@ -79,6 +79,7 @@ def _candidate(aweme: dict) -> dict | None:
         "published_at": published_at,
         "view_count": view_count,
         "thumbnail_url": _cover_url(video),
+        "pinned": bool(aweme.get("is_top")),
     }
 
 

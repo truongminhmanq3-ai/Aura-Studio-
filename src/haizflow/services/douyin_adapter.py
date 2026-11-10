@@ -268,7 +268,7 @@ class DouyinAdapter:
             self._request_succeeded()
             return detail
 
-    def profile_posts(self, url, *, limit=20, cancel_event=None, progress_callback=None):
+    def profile_posts(self, url, *, limit=20, cancel_event=None, progress_callback=None, stop_when=None):
         from haizflow.services.douyin_channel_worker import _candidate
 
         with _session_guard(self.session.lock, cancel_event):
@@ -287,7 +287,7 @@ class DouyinAdapter:
                 candidates = list(cached["candidates"])
                 seen = {row["remote_video_id"] for row in candidates}
                 cursor, scanned, channel_name = cached["cursor"], cached["scanned"], cached["name"]
-                if cached["complete"]:
+                if cached["complete"] or (stop_when and stop_when(candidates)):
                     return channel_name, candidates
             while scanned < budget:
                 if scanned or self._posts_cooldown_until > time.monotonic():
@@ -340,6 +340,8 @@ class DouyinAdapter:
                     del self._profile_pages[next(iter(self._profile_pages))]
                 if complete:
                     break
+                if stop_when and stop_when(candidates):
+                    break          # the chosen scan mode has what it needs; no more pages
                 cursor = next_cursor
             if not candidates:
                 raise RuntimeError("The Douyin profile returned no public videos.")

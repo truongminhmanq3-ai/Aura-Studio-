@@ -29,7 +29,8 @@ Item {
     function saveForm() {
         root.downloader.saveWorkspaceState({channelUrl: channelUrl.text, platform: selectedPlatform,
             ranking: ranking.currentValue, limit: channelLimit.value,
-            durationFilter: contentFilter.currentValue, scanScope: scanScope.currentValue});
+            durationFilter: contentFilter.currentValue, scanScope: scanScope.currentValue,
+            scanMode: scanMode.currentValue, dateFrom: dateFrom.text, dateTo: dateTo.text});
     }
     function restoreForm() {
         const form = root.downloader.workspaceState;
@@ -44,8 +45,14 @@ Item {
             : form.durationFilter === "long" ? 2 : 0;
         scanScope.currentIndex = [100, 300, 1000, 0].indexOf(Number(form.scanScope === undefined ? 300 : form.scanScope));
         if (scanScope.currentIndex < 0) scanScope.currentIndex = 1;
+        scanMode.currentIndex = Math.max(0, ["limit", "new", "all", "range"].indexOf(String(form.scanMode || "limit")));
+        dateFrom.text = String(form.dateFrom || "");
+        dateTo.text = String(form.dateTo || "");
         root.inspectedSource = root.downloader.channelPreviewSource;
     }
+    // New / all / date-range scans are available for Douyin only; other platforms keep "newest N".
+    readonly property bool scanModesAvailable: selectedPlatform === "douyin" && ranking.currentValue !== "popular"
+    readonly property string effectiveScanMode: scanModesAvailable ? scanMode.currentValue : "limit"
     Component.onCompleted: restoreForm()
     Connections {
         target: root.downloader
@@ -160,6 +167,59 @@ Item {
 
                         ColumnLayout {
                             Layout.fillWidth: true
+                            visible: root.scanModesAvailable
+                            spacing: Theme.space4
+                            Text { text: qsTr("Cách quét kênh"); color: Theme.textMuted; font.pixelSize: Theme.label }
+                            AppComboBox {
+                                id: scanMode
+                                Layout.fillWidth: true
+                                model: [
+                                    { "label": qsTr("N video mới nhất chưa tải"), "value": "limit" },
+                                    { "label": qsTr("Chỉ video mới từ lần trước"), "value": "new" },
+                                    { "label": qsTr("Toàn bộ kênh"), "value": "all" },
+                                    { "label": qsTr("Theo khoảng ngày"), "value": "range" }
+                                ]
+                                textRole: "label"
+                                valueRole: "value"
+                                enabled: !root.channelActive
+                                Accessible.name: qsTr("Cách quét kênh")
+                                onActivated: root.saveForm()
+                            }
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            visible: root.effectiveScanMode === "range"
+                            spacing: Theme.space4
+                            Text { text: qsTr("Từ ngày (2026-01-31)"); color: Theme.textMuted; font.pixelSize: Theme.label }
+                            AppTextField {
+                                id: dateFrom
+                                Layout.fillWidth: true
+                                placeholderText: qsTr("để trống = từ đầu")
+                                enabled: !root.channelActive
+                                accessibleName: qsTr("Từ ngày")
+                                onTextEdited: root.saveForm()
+                            }
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            visible: root.effectiveScanMode === "range"
+                            spacing: Theme.space4
+                            Text { text: qsTr("Đến ngày (2026-12-31)"); color: Theme.textMuted; font.pixelSize: Theme.label }
+                            AppTextField {
+                                id: dateTo
+                                Layout.fillWidth: true
+                                placeholderText: qsTr("để trống = đến nay")
+                                enabled: !root.channelActive
+                                accessibleName: qsTr("Đến ngày")
+                                onTextEdited: root.saveForm()
+                            }
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            visible: root.effectiveScanMode === "limit"
                             spacing: Theme.space4
                             Text { text: qsTr("Số lượng tải"); color: Theme.textMuted; font.pixelSize: Theme.label }
                             AppSpinBox { id: channelLimit; Layout.fillWidth: true; from: 1; to: 100; value: 20; enabled: !root.channelActive; onValueModified: root.saveForm() }
@@ -231,7 +291,7 @@ Item {
                             onClicked: {
                                 root.inspectedSource = root.currentSource
                                 root.saveForm()
-                                root.downloader.inspectChannel(channelUrl.text.trim(), root.selectedPlatform, ranking.currentValue, channelLimit.value, contentFilter.currentValue, ranking.currentValue === "popular" ? scanScope.currentValue : 0)
+                                root.downloader.inspectChannelScan(channelUrl.text.trim(), root.selectedPlatform, ranking.currentValue, channelLimit.value, contentFilter.currentValue, ranking.currentValue === "popular" ? scanScope.currentValue : 0, root.effectiveScanMode, dateFrom.text.trim(), dateTo.text.trim())
                             }
                         }
                     }

@@ -322,8 +322,19 @@ class ChannelImportCoordinator(QObject):
         self._cookie_file = ""
         self._notify(self.authenticationChanged)
 
+    def set_scan_options(self, scan_mode="limit", date_from="", date_to="", stop_after_known=8):
+        """Scan mode for the next inspect(); the in-project dialog never sets it (stays 'limit')."""
+        mode = str(scan_mode or "limit")
+        self._scan_options = {
+            "scan_mode": mode if mode in {"limit", "new", "all", "range"} else "limit",
+            "date_from": str(date_from or ""), "date_to": str(date_to or ""),
+            "stop_after_known": max(1, min(50, int(stop_after_known or 8))),
+        }
+
     @Slot(str, str, str, int, str, int)
     def inspect(self, url, platform, ranking, limit, duration_filter, scan_scope):
+        options = dict(getattr(self, "_scan_options", {}) or {})
+        self._scan_options = {}
         self._prune_finished_runners()
         if not self._active_project_key or not self._active_project_root or self.busy:
             return
@@ -335,6 +346,7 @@ class ChannelImportCoordinator(QObject):
                 limit=int(limit),
                 duration_filter=str(duration_filter),
                 scan_scope=int(scan_scope),
+                **options,
                 cookie_browser=self._cookie_browser,
                 cookie_file=self._cookie_file,
             )

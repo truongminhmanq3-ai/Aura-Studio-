@@ -27,6 +27,13 @@ class ChannelImportRequest(BaseModel):
     limit: int = Field(default=20, ge=1, le=100)
     duration_filter: Literal["all", "short", "long"] = "short"
     scan_scope: int = Field(default=300, ge=0, le=10000)
+    # limit: the newest N videos not downloaded yet; new: only what is new since
+    # the last time (stops after a run of known videos); all: the whole channel;
+    # range: videos published between date_from and date_to (YYYYMMDD).
+    scan_mode: Literal["limit", "new", "all", "range"] = "limit"
+    stop_after_known: int = Field(default=8, ge=1, le=50)
+    date_from: str = ""
+    date_to: str = ""
     cookie_browser: str = Field(default="", exclude=True)
     cookie_file: str = Field(default="", exclude=True)
 
@@ -46,6 +53,7 @@ class ChannelVideoCandidate(BaseModel):
     thumbnail_url: str = ""
     selected: bool = True
     duplicate: bool = False
+    pinned: bool = False                    # a pinned post sits at the top of a profile whatever its date
     previously_downloaded: bool = False     # a duplicate because the download ledger knows it, not because a project has it
     status: str = "ready"
     progress: int = 0

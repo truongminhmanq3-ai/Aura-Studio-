@@ -19,6 +19,7 @@ from haizflow.schemas.channel_import import (
     ChannelImportSession,
     ChannelVideoCandidate,
 )
+from haizflow.services import channel_scan_modes
 from haizflow.services.video_download import (
     DownloadCancelled,
     VideoMetadata,
@@ -375,10 +376,11 @@ def _scan_with_ytdlp(
     platform: str,
     progress_callback: ProgressCallback | None,
     cancel_event: threading.Event,
+    budget: int = 0,
 ) -> tuple[str, list[ChannelVideoCandidate]]:
     # For newest-first imports the requested count is the actual scan budget.
     # Do not silently expand a request for 20 posts into 60 metadata requests.
-    scan_limit = request.scan_scope if request.ranking == "popular" else request.limit
+    scan_limit = request.scan_scope if request.ranking == "popular" else (budget or request.limit)
     collection_sources = (
         _youtube_collection_sources(request.url, request.duration_filter)
         if platform == "YouTube"
@@ -517,14 +519,17 @@ def _scan_douyin(
     request: ChannelImportRequest,
     progress_callback: ProgressCallback | None,
     cancel_event: threading.Event,
+    budget: int = 0,
+    stop_when=None,
 ) -> tuple[str, list[ChannelVideoCandidate]]:
     from haizflow.services.douyin_adapter import get_douyin_adapter
 
     if progress_callback:
         progress_callback(5, "Reading channel videos")
-    budget = request.scan_scope if request.ranking == "popular" else request.limit
+    budget = budget or (request.scan_scope if request.ranking == "popular" else request.limit)
     name, rows = get_douyin_adapter(_auth_options(request)).profile_posts(
-        request.url, limit=budget or 1000, cancel_event=cancel_event, progress_callback=progress_callback)
+        request.url, limit=budget or 1000, cancel_event=cancel_event, progress_callback=progress_callback,
+        stop_when=stop_when)
     from haizflow.services.douyin_adapter import ProfileCandidates
 
     candidates = ProfileCandidates(ChannelVideoCandidate.model_validate(row) for row in rows)
@@ -542,24 +547,42 @@ def scan_channel(
     normalized_url, platform = validate_channel_url(request.url, request.platform)
     request.url = normalized_url
     cancel_event = cancel_event or threading.Event()
-    if platform == "Douyin":
-        channel_name, candidates = _scan_douyin(request, progress_callback, cancel_event)
-    else:
-        channel_name, candidates = _scan_with_ytdlp(request, platform, progress_callback, cancel_event)
-    warning = getattr(candidates, "warning", "")
+    problem = channel_scan_modes.date_error(request)
+    if problem:
+        raise ValueError(problem)
     existing = {str(value).lower() for value in existing_remote_keys}
     existing.update(normalize_remote_url(value) for value in existing_remote_keys)
     ledger = {str(value).lower() for value in ledger_keys}
-    candidates = [candidate for candidate in candidates if _passes_duration(candidate, request.duration_filter)]
+
+    def is_known(candidate: ChannelVideoCandidate) -> bool:
+        key = f"{candidate.platform.lower()}:{candidate.remote_video_id}".lower()
+        return key in existing or key in ledger or normalize_remote_url(candidate.source_url) in existing
+
+    passes = lambda candidate: _passes_duration(candidate, request.duration_filter)
+    budget = channel_scan_modes.scan_budget(request)
+    selection = request
+    if platform != "Douyin" and request.ranking != "popular":
+        # Reading a whole channel needs per-video detail requests on these platforms.
+        # Only Douyin supports new/all/range scans for now; the others keep "newest N".
+        budget = request.limit
+        selection = request.model_copy(update={"scan_mode": "limit"})
+    if platform == "Douyin":
+        stop_when = channel_scan_modes.make_stop(request, is_known, passes)
+        channel_name, candidates = _scan_douyin(request, progress_callback, cancel_event, budget, stop_when)
+    else:
+        channel_name, candidates = _scan_with_ytdlp(request, platform, progress_callback, cancel_event, budget)
+    warning = getattr(candidates, "warning", "")
+    candidates = [candidate for candidate in candidates if passes(candidate)]
     if request.ranking == "popular":
         candidates.sort(
             key=lambda item: (item.view_count is not None, item.view_count or -1, item.published_at),
             reverse=True,
         )
-    else:
+    elif platform != "Douyin":
         # YouTube channel tabs are already newest-first. Flat playlist entries
         # often omit upload_date; preserving their source order is the only
         # reliable fallback because a YouTube video ID is not chronological.
+        # (Douyin keeps the API order: pinned posts stay on top, the rest are newest first.)
         if platform != "YouTube" or request.duration_filter == "all":
             dated_count = sum(bool(item.published_at) for item in candidates)
             if dated_count == len(candidates):
@@ -569,17 +592,17 @@ def scan_channel(
                     key=lambda item: (bool(item.published_at), item.published_at),
                     reverse=True,
                 )
-    candidates = candidates[: request.limit]
+    # Mark what is already known BEFORE trimming, so a rescan reaches older videos.
     for candidate in candidates:
         key = f"{candidate.platform.lower()}:{candidate.remote_video_id}".lower()
-        url_key = normalize_remote_url(candidate.source_url)
-        in_project = key in existing or url_key in existing
+        in_project = key in existing or normalize_remote_url(candidate.source_url) in existing
         in_ledger = key in ledger
         candidate.duplicate = in_project or in_ledger
         candidate.previously_downloaded = in_ledger and not in_project
         candidate.selected = not candidate.duplicate
         if candidate.duplicate:
             candidate.status = "duplicate"
+    candidates = channel_scan_modes.select(selection, candidates)
     if progress_callback:
         progress_callback(100, f"Found {len(candidates)} videos")
     if warning:

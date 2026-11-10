@@ -120,7 +120,8 @@ class MediaDownloadController(QObject):
     def saveWorkspaceState(self, changes):
         # Form values only. Authentication is deliberately not a checkpoint.
         allowed = {"page", "videoUrl", "audioUrl", "audioMode", "channelUrl",
-                   "platform", "ranking", "limit", "durationFilter", "scanScope"}
+                   "platform", "ranking", "limit", "durationFilter", "scanScope",
+                   "scanMode", "dateFrom", "dateTo"}
         for key, value in dict(changes or {}).items():
             if key in allowed and isinstance(value, (str, int)):
                 self._workspace_state[key] = value
@@ -631,6 +632,11 @@ class MediaDownloadController(QObject):
 
     @Slot(str, str, str, int, str, int)
     def inspectChannel(self, url, platform, ranking, limit, duration_filter, scan_scope):
+        self.inspectChannelScan(url, platform, ranking, limit, duration_filter, scan_scope, "limit", "", "")
+
+    @Slot(str, str, str, int, str, int, str, str, str)
+    def inspectChannelScan(self, url, platform, ranking, limit, duration_filter, scan_scope,
+                           scan_mode, date_from, date_to):
         error = self._request_guard(url) if self._request_guard else ""
         if error:
             self._reject(error)
@@ -649,6 +655,9 @@ class MediaDownloadController(QObject):
                 "limit": max(1, min(100, int(limit))),
                 "duration_filter": str(duration_filter or "all"),
                 "scan_scope": max(0, int(scan_scope)),
+                "scan_mode": str(scan_mode or "limit"),
+                "date_from": str(date_from or ""),
+                "date_to": str(date_to or ""),
                 "output": "",
             }
         )
@@ -804,6 +813,8 @@ class MediaDownloadController(QObject):
             # project import flow keeps its separate opt-in authentication UI.
             self._channel_importer.clearAuthentication()
             self._channel_importer.attach_project(self._channel_project_key, self._channel_workspace, set())
+            self._channel_importer.set_scan_options(
+                task.get("scan_mode", "limit"), task.get("date_from", ""), task.get("date_to", ""))
             self._channel_importer.inspect(
                 task["url"],
                 task["platform"],

@@ -86,7 +86,7 @@ class ChannelUrlTests(unittest.TestCase):
         self.assertEqual(name, "Creator")
         self.assertEqual([v.remote_video_id for v in candidates], ["123"])
         adapter.profile_posts.assert_called_once_with(request.url, limit=1, cancel_event=cancel,
-                                                      progress_callback=None)
+                                                      progress_callback=None, stop_when=None)
 
     def test_video_urls_and_unknown_hosts_are_rejected(self):
         invalid = (
