@@ -1190,6 +1190,7 @@ Item {
                 clip: true
                 spacing: 6
                 model: root.controller ? root.controller.weiboHotBoard : []
+                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
                 delegate: Rectangle {
                     id: wbHotItemRow
@@ -1321,6 +1322,7 @@ Item {
                 clip: true
                 spacing: 6
                 model: root.controller ? root.controller.rednoteHotBoard : []
+                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
                 delegate: Rectangle {
                     id: rnHotItemRow

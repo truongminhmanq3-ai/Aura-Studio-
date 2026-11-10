@@ -286,7 +286,7 @@ def fetch_douyin_hot_board(limit: int = 50) -> list[dict[str, Any]]:
     global _CACHED_DOUYIN_HOT, _LAST_FETCH_TIME
 
     with _CACHE_LOCK:
-        if _CACHED_DOUYIN_HOT and (time.time() - _LAST_FETCH_TIME < _CACHE_TTL_SECONDS):
+        if _CACHED_DOUYIN_HOT and len(_CACHED_DOUYIN_HOT) >= limit and (time.time() - _LAST_FETCH_TIME < _CACHE_TTL_SECONDS):
             return _CACHED_DOUYIN_HOT[:limit]
 
     try:
@@ -340,7 +340,7 @@ def fetch_weibo_hot_board(limit: int = 50) -> list[dict[str, Any]]:
     global _CACHED_WEIBO_HOT, _LAST_WEIBO_FETCH_TIME
 
     with _CACHE_LOCK:
-        if _CACHED_WEIBO_HOT and (time.time() - _LAST_WEIBO_FETCH_TIME < _CACHE_TTL_SECONDS):
+        if _CACHED_WEIBO_HOT and len(_CACHED_WEIBO_HOT) >= limit and (time.time() - _LAST_WEIBO_FETCH_TIME < _CACHE_TTL_SECONDS):
             return _CACHED_WEIBO_HOT[:limit]
 
     try:
