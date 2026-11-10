@@ -578,11 +578,14 @@ def scan_channel(
             key=lambda item: (item.view_count is not None, item.view_count or -1, item.published_at),
             reverse=True,
         )
-    elif platform != "Douyin":
+    elif platform == "Douyin":
+        # The API lists pinned posts first whatever their age. Order by posting date so "newest"
+        # means newest (stable: videos without a date keep their place at the end).
+        candidates.sort(key=lambda item: item.published_at, reverse=True)
+    else:
         # YouTube channel tabs are already newest-first. Flat playlist entries
         # often omit upload_date; preserving their source order is the only
         # reliable fallback because a YouTube video ID is not chronological.
-        # (Douyin keeps the API order: pinned posts stay on top, the rest are newest first.)
         if platform != "YouTube" or request.duration_filter == "all":
             dated_count = sum(bool(item.published_at) for item in candidates)
             if dated_count == len(candidates):

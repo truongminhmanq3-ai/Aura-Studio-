@@ -63,6 +63,23 @@ class ScanModeTests(unittest.TestCase):
         _, _, found = self.scan(FakeAdapter(rows), known, scan_mode="new", stop_after_known=8)
         self.assertEqual([c.remote_video_id for c in found if not c.duplicate], ["100", "99", "98"])
 
+    def test_pinned_old_posts_do_not_use_up_the_newest_n(self):
+        pinned = [row(300 + n, f"202603{18 - n:02d}", pinned=True) for n in range(3)]   # shown first, March
+        _, _, found = self.scan(FakeAdapter(pinned + self.rows), limit=5)
+        self.assertEqual([c.remote_video_id for c in found], ["100", "99", "98", "97", "96"])
+        self.assertEqual([c.published_at for c in found], sorted((c.published_at for c in found), reverse=True))
+
+    def test_a_pinned_post_that_is_newer_than_the_cutoff_stays(self):
+        pinned = [row(500, "20270101", pinned=True)]
+        _, _, found = self.scan(FakeAdapter(pinned + self.rows), limit=3)
+        self.assertEqual([c.remote_video_id for c in found], ["500", "100", "99", "98"])
+
+    def test_new_mode_drops_an_old_unknown_pinned_post(self):
+        pinned = [row(300, "20260318", pinned=True)]
+        known = [str(i) for i in range(97, 0, -1)]
+        _, _, found = self.scan(FakeAdapter(pinned + self.rows), known, scan_mode="new", stop_after_known=8)
+        self.assertEqual([c.remote_video_id for c in found if not c.duplicate], ["100", "99", "98"])
+
     def test_all_reads_everything(self):
         adapter = FakeAdapter(self.rows)
         _, _, found = self.scan(adapter, scan_mode="all")

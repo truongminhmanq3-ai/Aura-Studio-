@@ -65,7 +65,8 @@ def make_stop(
                 parsed[key] = _row_candidate(row)
             items.append(parsed[key])
         if request.scan_mode == "limit":
-            return sum(1 for item in items if passes(item) and not is_known(item)) >= request.limit
+            # Pinned posts are old posts shown first; they must not use up the "newest N".
+            return sum(1 for item in items if not item.pinned and passes(item) and not is_known(item)) >= request.limit
         if request.scan_mode == "new":
             run = 0
             for item in reversed(items):
@@ -102,13 +103,15 @@ def select(
             or ((not start or item.published_at >= start) and (not end or item.published_at <= end))
         ]
     if mode == "new":
-        keep = [index for index, item in enumerate(candidates) if not item.duplicate]
+        # Up to the last new video; a pinned post past that point is old news, not "new".
+        keep = [index for index, item in enumerate(candidates) if not item.duplicate and not item.pinned]
         return candidates[: keep[-1] + 1] if keep else []
-    # limit: stop once the Nth video that is not downloaded yet has been listed
+    # limit: stop once the Nth ordinary video not downloaded yet has been listed. The list is
+    # newest first, so a pinned post only stays when it is newer than that cut-off.
     result, fresh = [], 0
     for item in candidates:
         result.append(item)
-        if not item.duplicate:
+        if not item.duplicate and not item.pinned:
             fresh += 1
             if fresh >= request.limit:
                 break
