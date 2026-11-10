@@ -8,7 +8,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ.setdefault("QT_QUICK_CONTROLS_STYLE", "Basic")
 
 from PySide6.QtCore import QObject, QUrl
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlComponent
 from PySide6.QtQuick import QQuickView
 
@@ -24,7 +24,7 @@ from haizflow.services.channel_import import new_session
 
 
 def test_channel_run_summary_realtime_updates_and_color_shift():
-    app = QGuiApplication.instance() or QGuiApplication([])
+    app = QApplication.instance() or QApplication([])
 
     view = QQuickView()
     engine = view.engine()
