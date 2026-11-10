@@ -7,6 +7,7 @@ caller says which platform the folder holds.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 from dataclasses import dataclass, field
@@ -25,14 +26,16 @@ _ANY_ID = re.compile(r"(?<!\d)(\d{19})(?!\d)")
 class BackfillResult:
     scanned: int = 0
     added: int = 0
+    from_projects: int = 0          # of ``added``, read from an Aura project's video.json
     already_known: int = 0
     without_id: int = 0
     truncated: bool = False
     samples_without_id: list[str] = field(default_factory=list)
 
     def summary(self) -> str:
-        text = (f"Đã quét {self.scanned} video: thêm {self.added} vào sổ, "
-                f"{self.already_known} đã có, {self.without_id} không đọc được ID trong tên file.")
+        text = (f"Đã quét {self.scanned} video: thêm {self.added} vào sổ"
+                + (f" (trong đó {self.from_projects} đọc từ video.json của dự án)" if self.from_projects else "")
+                + f", {self.already_known} đã có, {self.without_id} không đọc được ID trong tên file.")
         return text + (" Dừng ở giới hạn số file." if self.truncated else "")
 
 
@@ -51,6 +54,35 @@ def _title_from_name(name: str, remote_id: str) -> str:
     return re.sub(r"\s+", " ", stem.replace("_", " ")).strip(" -.")[:120]
 
 
+_VIDEO_URL_ID = re.compile(r"/video/(\d{10,25})")
+
+
+def project_source(path: str) -> dict | None:
+    """(platform, id, ...) of the video an Aura project was made from, read from its video.json."""
+    try:
+        with open(path, encoding="utf-8") as handle:
+            data = json.load(handle)
+    except (OSError, ValueError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    source = data.get("media_source") if isinstance(data.get("media_source"), dict) else {}
+    original = str(data.get("original_filename") or "")
+    url = str(source.get("source_url") or "")
+    remote_id = str(source.get("remote_video_id") or "").strip()
+    if not remote_id:
+        match = _VIDEO_URL_ID.search(url)
+        remote_id = match.group(1) if match else video_id_from_name(original)
+    if not remote_id:
+        return None
+    video_input = str((data.get("files") or {}).get("video_input") or "")
+    return {
+        "platform": str(source.get("platform") or "").strip().lower(), "remote_id": remote_id, "url": url,
+        "channel": str(source.get("channel_name") or ""), "title": _title_from_name(original, remote_id),
+        "file_path": video_input if video_input and os.path.isfile(video_input) else "",
+    }
+
+
 def backfill_folder(folder: str, platform: str, *, ledger_path: Path | None = None,
                     should_cancel: Callable[[], bool] | None = None) -> BackfillResult:
     result = BackfillResult()
@@ -60,6 +92,16 @@ def backfill_folder(folder: str, platform: str, *, ledger_path: Path | None = No
     for root, directories, files in os.walk(folder):
         directories[:] = [name for name in directories if not name.startswith(".")]
         for name in files:
+            if name == "video.json":
+                project = project_source(os.path.join(root, name))
+                if project:
+                    project_platform = project.pop("platform") or platform
+                    if download_ledger.get(project_platform, project["remote_id"], path=ledger_path):
+                        continue                      # counted when its video file is seen, or already known
+                    download_ledger.record(project_platform, project.pop("remote_id"), path=ledger_path, **project)
+                    result.added += 1
+                    result.from_projects += 1
+                continue
             if Path(name).suffix.lower() not in VIDEO_EXTENSIONS or name.startswith("."):
                 continue
             if should_cancel and should_cancel():

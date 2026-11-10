@@ -257,3 +257,37 @@ class UploaderNameTests(unittest.TestCase):
                 mock.patch.object(video_download, "_inspect_video_info", return_value=info):
             self.assertEqual(video_download.inspect_video_url("https://www.douyin.com/video/7664102029698250725").uploader,
                              "67542084853")                              # the handle is only a fallback
+
+
+class ProjectBackfillTests(unittest.TestCase):
+    def test_ids_are_read_from_aura_project_video_json(self):
+        import json
+
+        from haizflow.services import download_backfill as backfill
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            one = root / "project one" / "videos" / "a"
+            two = root / "project two" / "videos" / "b"
+            for folder in (one, two):
+                (folder / "input").mkdir(parents=True)
+            (one / "input" / "video.mp4").write_bytes(b"x")
+            (one / "video.json").write_text(json.dumps({
+                "original_filename": "高原看世界杯 #房车 [7664102029698250725].mp4",
+                "media_source": {"platform": "Douyin", "remote_video_id": "", "channel_name": "Kênh A",
+                                 "source_url": "https://www.douyin.com/video/7664102029698250725"},
+                "files": {"video_input": str(one / "input" / "video.mp4")}}), encoding="utf-8")
+            (two / "video.json").write_text(json.dumps({
+                "original_filename": "no id in this one.mp4", "media_source": {"platform": ""}}), encoding="utf-8")
+            (root / "broken").mkdir()
+            (root / "broken" / "video.json").write_text("{not json", encoding="utf-8")
+            database = root / "ledger.sqlite"
+
+            result = backfill.backfill_folder(directory, "tiktok", ledger_path=database)
+            self.assertEqual((result.added, result.from_projects), (1, 1))
+            entry = ledger.get("douyin", "7664102029698250725", path=database)       # platform from media_source
+            self.assertEqual((entry["channel"], entry["title"]), ("Kênh A", "高原看世界杯 #房车"))
+            self.assertTrue(entry["file_path"].endswith("video.mp4"))
+            again = backfill.backfill_folder(directory, "tiktok", ledger_path=database)
+            self.assertEqual((again.added, again.from_projects), (0, 0))
+            self.assertIn("đọc từ video.json", result.summary())
