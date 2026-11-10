@@ -150,6 +150,23 @@ def lower_minos(app: Path, target: str):
         print(f"Lowered minimum macOS {fields['minos']} -> {target}: {path.relative_to(app)}", flush=True)
 
 
+def bundle_ffmpeg_omp(app: Path):
+    """FFmpeg's whisper/ggml library needs the current Homebrew libomp, but the app already carries an older
+    scikit-learn libomp under the same name. Ship the matching one under its own name and point only ggml at it."""
+    frameworks = app / "Contents/Frameworks"
+    ggml = frameworks / "libggml-base.0.dylib"
+    source = Path("/opt/homebrew/opt/libomp/lib/libomp.dylib")
+    if not ggml.is_file():
+        return
+    if not source.is_file():
+        raise SystemExit("Homebrew libomp is required to bundle FFmpeg.")
+    target = frameworks / "libomp-ffmpeg.dylib"
+    shutil.copy2(source, target, follow_symlinks=True)
+    target.chmod(0o755)
+    run(["install_name_tool", "-id", "@rpath/libomp-ffmpeg.dylib", target])
+    run(["install_name_tool", "-change", "@rpath/libomp.dylib", "@loader_path/libomp-ffmpeg.dylib", ggml])
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
@@ -220,17 +237,19 @@ def main():
     for bin_name in ("ffmpeg", "ffprobe"):
         target = app / "Contents/Frameworks/bin" / bin_name
         if target.parent.is_dir():
+            native = target.with_name(bin_name + "-native")
+            if not native.exists() and target.exists() and target.read_bytes()[:2] != b"#!":
+                target.rename(native)  # the real FFmpeg collected by PyInstaller, with its libraries
+            if not native.exists():
+                raise SystemExit(f"Bundled {bin_name} is missing; the app would depend on Homebrew.")
             target.write_text(f"""#!/bin/sh
 unset DYLD_LIBRARY_PATH
 unset DYLD_FALLBACK_LIBRARY_PATH
 unset DYLD_FRAMEWORK_PATH
-if [ -x /opt/homebrew/bin/{bin_name} ]; then
-    exec /opt/homebrew/bin/{bin_name} "$@"
-elif [ -x /usr/local/bin/{bin_name} ]; then
-    exec /usr/local/bin/{bin_name} "$@"
-fi
+exec "$(dirname "$0")/{bin_name}-native" "$@"
 """, encoding="utf-8")
             target.chmod(0o755)
+    bundle_ffmpeg_omp(app)
     run(["codesign", "--force", "--deep", "--sign", "-", app])
     write_inventory(browser)
     write_json(browser / "complete.json", {"pack_id": PACK_ID, "version": REVISION,
@@ -259,7 +278,7 @@ fi
         "# Aura Studio macOS build\n\nAura Studio " + VERSION +
         ". Separately licensed components retain their own notices and terms.\n\n"
         "CPU/vision engine and browser model weights are separate; no weights are bundled.\n"
-        "Native FFmpeg comes from the installed Homebrew build. Its actual licenses, formula, "
+        "Native FFmpeg is the Homebrew ffmpeg-full build copied into the app together with its libraries. Its actual licenses, formula, "
         "receipt and SBOM are in licenses/macos-ffmpeg. The original media-cli notices describe "
         "the upstream Windows build, not this native media runtime.\n"
         "Keychain: keyring 25.7.0 (MIT); RAM telemetry: psutil 7.2.2 (BSD-3-Clause).\n"
@@ -273,24 +292,21 @@ fi
             macos_bin.unlink()
         else:
             shutil.rmtree(macos_bin)
-    homebrew_bin = Path("/opt/homebrew/bin")
-    if homebrew_bin.is_dir():
-        macos_bin.symlink_to(homebrew_bin)
-    else:
-        macos_bin.symlink_to("../Frameworks/bin")
+    macos_bin.symlink_to("../Frameworks/bin")
     # Protect against dyld collisions between bundled sklearn libomp and ffmpeg/ffprobe
     for bin_name in ("ffmpeg", "ffprobe"):
         target = app / "Contents/Frameworks/bin" / bin_name
         if target.parent.is_dir():
+            native = target.with_name(bin_name + "-native")
+            if not native.exists() and target.exists() and target.read_bytes()[:2] != b"#!":
+                target.rename(native)  # the real FFmpeg collected by PyInstaller, with its libraries
+            if not native.exists():
+                raise SystemExit(f"Bundled {bin_name} is missing; the app would depend on Homebrew.")
             target.write_text(f"""#!/bin/sh
 unset DYLD_LIBRARY_PATH
 unset DYLD_FALLBACK_LIBRARY_PATH
 unset DYLD_FRAMEWORK_PATH
-if [ -x /opt/homebrew/bin/{bin_name} ]; then
-    exec /opt/homebrew/bin/{bin_name} "$@"
-elif [ -x /usr/local/bin/{bin_name} ]; then
-    exec /usr/local/bin/{bin_name} "$@"
-fi
+exec "$(dirname "$0")/{bin_name}-native" "$@"
 """, encoding="utf-8")
             target.chmod(0o755)
     if _version(args.min_macos) >= (26, 0):
