@@ -207,7 +207,7 @@ Item {
 
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("Dán cả đoạn chữ chứa nhiều link (mỗi link một dòng, hoặc nguyên câu chia sẻ từ Douyin). App tự tìm link, bỏ link trùng và tải lần lượt; link nào lỗi thì bỏ qua và tải tiếp.")
+                        text: qsTr("Dán cả đoạn chữ chứa nhiều link (mỗi link một dòng, hoặc nguyên câu chia sẻ từ Douyin hoặc RedNote). App tự tìm link, bỏ link trùng và tải lần lượt; link nào lỗi thì bỏ qua và tải tiếp.")
                         color: Theme.textMuted
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.caption
@@ -285,6 +285,8 @@ Item {
                         visible: root.downloader.batchStoppedReason.length > 0 && !root.downloader.batchActive
                         text: root.downloader.batchStoppedReason === "Cancelled"
                             ? qsTr("Đã hủy. Các link chưa tải nằm trong danh sách bên dưới.")
+                            : root.downloader.batchStoppedReason.indexOf("RedNote") === 0
+                            ? qsTr("RedNote không trả dữ liệu bài viết (link hết hạn, thiếu xsec_token hoặc cần xác minh) nên app đã dừng để không bị chặn thêm. Sao chép lại link chia sẻ mới từ RedNote rồi dán lại danh sách bên dưới để tải tiếp.")
                             : qsTr("Douyin đang yêu cầu phiên mới hoặc xác minh nên app đã dừng để không bị chặn thêm. Bấm “Tạo phiên Douyin” rồi dán lại danh sách bên dưới để tải tiếp.")
                         color: Theme.warning
                         font.family: Theme.fontFamily

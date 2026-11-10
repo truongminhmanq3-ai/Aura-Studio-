@@ -28,6 +28,10 @@ SUPPORTED_VIDEO_HOSTS = {
     "facebook.com": "Facebook",
     "fb.watch": "Facebook",
     "instagram.com": "Instagram",
+    "xiaohongshu.com": "RedNote",
+    "rednote.com": "RedNote",
+    "xhslink.com": "RedNote",
+    "xhslink.cn": "RedNote",
     "redd.it": "Reddit",
     "reddit.com": "Reddit",
     "streamable.com": "Streamable",
@@ -200,7 +204,7 @@ def validate_video_url(value: str) -> tuple[str, str]:
         raise ValueError("Reddit downloads are temporarily unavailable.")
     if not platform:
         raise ValueError(
-            "This link is not from a supported source. Use YouTube, TikTok, Douyin, Bilibili, "
+            "This link is not from a supported source. Use YouTube, TikTok, Douyin, RedNote, Bilibili, "
             "Instagram, Facebook, X, or Streamable."
         )
     if platform == "Douyin":
@@ -213,6 +217,9 @@ def validate_video_url(value: str) -> tuple[str, str]:
             video = re.fullmatch(r"/(?:share/)?video/([0-9]{10,25})/?", parsed.path)
             if video:
                 url = f"https://www.douyin.com/video/{video[1]}"
+    if platform == "RedNote":
+        from haizflow.services import rednote
+        url = rednote.normalize_url(url)       # raises ValueError for a profile or a non-note link
     return url, platform
 
 
@@ -269,6 +276,10 @@ def _extract_video_info(downloader, url: str, *, download: bool, cancel_event=No
         adapter = get_douyin_adapter(auth)
         downloader.add_info_extractor(HaizFlowDouyinIE(adapter=adapter, cancel_event=cancel_event))
         return downloader.extract_info(url, download=download, ie_key=HaizFlowDouyinIE.ie_key())
+    if _matching_platform(urlparse(url).hostname or "") == "RedNote":
+        from haizflow.services.rednote_video import HaizFlowXhsIE
+        downloader.add_info_extractor(HaizFlowXhsIE(cancel_event=cancel_event))
+        return downloader.extract_info(url, download=download, ie_key=HaizFlowXhsIE.ie_key())
     return downloader.extract_info(url, download=download)
 
 
@@ -440,7 +451,7 @@ def _download_format_selector(platform: str, *, require_audio: bool = True) -> s
     # `best` does not guarantee a progressive stream. TikTok/Douyin sometimes
     # rank a high-quality video-only HEVC format above the playable stream,
     # which used to import successfully and then fail during audio extraction.
-    if platform in {"TikTok", "Douyin"}:
+    if platform in {"TikTok", "Douyin", "RedNote"}:
         selector = (
             "best[vcodec!=none][acodec!=none]/"
             "bestvideo[vcodec!=none]+bestaudio[acodec!=none]/"

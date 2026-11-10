@@ -9,10 +9,12 @@ from dataclasses import dataclass, field
 from haizflow.services.douyin_classification import MESSAGES, Outcome
 from haizflow.services.video_download import validate_video_url
 
-_URL = re.compile(r"(?:https?://|(?<![\w./-])(?:www\.)?(?:v\.douyin\.com|douyin\.com|iesdouyin\.com)/)[^\s<>\"'，。！？、）】」]+",
+_URL = re.compile(r"(?:https?://|(?<![\w./-])(?:www\.)?(?:v\.douyin\.com|douyin\.com|iesdouyin\.com"
+                  r"|xhslink\.com|xhslink\.cn|xiaohongshu\.com|rednote\.com)/)[^\s<>\"'，。！？、）】」]+",
                   re.IGNORECASE)
 _TRAILING = ".,;:!?)]}，。！？、）】」"
 SESSION_MESSAGES = tuple(MESSAGES[outcome] for outcome in (Outcome.RISK, Outcome.SIGNATURE, Outcome.CHALLENGE))
+REDNOTE_WALL = "RedNote không trả dữ liệu bài viết"     # start of rednote.WALL_MESSAGE
 TRANSIENT_MESSAGES = tuple(MESSAGES[outcome] for outcome in (Outcome.RATE_LIMIT, Outcome.NETWORK, Outcome.MEDIA_EXPIRED))
 MAX_LINKS = 500
 MAX_RETRIES = 2
@@ -37,7 +39,11 @@ _DOUYIN_VIDEO = re.compile(r"^https://www\.douyin\.com/video/(\d{10,25})/?$")
 def ledger_key(url: str) -> tuple[str, str] | None:
     """(platform, id) when the link itself names the video, so it can be checked without any request."""
     match = _DOUYIN_VIDEO.match(str(url or ""))
-    return ("douyin", match.group(1)) if match else None
+    if match:
+        return ("douyin", match.group(1))
+    from haizflow.services import rednote
+    identifier = rednote.note_id(url)
+    return ("rednote", identifier) if identifier else None
 
 
 @dataclass
@@ -80,8 +86,13 @@ def extract_links(text: str) -> ParsedLinks:
 
 
 def is_session_problem(message: str) -> bool:
-    """Douyin wants a fresh session or a verification: hammering it with more links only makes it worse."""
-    return any(text in str(message) for text in SESSION_MESSAGES)
+    """Douyin wants a fresh session, or RedNote shows a wall: hammering with more links only makes it worse."""
+    return any(text in str(message) for text in SESSION_MESSAGES + (REDNOTE_WALL,))
+
+
+def session_reason(message: str) -> str:
+    """Which service asked the batch to stop (the page words its advice per service)."""
+    return "RedNote needs a fresh link" if REDNOTE_WALL in str(message) else "Douyin needs a new session"
 
 
 def is_transient(message: str) -> bool:

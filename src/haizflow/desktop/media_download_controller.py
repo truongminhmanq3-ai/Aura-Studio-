@@ -601,7 +601,7 @@ class MediaDownloadController(QObject):
             if entry:                       # the link names the video, so no request is needed to know it is a repeat
                 self._batch.already_had(url, str(entry.get("file_path") or ""))
                 continue
-            douyin = "douyin" in url.lower()
+            douyin = any(host in url.lower() for host in ("douyin", "xiaohongshu", "rednote", "xhslink"))
             self._enqueue({
                 "kind": "video", "label": "video download", "value": url, "output": self._video_output_directory,
                 "batch": True, "force": force,
@@ -1038,7 +1038,7 @@ class MediaDownloadController(QObject):
             self._batch.failed(task["value"], message)
             if link_batch.is_session_problem(message):
                 # Douyin wants a new session or a verification; more requests would only be refused too.
-                self._drop_pending_batch("Douyin needs a new session")
+                self._drop_pending_batch(link_batch.session_reason(message))
         self._finish_active(message)
 
     def _finish_active(self, status: str, state: str | None = None) -> None:
