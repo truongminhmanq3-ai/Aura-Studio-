@@ -346,7 +346,7 @@ def fetch_weibo_hot_board(limit: int = 50) -> list[dict[str, Any]]:
     try:
         from haizflow.research.weibo_client import WeiboClient
         client = WeiboClient()
-        results = client.get_hot_search(limit=limit)
+        results = client.get_hot_search(limit=50)
         if results:
             with _CACHE_LOCK:
                 _CACHED_WEIBO_HOT = results
