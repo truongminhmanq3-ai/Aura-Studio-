@@ -207,7 +207,7 @@ Item {
 
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("Dán cả đoạn chữ chứa nhiều link (mỗi link một dòng, hoặc nguyên câu chia sẻ từ Douyin hoặc RedNote). App tự tìm link, bỏ link trùng và tải lần lượt; link nào lỗi thì bỏ qua và tải tiếp.")
+                        text: qsTr("Dán cả đoạn chữ chứa nhiều link (mỗi link một dòng, hoặc nguyên câu chia sẻ từ Douyin, RedNote hoặc Weibo). App tự tìm link, bỏ link trùng và tải lần lượt; link nào lỗi thì bỏ qua và tải tiếp.")
                         color: Theme.textMuted
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.caption

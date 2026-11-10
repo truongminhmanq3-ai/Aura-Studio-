@@ -601,7 +601,7 @@ class MediaDownloadController(QObject):
             if entry:                       # the link names the video, so no request is needed to know it is a repeat
                 self._batch.already_had(url, str(entry.get("file_path") or ""))
                 continue
-            douyin = any(host in url.lower() for host in ("douyin", "xiaohongshu", "rednote", "xhslink"))
+            douyin = any(host in url.lower() for host in ("douyin", "xiaohongshu", "rednote", "xhslink", "weibo", "t.cn/"))
             self._enqueue({
                 "kind": "video", "label": "video download", "value": url, "output": self._video_output_directory,
                 "batch": True, "force": force,

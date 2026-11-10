@@ -32,6 +32,9 @@ SUPPORTED_VIDEO_HOSTS = {
     "rednote.com": "RedNote",
     "xhslink.com": "RedNote",
     "xhslink.cn": "RedNote",
+    "weibo.com": "Weibo",
+    "weibo.cn": "Weibo",
+    "t.cn": "Weibo",
     "redd.it": "Reddit",
     "reddit.com": "Reddit",
     "streamable.com": "Streamable",
@@ -204,7 +207,7 @@ def validate_video_url(value: str) -> tuple[str, str]:
         raise ValueError("Reddit downloads are temporarily unavailable.")
     if not platform:
         raise ValueError(
-            "This link is not from a supported source. Use YouTube, TikTok, Douyin, RedNote, Bilibili, "
+            "This link is not from a supported source. Use YouTube, TikTok, Douyin, RedNote, Weibo, Bilibili, "
             "Instagram, Facebook, X, or Streamable."
         )
     if platform == "Douyin":
@@ -220,6 +223,9 @@ def validate_video_url(value: str) -> tuple[str, str]:
     if platform == "RedNote":
         from haizflow.services import rednote
         url = rednote.normalize_url(url)       # raises ValueError for a profile or a non-note link
+    if platform == "Weibo":
+        from haizflow.services import weibo
+        url = weibo.check_url(url)             # raises ValueError for a profile link
     return url, platform
 
 
@@ -276,6 +282,9 @@ def _extract_video_info(downloader, url: str, *, download: bool, cancel_event=No
         adapter = get_douyin_adapter(auth)
         downloader.add_info_extractor(HaizFlowDouyinIE(adapter=adapter, cancel_event=cancel_event))
         return downloader.extract_info(url, download=download, ie_key=HaizFlowDouyinIE.ie_key())
+    if _matching_platform(urlparse(url).hostname or "") == "Weibo":
+        from haizflow.services import weibo
+        url = weibo.resolve_short(url)         # t.cn share link -> the post it points to
     if _matching_platform(urlparse(url).hostname or "") == "RedNote":
         from haizflow.services.rednote_video import HaizFlowXhsIE
         downloader.add_info_extractor(HaizFlowXhsIE(cancel_event=cancel_event))
@@ -508,6 +517,9 @@ def inspect_video_url(url: str, cancel_event: threading.Event | None = None, aut
         raise DownloadCancelled("Link inspection cancelled.")
     if not isinstance(info, dict):
         raise RuntimeError("The video service returned no usable metadata.")
+    if platform == "Weibo" and (info.get("entries") or info.get("_type") in {"playlist", "multi_video"}):
+        from haizflow.services import weibo
+        raise ValueError(weibo.NO_VIDEO_MESSAGE)    # a Weibo post of pictures comes back as a list of them
     if info.get("_type") in {"playlist", "multi_video"} or info.get("entries"):
         raise ValueError("Paste a link to one video, not a playlist or channel.")
     if info.get("is_live") or info.get("live_status") in {"is_live", "is_upcoming"}:
@@ -524,6 +536,11 @@ def inspect_video_url(url: str, cancel_event: threading.Event | None = None, aut
         resolved_platform = "Bilibili"
     elif "twitter" in resolved_platform.lower():
         resolved_platform = "X"
+    elif "weibo" in resolved_platform.lower():
+        resolved_platform = "Weibo"
+        if not info.get("formats"):
+            from haizflow.services import weibo
+            raise ValueError(weibo.NO_VIDEO_MESSAGE)
 
     title = str(info.get("title") or "Untitled video").strip()
     return VideoMetadata(

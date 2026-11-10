@@ -10,7 +10,7 @@ from haizflow.services.douyin_classification import MESSAGES, Outcome
 from haizflow.services.video_download import validate_video_url
 
 _URL = re.compile(r"(?:https?://|(?<![\w./-])(?:www\.)?(?:v\.douyin\.com|douyin\.com|iesdouyin\.com"
-                  r"|xhslink\.com|xhslink\.cn|xiaohongshu\.com|rednote\.com)/)[^\s<>\"'，。！？、）】」]+",
+                  r"|xhslink\.com|xhslink\.cn|xiaohongshu\.com|rednote\.com|weibo\.com|weibo\.cn|m\.weibo\.cn|video\.weibo\.com|t\.cn)/)[^\s<>\"'，。！？、）】」]+",
                   re.IGNORECASE)
 _TRAILING = ".,;:!?)]}，。！？、）】」"
 SESSION_MESSAGES = tuple(MESSAGES[outcome] for outcome in (Outcome.RISK, Outcome.SIGNATURE, Outcome.CHALLENGE))
@@ -41,9 +41,12 @@ def ledger_key(url: str) -> tuple[str, str] | None:
     match = _DOUYIN_VIDEO.match(str(url or ""))
     if match:
         return ("douyin", match.group(1))
-    from haizflow.services import rednote
+    from haizflow.services import rednote, weibo
     identifier = rednote.note_id(url)
-    return ("rednote", identifier) if identifier else None
+    if identifier:
+        return ("rednote", identifier)
+    post = weibo.numeric_post_id(url)
+    return ("weibo", post) if post else None
 
 
 @dataclass
