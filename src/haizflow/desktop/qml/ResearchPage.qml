@@ -33,7 +33,9 @@ Item {
                    s.indexOf("v.douyin.com/") >= 0 ||
                    s.indexOf("tiktok.com/") >= 0 ||
                    s.indexOf("youtube.com/") >= 0 ||
-                   s.indexOf("youtu.be/") >= 0;
+                   s.indexOf("youtu.be/") >= 0 ||
+                   s.indexOf("weibo.com/") >= 0 ||
+                   s.indexOf("weibo.cn/") >= 0;
         };
 
         if (clip && isDirect(clip)) {
@@ -304,6 +306,9 @@ Item {
                             Repeater {
                                 model: [
                                     { id: "all", label: "Tất cả" },
+                                    { id: "douyin_hot", label: "🎵 Douyin Hot" },
+                                    { id: "rednote_hot", label: "📕 RedNote Hot" },
+                                    { id: "weibo_hot", label: "🔥 Weibo Hot" },
                                     { id: "beauty", label: "💄 Làm đẹp" },
                                     { id: "food", label: "🍳 Nấu ăn" },
                                     { id: "fitness", label: "💪 Thể hình" },
@@ -363,18 +368,6 @@ Item {
                             }
                         }
                     }
-
-                    // Button to open Top 50 Hot Search Dialog
-                    StudioButton {
-                        text: qsTr("📊 Top 50 Douyin")
-                        variant: "secondary"
-                        onClicked: {
-                            if (root.controller) {
-                                root.controller.loadDouyinHotBoard();
-                            }
-                            hotBoardPopup.open();
-                        }
-                    }
                 }
 
                 // Horizontal Flickable of Clickable Trending Keyword Chips
@@ -390,6 +383,65 @@ Item {
                         id: tagRow
                         spacing: 10
                         height: parent.height
+
+                        // Quick Action Button to open full Top 50 Board when a platform category is active
+                        Rectangle {
+                            id: fullBoardBtn
+                            visible: Boolean(root.controller && (
+                                root.controller.trendingCategory === "douyin_hot" ||
+                                root.controller.trendingCategory === "weibo_hot" ||
+                                root.controller.trendingCategory === "rednote_hot"
+                            ))
+                            Layout.preferredHeight: 32
+                            Layout.preferredWidth: fullBoardText.implicitWidth + 24
+                            radius: 9
+                            color: fullBoardMouse.containsMouse
+                                   ? (root.controller && root.controller.trendingCategory === "rednote_hot" ? "#D91B36" : (root.controller && root.controller.trendingCategory === "weibo_hot" ? "#E07300" : "#1A1A1A"))
+                                   : (root.controller && root.controller.trendingCategory === "rednote_hot" ? "#22FF2442" : (root.controller && root.controller.trendingCategory === "weibo_hot" ? "#22FF8200" : "#22000000"))
+                            border.width: 1.5
+                            border.color: root.controller && root.controller.trendingCategory === "rednote_hot" ? "#FF2442" : (root.controller && root.controller.trendingCategory === "weibo_hot" ? "#FF8200" : "#33000000")
+
+                            RowLayout {
+                                id: fullBoardText
+                                anchors.centerIn: parent
+                                spacing: 6
+                                Text {
+                                    text: {
+                                        if (!root.controller) return "";
+                                        if (root.controller.trendingCategory === "douyin_hot") return "📊 Xem bảng xếp hạng Top 50 Douyin ↗";
+                                        if (root.controller.trendingCategory === "weibo_hot") return "🔥 Xem bảng xếp hạng Top 50 Weibo ↗";
+                                        if (root.controller.trendingCategory === "rednote_hot") return "📕 Xem cẩm nang Top 50 RedNote ↗";
+                                        return "";
+                                    }
+                                    font.family: Theme.fontFamily
+                                    font.pixelSize: 12
+                                    font.bold: true
+                                    color: fullBoardMouse.containsMouse
+                                           ? "#FFFFFF"
+                                           : (root.controller && root.controller.trendingCategory === "rednote_hot" ? "#FF2442" : (root.controller && root.controller.trendingCategory === "weibo_hot" ? "#FF8200" : Theme.text))
+                                }
+                            }
+
+                            MouseArea {
+                                id: fullBoardMouse
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                hoverEnabled: true
+                                onClicked: {
+                                    if (!root.controller) return;
+                                    if (root.controller.trendingCategory === "douyin_hot") {
+                                        root.controller.loadDouyinHotBoard();
+                                        hotBoardPopup.open();
+                                    } else if (root.controller.trendingCategory === "weibo_hot") {
+                                        root.controller.loadWeiboHotBoard();
+                                        weiboHotBoardPopup.open();
+                                    } else if (root.controller.trendingCategory === "rednote_hot") {
+                                        root.controller.loadRednoteHotBoard();
+                                        rednoteHotBoardPopup.open();
+                                    }
+                                }
+                            }
+                        }
 
                         Repeater {
                             model: root.controller ? root.controller.trendingKeywords : []
@@ -492,16 +544,16 @@ Item {
                                 Layout.preferredWidth: 44
                                 Layout.preferredHeight: 44
                                 radius: 10
-                                color: postCard.modelData.platform === "douyin" ? "#16000000" : "#22FF2442"
+                                color: postCard.modelData.platform === "douyin" ? "#16000000" : (postCard.modelData.platform === "weibo" ? "#22FF8200" : "#22FF2442")
                                 border.width: 1
-                                border.color: postCard.modelData.platform === "douyin" ? "#33000000" : "#66FF2442"
+                                border.color: postCard.modelData.platform === "douyin" ? "#33000000" : (postCard.modelData.platform === "weibo" ? "#66FF8200" : "#66FF2442")
 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: postCard.modelData.platform === "douyin" ? "DY" : "XHS"
+                                    text: postCard.modelData.platform === "douyin" ? "DY" : (postCard.modelData.platform === "weibo" ? "WB" : "XHS")
                                     font.bold: true
                                     font.pixelSize: 13
-                                    color: postCard.modelData.platform === "douyin" ? Theme.text : "#FF2442"
+                                    color: postCard.modelData.platform === "douyin" ? Theme.text : (postCard.modelData.platform === "weibo" ? "#FF8200" : "#FF2442")
                                 }
                             }
 
@@ -1076,6 +1128,280 @@ Item {
                                     if (root.controller) {
                                         root.controller.searchKeyword(kw, "all");
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Popup Top 50 Weibo Hot Search
+    Popup {
+        id: weiboHotBoardPopup
+        anchors.centerIn: parent
+        width: Math.min(root.width * 0.85, 640)
+        height: Math.min(root.height * 0.85, 580)
+        modal: true
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        background: Rectangle {
+            radius: 18
+            color: "#FFFFFF"
+            border.width: 1.5
+            border.color: "#FF8200"
+        }
+
+        contentItem: ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 12
+
+            RowLayout {
+                Layout.fillWidth: true
+                Text {
+                    text: qsTr("🔥 Bảng Xếp Hạng Weibo Hot Search Thời Gian Thực (Top 50 热搜)")
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 15
+                    font.bold: true
+                    color: "#D96B00"
+                }
+                Item { Layout.fillWidth: true }
+                StudioButton {
+                    text: "✕ Đóng"
+                    variant: "secondary"
+                    onClicked: weiboHotBoardPopup.close()
+                }
+            }
+
+            Text {
+                text: qsTr("Click vào bất kỳ chủ đề nóng nào để Aura Studio tự động phân tích và bắt trend:")
+                font.pixelSize: 12
+                color: Theme.textMuted
+                Layout.fillWidth: true
+            }
+
+            ListView {
+                id: weiboHotListView
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                spacing: 6
+                model: root.controller ? root.controller.weiboHotBoard : []
+
+                delegate: Rectangle {
+                    id: wbHotItemRow
+                    required property var modelData
+                    required property int index
+                    width: weiboHotListView.width
+                    height: 44
+                    radius: 10
+                    color: wbHotItemMouse.containsMouse ? "#12FF8200" : "#05000000"
+                    border.width: 1
+                    border.color: wbHotItemMouse.containsMouse ? "#FF8200" : "#10000000"
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 12
+                        spacing: 12
+
+                        Text {
+                            text: String(wbHotItemRow.index + 1)
+                            font.bold: true
+                            font.pixelSize: 14
+                            color: wbHotItemRow.index < 3 ? "#D96B00" : Theme.textMuted
+                            Layout.preferredWidth: 24
+                        }
+
+                        Text {
+                            text: wbHotItemRow.modelData.keyword
+                            font.pixelSize: 13
+                            font.bold: wbHotItemRow.index < 3
+                            color: Theme.text
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
+                        }
+
+                        Rectangle {
+                            visible: Boolean(wbHotItemRow.modelData.tag)
+                            Layout.preferredHeight: 20
+                            Layout.preferredWidth: 48
+                            radius: 4
+                            color: "#22FF8200"
+                            Text {
+                                anchors.centerIn: parent
+                                text: wbHotItemRow.modelData.tag || ""
+                                font.pixelSize: 10
+                                font.bold: true
+                                color: "#D96B00"
+                            }
+                        }
+
+                        Text {
+                            text: wbHotItemRow.modelData.hot_value
+                            font.pixelSize: 11
+                            color: Theme.textMuted
+                        }
+                    }
+
+                    MouseArea {
+                        id: wbHotItemMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            const kw = wbHotItemRow.modelData.keyword;
+                            if (kw) {
+                                searchInput.text = kw;
+                                weiboHotBoardPopup.close();
+                                if (root.controller) {
+                                    root.controller.searchKeyword(kw, "all");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Popup Top 50 RedNote Viral Guides & Lifestyle Trends
+    Popup {
+        id: rednoteHotBoardPopup
+        anchors.centerIn: parent
+        width: Math.min(parent.width - 60, 680)
+        height: Math.min(parent.height - 80, 640)
+        modal: true
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        background: Rectangle {
+            radius: 16
+            color: "#FFFFFF"
+            border.width: 1.5
+            border.color: "#FF2442"
+        }
+
+        contentItem: ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 12
+
+            RowLayout {
+                Layout.fillWidth: true
+                Text {
+                    text: qsTr("📕 Bảng Xu Hướng & Cẩm Nang RedNote (Xiaohongshu Top 50 热门指南)")
+                    font.family: Theme.fontFamily
+                    font.pixelSize: 15
+                    font.bold: true
+                    color: "#D91B36"
+                }
+                Item { Layout.fillWidth: true }
+                StudioButton {
+                    text: "✕ Đóng"
+                    variant: "secondary"
+                    onClicked: rednoteHotBoardPopup.close()
+                }
+            }
+
+            Text {
+                text: qsTr("Click vào chủ đề cẩm nang bất kỳ để AI Agent phân tích công thức nội dung và nỗi đau người dùng:")
+                font.pixelSize: 12
+                color: Theme.textMuted
+                Layout.fillWidth: true
+            }
+
+            ListView {
+                id: rednoteHotListView
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                spacing: 6
+                model: root.controller ? root.controller.rednoteHotBoard : []
+
+                delegate: Rectangle {
+                    id: rnHotItemRow
+                    required property var modelData
+                    required property int index
+                    width: rednoteHotListView.width
+                    height: 52
+                    radius: 10
+                    color: rnHotItemMouse.containsMouse ? "#12FF2442" : "#05000000"
+                    border.width: 1
+                    border.color: rnHotItemMouse.containsMouse ? "#FF2442" : "#10000000"
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 12
+                        spacing: 12
+
+                        Text {
+                            text: String(rnHotItemRow.index + 1)
+                            font.bold: true
+                            font.pixelSize: 14
+                            color: rnHotItemRow.index < 3 ? "#D91B36" : Theme.textMuted
+                            Layout.preferredWidth: 24
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 2
+                            Text {
+                                text: rnHotItemRow.modelData.keyword
+                                font.pixelSize: 13
+                                font.bold: true
+                                color: Theme.text
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                            }
+                            Text {
+                                text: rnHotItemRow.modelData.desc_vi || ""
+                                font.pixelSize: 11
+                                color: Theme.textMuted
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                                visible: Boolean(rnHotItemRow.modelData.desc_vi)
+                            }
+                        }
+
+                        Rectangle {
+                            visible: Boolean(rnHotItemRow.modelData.tag)
+                            Layout.preferredHeight: 20
+                            Layout.preferredWidth: 54
+                            radius: 4
+                            color: "#22FF2442"
+                            Text {
+                                anchors.centerIn: parent
+                                text: rnHotItemRow.modelData.tag || ""
+                                font.pixelSize: 10
+                                font.bold: true
+                                color: "#D91B36"
+                            }
+                        }
+
+                        Text {
+                            text: rnHotItemRow.modelData.hot_value
+                            font.pixelSize: 11
+                            color: Theme.textMuted
+                        }
+                    }
+
+                    MouseArea {
+                        id: rnHotItemMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            const kw = rnHotItemRow.modelData.keyword;
+                            if (kw) {
+                                searchInput.text = kw;
+                                rednoteHotBoardPopup.close();
+                                if (root.controller) {
+                                    root.controller.searchKeyword(kw, "all");
                                 }
                             }
                         }

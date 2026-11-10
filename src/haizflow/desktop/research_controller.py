@@ -7,7 +7,7 @@ from typing import Any
 
 from PySide6.QtCore import QObject, Property, Signal, Slot, QTimer
 
-from haizflow.research.hot_trends import fetch_douyin_hot_board, get_trending_keywords
+from haizflow.research.hot_trends import fetch_douyin_hot_board, fetch_rednote_hot_board, fetch_weibo_hot_board, get_trending_keywords
 from haizflow.research.models import PostItem, ResearchMemory
 from haizflow.research.scout import ResearchScout
 from haizflow.research.service import ResearchService
@@ -58,6 +58,8 @@ class ResearchController(QObject):
     trendingKeywordsChanged = Signal()
     trendingCategoryChanged = Signal()
     douyinHotBoardChanged = Signal()
+    rednoteHotBoardChanged = Signal()
+    weiboHotBoardChanged = Signal()
 
     def __init__(self, host: Any) -> None:
         super().__init__(host)
@@ -74,6 +76,8 @@ class ResearchController(QObject):
         self._trending_category = "all"
         self._trending_keywords = get_trending_keywords("all")
         self._douyin_hot_board: list[dict[str, Any]] = []
+        self._rednote_hot_board: list[dict[str, Any]] = []
+        self._weibo_hot_board: list[dict[str, Any]] = []
 
         # Safe cross-thread invocation back to Qt main GUI thread
         self.taskDispatched.connect(self._run_task)
@@ -142,6 +146,14 @@ class ResearchController(QObject):
     def douyinHotBoard(self) -> list[dict[str, Any]]:
         return self._douyin_hot_board
 
+    @Property("QVariantList", notify=rednoteHotBoardChanged)
+    def rednoteHotBoard(self) -> list[dict[str, Any]]:
+        return self._rednote_hot_board
+
+    @Property("QVariantList", notify=weiboHotBoardChanged)
+    def weiboHotBoard(self) -> list[dict[str, Any]]:
+        return self._weibo_hot_board
+
     # ------------------ Helpers ------------------
 
     def _set_busy(self, is_busy: bool, message: str = "") -> None:
@@ -155,6 +167,13 @@ class ResearchController(QObject):
             raw_posts = self._service.get_top_outliers(min_outlier_score=1.8, limit=100)
         elif self._active_filter == "useful":
             raw_posts = self._service.get_top_useful(min_utility=0.5, limit=100)
+        elif self._active_filter in {"douyin", "xiaohongshu", "weibo"}:
+            with self._service.storage._lock, self._service.storage._connect() as conn:
+                rows = conn.execute(
+                    "SELECT * FROM posts WHERE platform = ? ORDER BY crawled_at DESC, like_count DESC LIMIT 100",
+                    (self._active_filter,),
+                ).fetchall()
+                raw_posts = [self._service.storage._row_to_post(r) for r in rows]
         else:
             with self._service.storage._lock, self._service.storage._connect() as conn:
                 rows = conn.execute("SELECT * FROM posts ORDER BY crawled_at DESC, like_count DESC LIMIT 100").fetchall()
@@ -363,6 +382,44 @@ class ResearchController(QObject):
             except Exception as exc:
                 logger.error("Failed to load Douyin hot board: %s", exc)
                 self.taskDispatched.emit(lambda: self._set_busy(False, f"Lỗi tải Hot Search: {exc}"))
+
+        threading.Thread(target=load, daemon=True).start()
+
+    @Slot()
+    def loadRednoteHotBoard(self) -> None:
+        """Fetch top curated RedNote viral guides and lifestyle trends."""
+        self._set_busy(True, "Đang tải Bảng Xu Hướng & Cẩm Nang RedNote (Xiaohongshu)...")
+
+        def load():
+            try:
+                hot_list = fetch_rednote_hot_board(limit=50)
+                def on_done():
+                    self._rednote_hot_board = hot_list
+                    self.rednoteHotBoardChanged.emit()
+                    self._set_busy(False, f"Đã cập nhật {len(hot_list)} chủ đề thịnh hành RedNote!")
+                self.taskDispatched.emit(on_done)
+            except Exception as exc:
+                logger.error("Failed to load Rednote hot board: %s", exc)
+                self.taskDispatched.emit(lambda: self._set_busy(False, f"Lỗi tải RedNote: {exc}"))
+
+        threading.Thread(target=load, daemon=True).start()
+
+    @Slot()
+    def loadWeiboHotBoard(self) -> None:
+        """Fetch top 50 Weibo live hot search board in background."""
+        self._set_busy(True, "Đang tải Bảng Xếp Hạng Weibo Hot Search (热搜) thời gian thực...")
+
+        def load():
+            try:
+                hot_list = fetch_weibo_hot_board(limit=50)
+                def on_done():
+                    self._weibo_hot_board = hot_list
+                    self.weiboHotBoardChanged.emit()
+                    self._set_busy(False, f"Đã cập nhật {len(hot_list)} chủ đề Weibo Hot Search hôm nay!")
+                self.taskDispatched.emit(on_done)
+            except Exception as exc:
+                logger.error("Failed to load Weibo hot board: %s", exc)
+                self.taskDispatched.emit(lambda: self._set_busy(False, f"Lỗi tải Weibo Hot Search: {exc}"))
 
         threading.Thread(target=load, daemon=True).start()
 

@@ -26,6 +26,7 @@ from haizflow.research.metrics import (
 from haizflow.research.storage import ResearchStorage
 from haizflow.research.agent import ResearchAgent
 from haizflow.research.service import ResearchService
+from haizflow.research.weibo_client import WeiboClient
 
 __all__ = [
     "AgentDecision",
@@ -38,6 +39,7 @@ __all__ = [
     "ResearchStorage",
     "ResearchAgent",
     "ResearchService",
+    "WeiboClient",
     "calculate_er",
     "calculate_utility_ratio",
     "calculate_discussion_ratio",

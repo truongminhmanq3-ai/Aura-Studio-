@@ -18,10 +18,11 @@ logger = logging.getLogger(__name__)
 
 
 SCOUT_PROMPT = """Bạn là Chuyên gia Tình báo Dữ liệu Mạng xã hội Trung Quốc (China Social Intelligence Scout).
-Nhiệm vụ: Trích xuất 4 bài đăng/video nổi bật nhất (2 Douyin, 2 Xiaohongshu) đang viral hoặc chuyển đổi mạnh nhất cho từ khóa: '{keyword}'.
+Nhiệm vụ: Trích xuất các bài đăng/video nổi bật nhất (Douyin, Xiaohongshu, Weibo) đang viral hoặc chuyển đổi mạnh nhất cho từ khóa: '{keyword}'.
 Yêu cầu:
-- 1 video Douyin Outlier bùng nổ (view vượt xa follower) và 1 video Douyin chuyển đổi cao.
-- 1 bài Xiaohongshu Cẩm nang/Checklist (Saves cao hơn Likes) và 1 bài review thực tế.
+- 1 video Douyin Outlier bùng nổ (view vượt xa follower) hoặc chuyển đổi cao.
+- 1 bài Xiaohongshu Cẩm nang/Checklist (Saves cao hơn Likes) hoặc review thực tế.
+- 1 bài thảo luận Weibo nóng bỏng (nhiều tranh luận, góc nhìn phản biện, insight sâu sắc).
 - Tiêu đề song ngữ: [Tiêu đề tiếng Trung] - Ý nghĩa tiếng Việt.
 - Lời thoại transcript then chốt thể hiện rõ Hook 3 giây đầu.
 - 2 bình luận người xem thực tế (thể hiện nỗi đau, thắc mắc, hỏi mua).
@@ -30,7 +31,7 @@ Trả về ĐÚNG cấu trúc JSON sau:
 {
   "items": [
     {
-      "platform": "douyin" | "xiaohongshu",
+      "platform": "douyin" | "xiaohongshu" | "weibo",
       "content_id": "123456789012345",
       "title": "Tiêu đề tiếng Trung - Bản dịch tiếng Việt ngắn gọn",
       "caption": "Mô tả bài viết",
@@ -55,7 +56,7 @@ Trả về ĐÚNG cấu trúc JSON sau:
 
 
 class ResearchScout:
-    """Scouts Chinese social platforms (Douyin & Xiaohongshu) for a keyword."""
+    """Scouts Chinese social platforms (Douyin, Xiaohongshu, Weibo) for a keyword."""
 
     def scout(self, keyword: str) -> tuple[list[PostItem], list[CommentItem]]:
         keyword = keyword.strip()
@@ -140,9 +141,19 @@ class ResearchScout:
         all_comments: list[CommentItem] = []
 
         for item in items:
-            platform = "xiaohongshu" if item.get("platform") == "xiaohongshu" else "douyin"
+            raw_plat = str(item.get("platform") or "").lower()
+            if "xiaohongshu" in raw_plat or "xhs" in raw_plat:
+                platform = "xiaohongshu"
+                pid_prefix = "xhs"
+            elif "weibo" in raw_plat or "wb" in raw_plat:
+                platform = "weibo"
+                pid_prefix = "wb"
+            else:
+                platform = "douyin"
+                pid_prefix = "dy"
+
             cid = str(item.get("content_id") or uuid.uuid4().hex[:16])
-            pid = f"{'xhs' if platform == 'xiaohongshu' else 'dy'}_{cid}"
+            pid = f"{pid_prefix}_{cid}"
             
             raw_title = (item.get("title") or f"Chủ đề {keyword}").strip()
             # Extract Chinese search term from bilingual title 'Chinese - Vietnamese'
@@ -157,9 +168,20 @@ class ResearchScout:
             elif platform == "douyin":
                 # Verifiable live search URL on Douyin
                 target_url = f"https://www.douyin.com/search/{parse.quote(search_term)}"
+            elif platform == "weibo":
+                # Verifiable live search URL on Weibo
+                target_url = f"https://s.weibo.com/weibo?q={parse.quote(search_term)}&Refer=top"
             else:
                 # Verifiable live search URL on Xiaohongshu
                 target_url = f"https://www.xiaohongshu.com/search_result?keyword={parse.quote(search_term)}"
+
+            dur = int(item.get("duration") or (45 if platform == "douyin" else 0))
+            if platform == "weibo":
+                c_type = "video" if dur > 0 else "image_carousel"
+            elif platform == "xiaohongshu":
+                c_type = "image_carousel"
+            else:
+                c_type = "video"
 
             p = PostItem(
                 id=pid,
@@ -168,8 +190,8 @@ class ResearchScout:
                 url=target_url,
                 title=raw_title,
                 caption_text=item.get("caption") or "",
-                content_type="image_carousel" if platform == "xiaohongshu" else "video",
-                duration=int(item.get("duration") or (45 if platform == "douyin" else 0)),
+                content_type=c_type,
+                duration=dur,
                 author_id=f"author_{cid[:8]}",
                 author_nickname=item.get("author_name") or "KOC Trung Quốc",
                 author_followers=int(item.get("author_followers") or 15000),
@@ -275,10 +297,25 @@ class ResearchScout:
                 ip_location="Bắc Kinh",
                 search_keyword=keyword,
             ),
+            PostItem(
+                id=f"wb_scout_5_{uuid.uuid4().hex[:8]}",
+                platform="weibo",
+                content_id=uuid.uuid4().hex[:12],
+                url=f"https://s.weibo.com/weibo?q={parse.quote(keyword)}&Refer=top",
+                title=f"网友热议：{keyword}到底靠不靠谱 - CĐM Weibo tranh luận nảy lửa về {keyword}",
+                caption_text=f"Chủ đề về {keyword} lọt top thảo luận Weibo hôm nay với hàng nghìn góc nhìn trái chiều.",
+                content_type="image_carousel",
+                author_nickname="Vlog Nhiệt Điểm Weibo",
+                author_followers=42000,
+                like_count=48000,
+                comment_count=9200,
+                collect_count=15000,
+                share_count=11000,
+                duration=0,
+                ip_location="Bắc Kinh",
+                search_keyword=keyword,
+            ),
         ]
-        for p in posts:
-            enrich_post_metrics(p)
-        return posts, []
         for p in posts:
             enrich_post_metrics(p)
         return posts, []

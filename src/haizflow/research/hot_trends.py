@@ -206,7 +206,79 @@ CATEGORY_KEYWORDS_FILTER: dict[str, list[str]] = {
 _CACHE_LOCK = threading.Lock()
 _CACHED_DOUYIN_HOT: list[dict[str, Any]] = []
 _LAST_FETCH_TIME: float = 0.0
+_CACHED_WEIBO_HOT: list[dict[str, Any]] = []
+_LAST_WEIBO_FETCH_TIME: float = 0.0
 _CACHE_TTL_SECONDS = 900.0  # 15 minutes
+
+
+# Curated top 50 high-converting viral lifestyle & guide search trends on RedNote (Xiaohongshu)
+REDNOTE_HOT_BOARD: list[dict[str, Any]] = [
+    {"keyword": "早八通勤伪素颜", "label": "💄 Makeup 5 phút tự nhiên đi làm", "hot_value": "185.2万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Cách trang điểm nhẹ nhàng trong veo tiết kiệm thời gian"},
+    {"keyword": "沉浸式桌面改造", "label": "🖥️ Setup góc làm việc chill tối giản", "hot_value": "162.7万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Decor không gian làm việc công nghệ hiện đại ấm cúng"},
+    {"keyword": "减脂掉秤神仙便当", "label": "🍱 Thực đơn cơm hộp giảm cân ngon", "hot_value": "158.4万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Công thức nấu ăn nhanh giữ dáng không sợ tăng cân"},
+    {"keyword": "独居女生安全好物", "label": "🏠 Đồ gia dụng thông minh cho nữ sống 1 mình", "hot_value": "149.1万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Thiết bị bảo vệ và mẹo an toàn khi ở trọ một mình"},
+    {"keyword": "胶囊衣橱一衣多穿", "label": "👗 Tủ đồ con nhộng 1 áo phối 7 ngày", "hot_value": "142.6万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Nghệ thuật phối đồ tối giản phong cách thanh lịch"},
+    {"keyword": "低成本出租房改造", "label": "🛠️ Cải tạo phòng trọ chi phí hạt dẻ", "hot_value": "138.5万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "F5 không gian sống ấm cúng với chi phí siêu tiết kiệm"},
+    {"keyword": "普通人极简攒钱法", "label": "💰 Phương pháp tiết kiệm tiền cho người trẻ", "hot_value": "135.2万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Quy tắc 6 chiếc lọ và thói quen tích lũy tài chính thực tế"},
+    {"keyword": "沉浸式收纳整理", "label": "✨ Mẹo sắp xếp tủ quần áo gọn gàng", "hot_value": "129.8万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Kỹ thuật gấp đồ và phân loại đồ đạc tối ưu diện tích"},
+    {"keyword": "改善体态假胯宽", "label": "🧘 Chỉnh dáng hông to chân vòng kiềng", "hot_value": "126.4万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Bài tập giãn cơ nắn chỉnh xương chậu thẳng chân"},
+    {"keyword": "空气炸锅懒人食谱", "label": "🍳 Công thức nấu ăn nhanh nồi chiên không dầu", "hot_value": "121.9万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Tổng hợp các món nướng giòn rụm dễ làm tại nhà"},
+    {"keyword": "冷白皮高效美白", "label": "☀️ Chu trình dưỡng trắng da an toàn tại nhà", "hot_value": "118.3万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Mẹo chống nắng kết hợp vitamin dưỡng sáng đều màu"},
+    {"keyword": "治愈系独居晚间日常", "label": "🌙 Vlog buổi tối thư giãn một mình", "hot_value": "114.7万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Thói quen nạp lại năng lượng bình yên sau ngày dài"},
+    {"keyword": "新手自驾川西攻略", "label": "🚗 Cẩm nang phượt du lịch Tứ Xuyên - Tây Tạng", "hot_value": "110.2万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Lịch trình cung đường đẹp mê hồn cho người đi lần đầu"},
+    {"keyword": "大厂打工人效率工具", "label": "🤖 Top công cụ AI tăng tốc công việc văn phòng", "hot_value": "108.6万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Prompt và ứng dụng AI tự động hóa báo cáo và email"},
+    {"keyword": "手机拍照构图姿势", "label": "📸 Mẹo tạo dáng chụp ảnh sống ảo tự nhiên", "hot_value": "105.4万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Góc máy kéo dài chân và biểu cảm không bị đơ"},
+    {"keyword": "摆脱精神内耗习惯", "label": "🧠 Thói quen ngừng overthinking chữa lành", "hot_value": "102.1万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Tâm lý học học cách buông bỏ và tập trung vào bản thân"},
+    {"keyword": "微胖女孩穿搭显瘦", "label": "👗 Bí quyết phối đồ hack dáng giấu bụng", "hot_value": "99.8万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Lựa chọn chất liệu và tỷ lệ thị giác cho dáng quả lê"},
+    {"keyword": "平价神仙香水合集", "label": "🌸 Review nước hoa giá học sinh lưu hương lâu", "hot_value": "97.5万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Những mùi hương sạch sẽ, sang trọng mà giá bình dân"},
+    {"keyword": "阳台无土水培蔬菜", "label": "🌱 Trồng rau ban công chung cư siêu nhàn", "hot_value": "95.3万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Tự trồng rau sạch thủy canh thu hoạch quanh năm"},
+    {"keyword": "婴儿辅食不重样", "label": "🥣 Thực đơn ăn dặm đầy đủ dinh dưỡng cho bé", "hot_value": "93.6万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Món ăn dặm dễ làm kích thích vị giác bé phát triển"},
+    {"keyword": "沉浸式老物修复", "label": "🛠️ Phục hồi đồ cổ nát thành như mới", "hot_value": "91.2万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Kỹ thuật đánh bóng, phục chế đồ gỗ và kim loại cũ"},
+    {"keyword": "自制无糖低卡饮品", "label": "🍹 Tự pha trà hoa quả giảm cân thanh mát", "hot_value": "89.4万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Đồ uống giải khát không calo thay thế trà sữa"},
+    {"keyword": "小众治愈系书单推荐", "label": "📖 Top sách hay chữa lành tâm hồn nên đọc", "hot_value": "87.8万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Những cuốn sách tiếp thêm động lực vượt qua áp lực"},
+    {"keyword": "租房断舍离清单", "label": "📦 Danh sách đồ không nên mua khi thuê trọ", "hot_value": "86.1万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Tối ưu chi phí chuyển nhà và giữ không gian thoáng đãng"},
+    {"keyword": "零基础手绘平板插画", "label": "🎨 Hướng dẫn vẽ Procreate cho người mới", "hot_value": "84.5万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Các bước phác thảo brush và phối màu pastel dễ thương"},
+    {"keyword": "新手猫咪饲养避坑", "label": "🐱 Kinh nghiệm chăm mèo con cho người mới", "hot_value": "82.9万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Lịch tiêm phòng, chọn cát và hạt dinh dưỡng chuẩn"},
+    {"keyword": "职场向上管理沟通", "label": "💼 Nghệ thuật nói chuyện khéo léo với sếp", "hot_value": "81.3万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Cách báo cáo tiến độ và đề xuất giải pháp thuyết phục"},
+    {"keyword": "治愈系露营野餐装备", "label": "⛺ Combo đồ cắm trại picnic cuối tuần cực chill", "hot_value": "79.6万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Checklist lều, bàn ghế gấp và đồ nướng ngoài trời"},
+    {"keyword": "油痘肌精简护肤法", "label": "🌿 Quy trình skincare tối giản sạch mụn", "hot_value": "78.2万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Giảm sưng viêm và ngăn ngừa mụn thâm tái phát"},
+    {"keyword": "拯救熬夜暗沉蜡黄脸", "label": "✨ Bí kíp phục hồi da sau đêm thức khuya", "hot_value": "76.9万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Massage nâng cơ và mặt nạ cấp ẩm tức thì buổi sáng"},
+    {"keyword": "新手烘焙零失败蛋糕", "label": "🍰 Làm bánh bông lan mềm xốp tại nhà", "hot_value": "75.4万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Tỷ lệ bột trứng chuẩn không cần lò nướng chuyên dụng"},
+    {"keyword": "高情商聊天话术指南", "label": "🗣️ Cách giao tiếp ứng xử thông minh cuốn hút", "hot_value": "74.1万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Phản xạ trả lời duyên dáng không làm mất lòng người nghe"},
+    {"keyword": "居家马甲线高效训练", "label": "⚡ 10 phút gập bụng đốt mỡ mỗi ngày", "hot_value": "72.8万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Động tác tabata siết cơ rãnh bụng nhanh đón hè"},
+    {"keyword": "穷游大学生省钱攻略", "label": "🎒 Kinh nghiệm du lịch bụi chi phí thấp", "hot_value": "71.5万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Săn vé tàu xe và homestay giá rẻ cho sinh viên"},
+    {"keyword": "独居一人火锅底料", "label": "🍲 Bí quyết nấu lẩu 1 người chuẩn vị nhà hàng", "hot_value": "70.2万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Cách nêm gia vị cay nồng vừa ăn cực kỳ đơn giản"},
+    {"keyword": "治愈系插花配色技巧", "label": "💐 Mẹo cắm hoa tươi nghệ thuật decor phòng", "hot_value": "69.1万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Bí quyết dưỡng hoa tươi lâu và phối màu vintage"},
+    {"keyword": "副业无本搞钱实录", "label": "📈 Cách kiếm thêm thu nhập từ viết lách và thiết kế", "hot_value": "67.8万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Các nền tảng nhận việc tự do uy tín cho dân văn phòng"},
+    {"keyword": "高效时间管理四象限", "label": "⏳ Phương pháp sắp xếp công việc không trễ deadline", "hot_value": "66.5万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Ưu tiên việc quan trọng và loại bỏ thời gian chết"},
+    {"keyword": "沉浸式毛线编织手作", "label": "🧶 Đan len thủ công làm quà tặng dễ thương", "hot_value": "65.3万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Cách móc khăn len, mũ len và túi xách phong cách Hàn"},
+    {"keyword": "提升睡眠质量香薰好物", "label": "🕯️ Review nến thơm tinh dầu giúp ngủ sâu", "hot_value": "64.0万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Mùi hương oải hương và gỗ tuyết tùng thư giãn hệ thần kinh"},
+    {"keyword": "手机调色滤镜参数教程", "label": "🎞️ Công thức chỉnh màu ảnh phong cách film", "hot_value": "62.8万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Thông số độ tương phản và hạt film cho ảnh vintage"},
+    {"keyword": "早餐5分钟高蛋白卷饼", "label": "🌯 Món ăn sáng nhanh nhiều dinh dưỡng", "hot_value": "61.7万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Bánh mì cuộn trứng ức gà thơm ngon chắc bụng"},
+    {"keyword": "幼犬定点排便训练法", "label": "🐶 Dạy cún đi vệ sinh đúng chỗ nhanh nhất", "hot_value": "60.5万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Phương pháp khích lệ tích cực không la mắng thú cưng"},
+    {"keyword": "小个子女生穿搭显高", "label": "👠 Mẹo kéo chân cho bạn nữ dưới 1m55", "hot_value": "59.4万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Quy tắc cạp cao và sơ vin tạo tỷ lệ 3:7 chuẩn mẫu"},
+    {"keyword": "治愈系绿植新手推荐", "label": "🪴 Cây cảnh trong nhà dễ sống ít phải chăm", "hot_value": "58.2万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Cây trầu bà, kim tiền lọc không khí tốt trong phòng"},
+    {"keyword": "戒糖30天身体变化实录", "label": "💧 Hành trình cắt đường giảm mỡ mặt và nhẹ người", "hot_value": "57.1万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Kinh nghiệm vượt qua cơn thèm ngọt và cải thiện tiêu hóa"},
+    {"keyword": "平板高效无纸化学习", "label": "📱 Cách ghi chú Goodnotes học tập hiệu quả", "hot_value": "56.0万赞藏", "tag": "⭐ Đề xuất", "category": "rednote_hot", "desc_vi": "Sử dụng template và sơ đồ tư duy để ôn thi nhớ lâu"},
+    {"keyword": "深度清洁毛孔去黑头", "label": "🧖 Quy trình làm sạch sợi bã nhờn tại nhà", "hot_value": "54.9万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Xông hơi và đắp đất sét se khít lỗ chân lông"},
+    {"keyword": "新手买车避坑经验总结", "label": "🚘 Kinh nghiệm mua xe hơi đầu tiên không bị hớ", "hot_value": "53.8万赞藏", "tag": "🔥 Hot", "category": "rednote_hot", "desc_vi": "Các chi phí lăn bánh ẩn và phụ kiện cần thiết nên lắp"},
+    {"keyword": "治愈系烘焙手揉面包", "label": "🍞 Công thức bánh mì hoa cúc thơm nức mũi", "hot_value": "52.7万赞藏", "tag": "📚 Cẩm nang", "category": "rednote_hot", "desc_vi": "Kỹ thuật nhồi bột màng mỏng nướng vàng ươm hấp dẫn"},
+]
+
+
+def fetch_rednote_hot_board(limit: int = 50) -> list[dict[str, Any]]:
+    """Return top trending / high-converting lifestyle & guide search board for RedNote (Xiaohongshu)."""
+    return [
+        {
+            "keyword": item["keyword"],
+            "label": f"#{idx + 1} {item['keyword']}",
+            "hot_value": item["hot_value"],
+            "tag": item.get("tag", "⭐ Đề xuất"),
+            "category": "rednote_hot",
+            "desc_vi": item.get("desc_vi", ""),
+        }
+        for idx, item in enumerate(REDNOTE_HOT_BOARD[:limit])
+    ]
 
 
 def fetch_douyin_hot_board(limit: int = 50) -> list[dict[str, Any]]:
@@ -263,22 +335,67 @@ def fetch_douyin_hot_board(limit: int = 50) -> list[dict[str, Any]]:
     ]
 
 
+def fetch_weibo_hot_board(limit: int = 50) -> list[dict[str, Any]]:
+    """Fetch live real-time Hot Search (热搜榜) board from Weibo."""
+    global _CACHED_WEIBO_HOT, _LAST_WEIBO_FETCH_TIME
+
+    with _CACHE_LOCK:
+        if _CACHED_WEIBO_HOT and (time.time() - _LAST_WEIBO_FETCH_TIME < _CACHE_TTL_SECONDS):
+            return _CACHED_WEIBO_HOT[:limit]
+
+    try:
+        from haizflow.research.weibo_client import WeiboClient
+        client = WeiboClient()
+        results = client.get_hot_search(limit=limit)
+        if results:
+            with _CACHE_LOCK:
+                _CACHED_WEIBO_HOT = results
+                _LAST_WEIBO_FETCH_TIME = time.time()
+            return results[:limit]
+    except Exception as exc:
+        logger.warning(f"Could not fetch Weibo live hot board: {exc}")
+
+    # Fallback
+    return [
+        {"keyword": item["keyword"], "label": item["label"], "hot_value": "Hot", "tag": "🔥 Hot", "category": "weibo_hot"}
+        for item in NICHE_TRENDS["all"][:limit]
+    ]
+
+
 def get_trending_keywords(category: str = "all", limit: int = 15) -> list[dict[str, Any]]:
-    """Return categorized trending keywords or live Douyin hot board."""
+    """Return categorized trending keywords, RedNote guides, or live Douyin / Weibo hot board."""
     if category == "douyin_hot":
         return fetch_douyin_hot_board(limit=limit)
+    if category == "rednote_hot":
+        return fetch_rednote_hot_board(limit=limit)
+    if category == "weibo_hot":
+        return fetch_weibo_hot_board(limit=limit)
 
     items = NICHE_TRENDS.get(category, NICHE_TRENDS["all"])
 
-    # If category is "all", include top 3 live Douyin hot keywords at the front
+    # If category is "all", blend top trends across Douyin, RedNote, and Weibo at the front
     if category == "all":
-        live_hot = fetch_douyin_hot_board(limit=3)
+        live_dy = fetch_douyin_hot_board(limit=2)
+        rn_guides = fetch_rednote_hot_board(limit=2)
+        live_wb = fetch_weibo_hot_board(limit=2)
         combined = []
-        for h in live_hot:
+        for h in live_dy:
             combined.append({
                 "keyword": h["keyword"],
-                "label": f"🔥 {h['keyword']} ({h['hot_value']})",
+                "label": f"🎵 {h['keyword']} ({h['hot_value']})",
                 "category": "douyin_hot",
+            })
+        for r in rn_guides:
+            combined.append({
+                "keyword": r["keyword"],
+                "label": f"📕 {r['keyword']} ({r['hot_value']})",
+                "category": "rednote_hot",
+            })
+        for w in live_wb:
+            combined.append({
+                "keyword": w["keyword"],
+                "label": f"🔥 {w['keyword']} ({w['hot_value']})",
+                "category": "weibo_hot",
             })
         for item in items:
             combined.append(item)

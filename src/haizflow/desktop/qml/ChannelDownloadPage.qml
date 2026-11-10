@@ -22,6 +22,7 @@ Item {
         { "label": "TikTok", "value": "tiktok", "platform": "tiktok" },
         { "label": "Douyin", "value": "douyin", "platform": "douyin" },
         { "label": "RedNote", "value": "rednote", "platform": "rednote" },
+        { "label": "Weibo", "value": "weibo", "platform": "weibo" },
         { "label": "Bilibili", "value": "bilibili", "platform": "bilibili" },
         { "label": "Facebook", "value": "facebook", "platform": "facebook" },
         { "label": "X", "value": "x", "platform": "x" }
@@ -52,8 +53,10 @@ Item {
         root.inspectedSource = root.downloader.channelPreviewSource;
     }
     // New / all / date-range scans are available for Douyin only; other platforms keep "newest N".
-    // RedNote has no channel scan: its page explains how to collect the post links instead.
+    // RedNote & Weibo have no channel scan: their guides explain how to collect the post links instead.
     readonly property bool rednote: selectedPlatform === "rednote"
+    readonly property bool weibo: selectedPlatform === "weibo"
+    readonly property bool hasGuide: root.rednote || root.weibo
     readonly property bool scanModesAvailable: selectedPlatform === "douyin" && ranking.currentValue !== "popular"
     readonly property string effectiveScanMode: scanModesAvailable ? scanMode.currentValue : "limit"
     Component.onCompleted: restoreForm()
@@ -67,6 +70,8 @@ Item {
             return qsTr("Dán liên kết trang cá nhân TikTok")
         if (selectedPlatform === "douyin")
             return qsTr("Dán liên kết trang cá nhân Douyin")
+        if (selectedPlatform === "weibo")
+            return qsTr("Dán liên kết trang cá nhân Weibo")
         if (selectedPlatform === "youtube")
             return qsTr("Dán liên kết kênh YouTube")
         return qsTr("Dán liên kết hồ sơ hoặc kênh công khai")
@@ -140,7 +145,7 @@ Item {
                     AppTextField {
                         id: channelUrl
                         Layout.fillWidth: true
-                        visible: !root.rednote
+                        visible: !root.hasGuide
                         placeholderText: root.placeholder()
                         selectByMouse: true
                         enabled: !root.channelActive
@@ -150,7 +155,7 @@ Item {
 
                     GridLayout {
                         Layout.fillWidth: true
-                        visible: !root.rednote
+                        visible: !root.hasGuide
                         columns: width >= 900 ? 4 : width >= 680 ? 3 : 2
                         columnSpacing: Theme.space12
                         rowSpacing: Theme.space12
@@ -272,13 +277,13 @@ Item {
                         id: douyinAction
                         Layout.fillWidth: true
                         url: channelUrl.text
-                        visible: !root.rednote && (root.selectedPlatform === "douyin" || requiresSession)
+                        visible: !root.hasGuide && (root.selectedPlatform === "douyin" || requiresSession)
                         operationBusy: root.downloader.hasWork || root.downloader.videoPreviewBusy
                     }
 
                     DownloadDestinationRow {
                         Layout.fillWidth: true
-                        visible: !root.rednote
+                        visible: !root.hasGuide
                         directory: root.downloader.channelOutputDirectory
                         managed: root.downloader.outputManaged
                         selectionEnabled: !root.channelActive
@@ -287,7 +292,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        visible: !root.rednote
+                        visible: !root.hasGuide
                         spacing: Theme.space12
                         Item { Layout.fillWidth: true }
                         StudioButton {
@@ -305,7 +310,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        visible: !root.rednote && root.matchesSource && root.downloader.channelStatus.length > 0
+                        visible: !root.hasGuide && root.matchesSource && root.downloader.channelStatus.length > 0
                         Text {
                             Layout.fillWidth: true
                             text: I18n.channelImportStatus(root.downloader.channelStatus)
@@ -330,9 +335,15 @@ Item {
                     downloader: root.downloader
                 }
 
+                WeiboChannelGuide {
+                    Layout.fillWidth: true
+                    visible: root.weibo
+                    downloader: root.downloader
+                }
+
                 AppSurface {
                     Layout.fillWidth: true
-                    visible: root.hasResults && !root.rednote
+                    visible: root.hasResults && !root.hasGuide
                     padding: Theme.space16
 
                     SectionHeader {

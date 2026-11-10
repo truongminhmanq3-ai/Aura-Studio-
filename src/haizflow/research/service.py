@@ -9,6 +9,7 @@ from haizflow.research.douyin_extractor import parse_douyin_aweme
 from haizflow.research.metrics import compute_median_interactions, enrich_post_metrics
 from haizflow.research.models import AgentDecision, CommentItem, PostItem, ResearchMemory, ResearchPlatform
 from haizflow.research.storage import ResearchStorage
+from haizflow.research.weibo_client import WeiboClient
 from haizflow.research.xhs_client import XHSClient
 
 logger = logging.getLogger(__name__)
@@ -22,18 +23,28 @@ class ResearchService:
         storage: ResearchStorage | None = None,
         agent: ResearchAgent | None = None,
         xhs_client: XHSClient | None = None,
+        weibo_client: WeiboClient | None = None,
     ) -> None:
         self.storage = storage or ResearchStorage()
         self.agent = agent or ResearchAgent()
         self.xhs_client = xhs_client or XHSClient()
+        self.weibo_client = weibo_client or WeiboClient()
 
     def inspect_and_store_url(self, raw_url: str) -> PostItem | None:
-        """Inspect a single Douyin or Xiaohongshu URL and save to research corpus."""
+        """Inspect a single Douyin, Xiaohongshu, or Weibo URL and save to research corpus."""
         raw_url = raw_url.strip()
         if "xiaohongshu.com" in raw_url or "xhslink.com" in raw_url:
             post = self.xhs_client.get_note_detail(raw_url)
             if post:
                 self.storage.save_posts([post])
+            return post
+
+        if "weibo.com" in raw_url or "weibo.cn" in raw_url or "t.cn" in raw_url:
+            post, comments = self.weibo_client.get_post_with_comments(raw_url)
+            if post:
+                self.storage.save_posts([post])
+                if comments:
+                    self.storage.save_comments(comments)
             return post
 
         if "douyin.com" in raw_url or "iesdouyin.com" in raw_url:

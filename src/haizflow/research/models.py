@@ -6,7 +6,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 
-ResearchPlatform = Literal["douyin", "xiaohongshu"]
+ResearchPlatform = Literal["douyin", "xiaohongshu", "weibo"]
 ContentType = Literal["video", "image_carousel", "image_single"]
 DecisionVerdict = Literal["remake_now", "adapt_script", "skip"]
 
