@@ -752,6 +752,7 @@ class ProjectImportController:
             "channel_name": str(target.get("channel_name") or candidate.get("uploader") or ""),
             "import_session_id": session_id,
             "imported_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "published_at": str(candidate.get("published_at") or ""),
         }
         if self._can_import_in_background():
             queued = self._queue_import(
@@ -1341,6 +1342,7 @@ class ProjectImportController:
             "source_url": str(entry.get("url") or ""),
             "channel_name": str(entry.get("channel") or ""),
             "imported_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "published_at": str(entry.get("published") or ""),
         }
 
     def refresh_download_project_sources(self) -> None:

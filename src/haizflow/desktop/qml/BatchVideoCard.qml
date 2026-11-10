@@ -12,6 +12,8 @@ Control {
     required property int progress
     required property string thumbnailSource
     required property string videoSize
+    required property string channelName
+    required property string publishedAt
     property bool customSettings: false
 
     signal activated
@@ -161,6 +163,19 @@ Control {
                 color: Theme.text
                 font.pixelSize: Theme.bodyLarge
                 font.weight: Font.DemiBold
+                textFormat: Text.PlainText
+                elide: Text.ElideRight
+            }
+
+            Text {
+                objectName: "batchCardSource"
+                Layout.fillWidth: true
+                visible: text.length > 0
+                text: root.channelName.length > 0 && root.publishedAt.length > 0
+                    ? root.channelName + " · " + root.publishedAt
+                    : root.channelName.length > 0 ? root.channelName : root.publishedAt
+                color: Theme.textSubtle
+                font.pixelSize: Theme.caption
                 textFormat: Text.PlainText
                 elide: Text.ElideRight
             }

@@ -17,6 +17,32 @@ Item {
     readonly property bool compactHeight: height < 740
     property var settingOverrides: []
     function refreshOverrides() { settingOverrides = AppController.batchSettingOverrides(); }
+    readonly property var statusLabels: ({
+        "pending": qsTr("Đang chờ"), "processing": qsTr("Đang xử lý"), "awaiting_review": qsTr("Cần duyệt"),
+        "paused": qsTr("Đã tạm dừng"), "done": qsTr("Hoàn tất"), "failed": qsTr("Lỗi hoặc đã hủy")
+    })
+    // [{value, label}] built from live counts so the picker only offers what exists.
+    function channelModel() {
+        const options = AppController.batchChannelOptions;
+        return options.map(function(option) {
+            const name = option.value === "" ? qsTr("Tất cả kênh")
+                : option.value === "__none__" ? qsTr("Không rõ kênh") : option.label;
+            return { "value": option.value, "label": qsTr("%1 (%2)").arg(name).arg(option.count) };
+        });
+    }
+    function statusModel() {
+        const counts = AppController.batchStatusCounts;
+        const result = [{ "value": "", "label": qsTr("Mọi trạng thái (%1)").arg(AppController.batchCount) }];
+        ["pending", "processing", "awaiting_review", "paused", "done", "failed"].forEach(function(key) {
+            if (counts[key] > 0)
+                result.push({ "value": key, "label": qsTr("%1 (%2)").arg(root.statusLabels[key]).arg(counts[key]) });
+        });
+        return result;
+    }
+    function applyFilter() {
+        AppController.setBatchFilter(channelFilter.currentValue === undefined ? "" : channelFilter.currentValue,
+                                     statusFilter.currentValue === undefined ? "" : statusFilter.currentValue);
+    }
     Component.onCompleted: refreshOverrides()
     Connections {
         target: AppController
@@ -177,6 +203,97 @@ Item {
         }
 
         RowLayout {
+            id: filterBar
+            objectName: "batchFilterBar"
+            Layout.fillWidth: true
+            visible: AppController.batchCount > 0
+            spacing: Theme.space12
+
+            AppComboBox {
+                id: channelFilter
+                objectName: "batchChannelFilter"
+                Layout.preferredWidth: 230
+                visible: AppController.batchChannelOptions.length > 1
+                model: root.channelModel()
+                textRole: "label"
+                valueRole: "value"
+                Accessible.name: qsTr("Lọc theo kênh")
+                onActivated: root.applyFilter()
+            }
+
+            AppComboBox {
+                id: statusFilter
+                objectName: "batchStatusFilter"
+                Layout.preferredWidth: 220
+                model: root.statusModel()
+                textRole: "label"
+                valueRole: "value"
+                Accessible.name: qsTr("Lọc theo trạng thái")
+                onActivated: root.applyFilter()
+            }
+
+            Connections {
+                target: AppController
+                function onBatchChanged() {
+                    // Progress ticks also arrive here: rebuild the pickers only when their content changed,
+                    // so an open drop-down is not closed under the user's hand.
+                    const channel = AppController.batchFilterChannel;
+                    const status = AppController.batchFilterStatus;
+                    const channels = root.channelModel();
+                    const statuses = root.statusModel();
+                    if (JSON.stringify(channels) !== JSON.stringify(channelFilter.model))
+                        channelFilter.model = channels;
+                    if (JSON.stringify(statuses) !== JSON.stringify(statusFilter.model))
+                        statusFilter.model = statuses;
+                    channelFilter.currentIndex = Math.max(0, channelFilter.indexOfValue(channel));
+                    statusFilter.currentIndex = Math.max(0, statusFilter.indexOfValue(status));
+                    if (status !== "" && statusFilter.indexOfValue(status) < 0)
+                        AppController.setBatchFilter(channel, "");   // that status group is empty now
+                }
+            }
+
+            Text {
+                objectName: "batchFilterCount"
+                visible: AppController.batchFilterActive
+                text: qsTr("Đang hiện %1 / %2 video").arg(AppController.batchVisibleCount).arg(AppController.batchCount)
+                color: Theme.textMuted
+                font.pixelSize: Theme.caption
+                textFormat: Text.PlainText
+            }
+
+            StudioButton {
+                visible: AppController.batchFilterActive
+                text: qsTr("Bỏ lọc")
+                variant: "ghost"
+                onClicked: {
+                    channelFilter.currentIndex = 0;
+                    statusFilter.currentIndex = 0;
+                    root.applyFilter();
+                }
+            }
+
+            Item { Layout.fillWidth: true }
+
+            StudioButton {
+                objectName: "batchProcessFiltered"
+                visible: AppController.batchFilterActive && !AppController.isBatchRunning
+                text: qsTr("Xử lý %1 video đang lọc").arg(AppController.batchVisibleCount)
+                variant: "secondary"
+                enabled: AppController.batchVisibleCount > 0 && !AppController.videoExportBusy
+                onClicked: AppController.requestBatchProcessingFiltered()
+            }
+
+            StudioButton {
+                objectName: "batchRetryFailed"
+                visible: AppController.batchFailedCount > 0 && !AppController.isBatchRunning
+                text: qsTr("Thử lại %1 video lỗi").arg(AppController.batchFailedCount)
+                variant: "secondary"
+                enabled: !AppController.videoExportBusy
+                onClicked: AppController.requestBatchRetryFailed()
+            }
+        }
+
+        RowLayout {
             Layout.fillWidth: true
             spacing: Theme.space12
 
@@ -259,7 +376,7 @@ Item {
                 anchors.fill: parent
                 anchors.margins: AppController.batchCount > 0 ? Theme.space12 : 0
                 clip: true
-                model: AppController.batchVideoModel
+                model: AppController.filteredBatchVideoModel
                 reuseItems: true
                 cellWidth: cellContentWidth
                 cellHeight: cardHeight + Theme.space16
@@ -270,7 +387,7 @@ Item {
                     width: queueList.cardWidth
                     height: queueList.cardHeight
                     onActivated: {
-                        AppController.selectBatchVideo(index);
+                        AppController.selectFilteredBatchVideo(index);
                         root.openVideoDetail();
                     }
                 }

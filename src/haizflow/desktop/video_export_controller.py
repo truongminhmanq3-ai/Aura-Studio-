@@ -54,15 +54,23 @@ class VideoExportController(QObject):
                         for value, item in EXPORT_PRESETS.items()],
         }
 
-    def batch_settings(self) -> dict:
-        videos = [video_store.get_video(key) for key in self.host._batch_video_ids]
+    def _batch_ids(self, video_ids=None) -> list[str]:
+        """The whole queue, or the given part of it (kept in queue order, unknown ids dropped)."""
+        queue = list(self.host._batch_video_ids)
+        if video_ids is None:
+            return queue
+        wanted = {str(identifier) for identifier in video_ids}
+        return [identifier for identifier in queue if identifier in wanted]
+
+    def batch_settings(self, video_ids=None) -> dict:
+        videos = [video_store.get_video(key) for key in self._batch_ids(video_ids)]
         videos = [video for video in videos if video]
         result = self.settings(videos[0]) if videos else {}
         result.update(projectKey=str(self.host._selected_project_key or ""),
                       videoIds=[video.video_id for video in videos], count=len(videos))
         return result
 
-    def choose_batch_directory(self) -> str:
+    def choose_batch_directory(self, video_ids=None) -> str:
         directory = QFileDialog.getExistingDirectory(
             None, self.text("Chọn thư mục xuất video", "Choose video export folder"),
             desktop_settings.load_settings().get("last_export_directory") or native_media_dialog_directory(),
@@ -71,7 +79,7 @@ class VideoExportController(QObject):
             return ""
         try:
             targets = []
-            for video_id in self.host._batch_video_ids:
+            for video_id in self._batch_ids(video_ids):
                 video = video_store.get_video(video_id)
                 if video:
                     target = validate_export_destination(Path(directory) / batch_filename(video))
@@ -92,9 +100,9 @@ class VideoExportController(QObject):
             return ""
         return str(Path(directory).resolve())
 
-    def batch_destination_exists(self, directory) -> bool:
+    def batch_destination_exists(self, directory, video_ids=None) -> bool:
         return any((Path(directory) / batch_filename(video)).exists()
-                   for key in self.host._batch_video_ids if (video := video_store.get_video(key)))
+                   for key in self._batch_ids(video_ids) if (video := video_store.get_video(key)))
 
     def _set_jobs(self, jobs):
         # Paused exports from another project must survive navigation and a
@@ -203,8 +211,10 @@ class VideoExportController(QObject):
 
     def start_batch_to(self, project_key, video_ids, preset, directory, *, overwrite=False, process=True) -> bool:
         """Capture destinations and validate the whole batch before enqueueing."""
+        # The whole queue, or a part of it (a filtered view, or just the failed videos).
         if (self.busy or not video_ids or project_key != str(self.host._selected_project_key or "")
-                or list(video_ids) != list(self.host._batch_video_ids)):
+                or len(set(video_ids)) != len(list(video_ids))
+                or not set(video_ids) <= set(self.host._batch_video_ids)):
             return False
         videos = [video_store.get_video(key) for key in video_ids]
         if any(not video or video.project_type != "batch" or video.project_key != project_key

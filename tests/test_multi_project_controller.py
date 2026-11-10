@@ -420,7 +420,7 @@ class MultiProjectControllerTests(unittest.TestCase):
         batch_page = (ROOT / "src" / "haizflow" / "desktop" / "qml" / "BatchPage.qml").read_text(encoding="utf-8")
         card = (ROOT / "src" / "haizflow" / "desktop" / "qml" / "BatchVideoCard.qml").read_text(encoding="utf-8")
 
-        self.assertIn("AppController.selectBatchVideo(index)", batch_page)
+        self.assertIn("AppController.selectFilteredBatchVideo(index)", batch_page)
         self.assertIn("root.openVideoDetail()", batch_page)
         self.assertIn('qsTr("Chỉnh cài đặt video")', card)
         self.assertIn("required property string videoSize", card)

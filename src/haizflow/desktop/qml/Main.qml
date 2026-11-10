@@ -271,6 +271,7 @@ ApplicationWindow {
         function onVideoExportRequested() { videoExportDialogLoader.invoke("openForSelection", []); }
         function onAutoProcessingRequested() { videoExportDialogLoader.invoke("openForProcessing", []); }
         function onBatchProcessingRequested(processFirst) { videoExportDialogLoader.invoke("openForBatch", [processFirst]); }
+        function onBatchSubsetProcessingRequested(videoIds) { videoExportDialogLoader.invoke("openForBatchSubset", [videoIds]); }
         function onVideoExportStarted() { videoExportJobsDialogLoader.invoke("open", []); }
     }
 

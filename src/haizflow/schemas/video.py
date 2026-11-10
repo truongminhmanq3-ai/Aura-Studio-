@@ -38,6 +38,7 @@ class MediaSource(BaseModel):
     channel_name: str = ""
     import_session_id: str = ""
     imported_at: str = ""
+    published_at: str = ""          # when the platform says the video was posted (YYYYMMDD or ISO date)
 
 
 class SubtitleStyle(BaseModel):

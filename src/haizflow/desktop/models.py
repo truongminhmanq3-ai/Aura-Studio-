@@ -218,6 +218,8 @@ class VideoListModel(QAbstractListModel):
     ThumbnailRole = Qt.ItemDataRole.UserRole + 8
     ProjectNameRole = Qt.ItemDataRole.UserRole + 9
     VideoSizeRole = Qt.ItemDataRole.UserRole + 10
+    ChannelRole = Qt.ItemDataRole.UserRole + 11
+    PublishedRole = Qt.ItemDataRole.UserRole + 12
 
     def __init__(self):
         super().__init__()
@@ -244,10 +246,14 @@ class VideoListModel(QAbstractListModel):
             self.ThumbnailRole: self._thumbnail_source(video),
             self.ProjectNameRole: video.project_name or video.original_filename,
             self.VideoSizeRole: self._video_size(video),
+            self.ChannelRole: self._channel_name(video),
+            self.PublishedRole: self._published(video),
         }
 
     def roleNames(self):
         return {
+            self.ChannelRole: b"channelName",
+            self.PublishedRole: b"publishedAt",
             self.VideoIdRole: b"videoId",
             self.FileRole: b"fileName",
             self.ModeRole: b"mode",
@@ -309,10 +315,113 @@ class VideoListModel(QAbstractListModel):
         return thumbnail_source(path)
 
     @staticmethod
+    def _channel_name(video) -> str:
+        source = getattr(video, "media_source", None)
+        return str(getattr(source, "channel_name", "") or "")
+
+    @staticmethod
+    def _published(video) -> str:
+        """YYYY-MM-DD when the platform's posting date is known, else ''."""
+        source = getattr(video, "media_source", None)
+        value = "".join(ch for ch in str(getattr(source, "published_at", "") or "") if ch.isdigit())[:8]
+        return f"{value[:4]}-{value[4:6]}-{value[6:]}" if len(value) == 8 else ""
+
+    @staticmethod
     def _video_size(video):
         width = int(getattr(video, "video_width", 0) or 0)
         height = int(getattr(video, "video_height", 0) or 0)
         return f"{width} x {height}" if width and height else ""
+
+
+NO_CHANNEL = "__none__"
+
+
+def status_group(status: str) -> str:
+    """The queue states users think in: failed and cancelled are one group."""
+    status = str(status or "")
+    return "failed" if status in {"failed", "cancelled"} else status
+
+
+class BatchVideoFilterModel(QSortFilterProxyModel):
+    """The batch queue seen through a channel and status filter.
+
+    The source stays the canonical queue; the proxy only hides rows, so row mapping back
+    to the source is exact and nothing about processing changes.
+    """
+
+    filterChanged = Signal()
+
+    def __init__(self, source_model: VideoListModel):
+        super().__init__()
+        self._channel = ""
+        self._status = ""
+        self.setSourceModel(source_model)
+        self.setDynamicSortFilter(True)
+
+    def _refilter(self) -> None:
+        self.beginFilterChange()
+        self.endFilterChange(QSortFilterProxyModel.Direction.Rows)
+        self.filterChanged.emit()
+
+    @property
+    def channel(self) -> str:
+        return self._channel
+
+    @property
+    def status(self) -> str:
+        return self._status
+
+    def set_filter(self, channel: str, status: str) -> None:
+        channel, status = str(channel or ""), str(status or "")
+        if (channel, status) == (self._channel, self._status):
+            return
+        self._channel, self._status = channel, status
+        self._refilter()
+
+    @property
+    def active(self) -> bool:
+        return bool(self._channel or self._status)
+
+    def _accepts(self, video) -> bool:
+        name = VideoListModel._channel_name(video)
+        if self._channel == NO_CHANNEL and name:
+            return False
+        if self._channel and self._channel != NO_CHANNEL and name != self._channel:
+            return False
+        return not self._status or status_group(video.status) == self._status
+
+    def filterAcceptsRow(self, source_row, source_parent) -> bool:
+        video = self.sourceModel().video_at(source_row)
+        return bool(video) and self._accepts(video)
+
+    def video_at(self, row: int):
+        index = self.mapToSource(self.index(row, 0))
+        return self.sourceModel().video_at(index.row()) if index.isValid() else None
+
+    def visible_video_ids(self) -> list[str]:
+        return [video.video_id for row in range(self.rowCount()) if (video := self.video_at(row))]
+
+    def channel_options(self) -> list[dict]:
+        """[{value,label,count}] for the channel picker, counted over the whole queue."""
+        counts: dict[str, int] = {}
+        total = 0
+        for video in self.sourceModel()._videos:
+            total += 1
+            name = VideoListModel._channel_name(video) or NO_CHANNEL
+            counts[name] = counts.get(name, 0) + 1
+        named = sorted((name for name in counts if name != NO_CHANNEL), key=str.casefold)
+        options = [{"value": "", "label": "", "count": total}]
+        options += [{"value": name, "label": name, "count": counts[name]} for name in named]
+        if counts.get(NO_CHANNEL) and named:
+            options.append({"value": NO_CHANNEL, "label": "", "count": counts[NO_CHANNEL]})
+        return options
+
+    def status_counts(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for video in self.sourceModel()._videos:
+            group = status_group(video.status)
+            counts[group] = counts.get(group, 0) + 1
+        return counts
 
 
 class ProjectListModel(QAbstractListModel):

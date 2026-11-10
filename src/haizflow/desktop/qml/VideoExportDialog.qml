@@ -28,9 +28,19 @@ AppDialog {
         open();
     }
     function openForProcessing() { openForSelection(true); }
+    // Process (and export) only some of the queue: the filtered videos, or the failed ones.
+    property var subsetIds: null
+    function openForBatchSubset(videoIds) {
+        openForSelection(true);
+        batchMode = true;
+        subsetIds = videoIds;
+        configuration = controller.batchExportSettingsFor(videoIds);
+        quality.currentIndex = Math.max(0, (configuration.presets || []).findIndex(item => item.value === configuration.preset));
+    }
     function openForBatch(processFirst = true) {
         openForSelection(processFirst);
         batchMode = true;
+        subsetIds = null;
         configuration = controller.batchExportSettings();
         quality.currentIndex = Math.max(0, (configuration.presets || []).findIndex(item => item.value === configuration.preset));
     }
@@ -114,11 +124,15 @@ AppDialog {
                 text: qsTr("Chọn…")
                 iconName: "folder"
                 onClicked: {
-                    const path = root.batchMode ? root.controller.chooseBatchExportDestination()
+                    const path = root.batchMode
+                        ? (root.subsetIds ? root.controller.chooseBatchExportDestinationFor(root.subsetIds)
+                                          : root.controller.chooseBatchExportDestination())
                         : root.controller.chooseVideoExportDestination(root.configuration.videoId);
                     if (path.length > 0) {
                         root.destination = path;
-                        root.destinationExists = root.batchMode ? root.controller.batchExportDestinationExists(path)
+                        root.destinationExists = root.batchMode
+                            ? (root.subsetIds ? root.controller.batchExportDestinationExistsFor(path, root.subsetIds)
+                                              : root.controller.batchExportDestinationExists(path))
                             : root.controller.exportDestinationExists(path);
                     }
                 }

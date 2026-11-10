@@ -54,6 +54,7 @@ from haizflow.desktop.media_download_controller import MediaDownloadController
 from haizflow.desktop.media_probe import VideoDimensionProbe
 from haizflow.desktop.models import (
     ActivityEventModel,
+    BatchVideoFilterModel,
     DownloadProjectSourceListModel,
     ProjectBrowserProxyModel,
     ProjectGridModel,
@@ -292,6 +293,8 @@ class HaizFlowController(QObject):
     videoExportRequested = Signal()
     autoProcessingRequested = Signal()
     batchProcessingRequested = Signal(bool)
+    batchSubsetProcessingRequested = Signal("QVariantList")
+    batchFilterChanged = Signal()
     videoExportStarted = Signal()
     manualSubtitleSaved = Signal(str, int, str)
     manualSubtitleSaveFailed = Signal(str, str, str)
@@ -328,6 +331,10 @@ class HaizFlowController(QObject):
         self.download_projects = ProjectGridModel()
         self.publish_projects = ProjectGridModel()
         self.batch_videos = VideoListModel()
+        self.batch_filtered = BatchVideoFilterModel(self.batch_videos)
+        for signal in (self.batch_filtered.filterChanged, self.batch_filtered.rowsInserted,
+                       self.batch_filtered.rowsRemoved, self.batch_filtered.modelReset):
+            signal.connect(lambda *_args: self.batchFilterChanged.emit())
         self.tiktok_publish_items = SocialPublishListModel()
         self.tiktok_project_sources = SocialProjectSourceListModel()
         self.download_project_sources = DownloadProjectSourceListModel()
@@ -1345,6 +1352,87 @@ class HaizFlowController(QObject):
     @Property(QObject, constant=True)
     def batchVideoModel(self):
         return self.batch_videos
+
+    # --- Batch queue filter (channel / status) -------------------------------------------
+    @Property(QObject, constant=True)
+    def filteredBatchVideoModel(self):
+        return self.batch_filtered
+
+    @Property(str, notify=batchFilterChanged)
+    def batchFilterChannel(self):
+        return self.batch_filtered.channel
+
+    @Property(str, notify=batchFilterChanged)
+    def batchFilterStatus(self):
+        return self.batch_filtered.status
+
+    @Property(bool, notify=batchFilterChanged)
+    def batchFilterActive(self):
+        return self.batch_filtered.active
+
+    @Property(int, notify=batchFilterChanged)
+    def batchVisibleCount(self):
+        return self.batch_filtered.rowCount()
+
+    @Property("QVariantList", notify=batchChanged)
+    def batchChannelOptions(self):
+        return self.batch_filtered.channel_options()
+
+    @Property("QVariantMap", notify=batchChanged)
+    def batchStatusCounts(self):
+        return self.batch_filtered.status_counts()
+
+    @Slot(str, str)
+    def setBatchFilter(self, channel, status):
+        self.batch_filtered.set_filter(channel, status)
+
+    @Slot(int)
+    def selectFilteredBatchVideo(self, row: int):
+        video = self.batch_filtered.video_at(int(row))
+        if video:
+            self._select_video(video)
+
+    def _normalize_batch_filter(self) -> None:
+        """Drop a channel filter whose videos are gone (another project, or all removed)."""
+        channel = self.batch_filtered.channel
+        if channel and channel not in {option["value"] for option in self.batch_filtered.channel_options()}:
+            self.batch_filtered.set_filter("", self.batch_filtered.status)
+        self.batchFilterChanged.emit()
+
+    def _request_batch_subset(self, video_ids: list[str]) -> bool:
+        if not video_ids or self.isBatchRunning or self.videoExportBusy:
+            return False
+        self.batchSubsetProcessingRequested.emit(list(video_ids))
+        return True
+
+    @Slot(result=bool)
+    def requestBatchProcessingFiltered(self):
+        """Process only the videos the batch filter shows (not those already running)."""
+        ids = [i for i in self.batch_filtered.visible_video_ids() if not self._processing_queue.contains(i)]
+        return self._request_batch_subset(ids)
+
+    @Property(int, notify=batchChanged)
+    def batchFailedCount(self):
+        return sum(1 for video in self._batch_catalog_videos() if video and video.status in {"failed", "cancelled"})
+
+    @Slot(result=bool)
+    def requestBatchRetryFailed(self):
+        """Run the failed and cancelled videos again from the start (the usual restart)."""
+        ids = [video.video_id for video in self._batch_catalog_videos()
+               if video and video.status in {"failed", "cancelled"} and not self._processing_queue.contains(video.video_id)]
+        return self._request_batch_subset(ids)
+
+    @Slot("QVariantList", result="QVariantMap")
+    def batchExportSettingsFor(self, video_ids):
+        return self._video_exports.batch_settings(list(video_ids or []))
+
+    @Slot("QVariantList", result=str)
+    def chooseBatchExportDestinationFor(self, video_ids):
+        return self._video_exports.choose_batch_directory(list(video_ids or []))
+
+    @Slot(str, "QVariantList", result=bool)
+    def batchExportDestinationExistsFor(self, directory, video_ids):
+        return self._video_exports.batch_destination_exists(directory, list(video_ids or []))
 
     @Property(bool, notify=batchChanged)
     def isBatchRunning(self):
@@ -7723,6 +7811,7 @@ class HaizFlowController(QObject):
 
     def _refresh_batch_model(self):
         HaizFlowController._catalog_media_for(self).refresh_batch_model()
+        self._normalize_batch_filter()
 
     def _ensure_video_dimensions(self, video):
         return HaizFlowController._catalog_media_for(self).ensure_video_dimensions(video)
