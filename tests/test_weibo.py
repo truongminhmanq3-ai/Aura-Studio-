@@ -15,6 +15,7 @@ class WeiboLinkTests(unittest.TestCase):
 
     def test_tracking_parameters_are_dropped_but_the_video_id_query_is_kept(self):
         self.assertEqual(weibo.check_url(STATUS + "?jumpfrom=weibocom"), STATUS)
+        self.assertEqual(weibo.check_url("https://weibo.com/detail/4189191225395228"), "https://m.weibo.cn/detail/4189191225395228")
         self.assertEqual(weibo.check_url("https://weibo.com/tv/show/1034:4797699866951785?from=old_pc_videoshow"),
                          "https://weibo.com/tv/show/1034:4797699866951785")
         self.assertEqual(weibo.check_url("https://video.weibo.com/show?fid=1034:4797699866951785&from=x"),

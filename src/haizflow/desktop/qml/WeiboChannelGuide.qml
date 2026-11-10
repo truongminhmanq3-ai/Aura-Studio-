@@ -14,7 +14,7 @@ AppSurface {
     property bool copied: false
 
     // Runs in the user's own browser console: reads the post and video links already on the page, copies them.
-    readonly property string collectorScript: "(()=>{const m=new Map();document.querySelectorAll('a[href]').forEach(a=>{const h=a.href;let r=h.match(/\\/(?:[0-9]+|status|detail)\\/([A-Za-z0-9]+)/i);if(r&&!m.has(r[1])&&!['home','hot','message','fav','u','login','setting','video'].includes(r[1])){m.set(r[1],'https://weibo.com/detail/'+r[1]);return;}r=h.match(/\\/(?:tv\\/)?show(?:\\/|\\?fid=|\\?.*&fid=)(\\d+:)?([A-Za-z0-9]+)/i);if(r&&!m.has(r[2])){m.set(r[2],'https://video.weibo.com/show?fid='+(r[1]||'')+r[2]);return;}});const t=[...m.values()].join('\\n');navigator.clipboard.writeText(t).then(()=>alert('Đã sao chép '+m.size+' link bài viết Weibo'),()=>prompt('Sao chép thủ công',t))})()"
+    readonly property string collectorScript: "(()=>{const m=new Map();document.querySelectorAll('a[href]').forEach(a=>{const h=a.href;let r=h.match(/\\/(?:[0-9]+|status|detail)\\/([A-Za-z0-9]+)/i);if(r&&!m.has(r[1])&&!['home','hot','message','fav','u','login','setting','video'].includes(r[1])){m.set(r[1],'https://m.weibo.cn/detail/'+r[1]);return;}r=h.match(/\\/(?:tv\\/)?show(?:\\/|\\?fid=|\\?.*&fid=)(\\d+:)?([A-Za-z0-9]+)/i);if(r&&!m.has(r[2])){m.set(r[2],'https://video.weibo.com/show?fid='+(r[1]||'')+r[2]);return;}});const t=[...m.values()].join('\\n');navigator.clipboard.writeText(t).then(()=>alert('Đã sao chép '+m.size+' link bài viết Weibo'),()=>prompt('Sao chép thủ công',t))})()"
 
     readonly property var steps: [
         qsTr("Mở Chrome hoặc Safari trên máy tính, vào weibo.com và đăng nhập tài khoản của bạn."),

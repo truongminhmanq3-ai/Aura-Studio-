@@ -39,6 +39,7 @@ def check_url(url: str) -> str:
 
     Share/tracking parameters (``?jumpfrom=…``, ``?from=…``) are dropped so the same post pasted twice is
     recognised as one. Only the video player link keeps its ``fid`` query, which names the video.
+    Routes to /detail/ and /status/ are normalized to m.weibo.cn for yt-dlp compatibility.
     """
     parsed = urlparse(str(url or ""))
     host = (parsed.hostname or "").lower()
@@ -46,18 +47,26 @@ def check_url(url: str) -> str:
         return str(url)
     if _PROFILE_PATH.match(parsed.path or ""):
         raise ValueError(PROFILE_MESSAGE)
+    if parsed.path.startswith(("/detail/", "/status/")):
+        return f"https://m.weibo.cn{parsed.path}"
     fid = parse_qs(parsed.query).get("fid", [""])[0]
     query = f"?fid={quote(fid, safe=':')}" if fid and parsed.path.rstrip("/").endswith("/show") else ""
     return f"{parsed.scheme}://{parsed.netloc}{parsed.path}{query}"
 
 
 def numeric_post_id(url: str) -> str:
-    """The numeric post id when the link carries it (m.weibo.cn/status/<id>), else ''."""
+    """The numeric post id when the link carries it (m.weibo.cn/status/<id>, etc.), else ''."""
     parsed = urlparse(str(url or ""))
-    if (parsed.hostname or "").lower() != "m.weibo.cn":
+    host = (parsed.hostname or "").lower()
+    if not _host_matches(host, MAIN_HOSTS):
         return ""
     match = _NUMERIC_POST.match(parsed.path or "")
-    return match.group(1) if match else ""
+    if match:
+        return match.group(1)
+    parts = [p for p in (parsed.path or "").split("/") if p]
+    if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
+        return parts[1]
+    return ""
 
 
 def resolve_short(url: str, timeout: float = 15.0) -> str:
