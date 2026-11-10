@@ -17,6 +17,7 @@ from urllib.parse import parse_qs, urlparse
 
 from haizflow.config import BIN_DIR, MEDIA_PROCESS_TIMEOUT_SECONDS
 from haizflow.services.download_control import DownloadControl
+from haizflow.services import download_integrity
 from haizflow.utils.ffmpeg import get_media_stream_types
 
 SUPPORTED_VIDEO_HOSTS = {
@@ -723,6 +724,7 @@ def download_video(
     for attempt in range(attempts):
         if cancel_event and cancel_event.is_set():
             raise DownloadCancelled("Video download cancelled.")
+        resumed = any(Path(workspace).glob("*.part"))
         options = _youtube_dl_options(_ytdlp_auth_for_url(auth, metadata.url), impersonate=attempt > 0)
         options.update(
             {
@@ -732,7 +734,9 @@ def download_video(
                 "postprocessors": [{"key": "FFmpegVideoRemuxer", "preferedformat": "mp4"}],
                 "progress_hooks": [progress_hook],
                 "concurrent_fragment_downloads": 4,
-                "nopart": True,
+                # Keep the .part file so a retry (or a later "retry failed") continues with
+                # an HTTP Range request instead of starting the video over.
+                "nopart": False,
                 "overwrites": True,
             }
         )
@@ -746,13 +750,27 @@ def download_video(
                 if cancel_event and cancel_event.is_set():
                     raise DownloadCancelled("Video download cancelled.")
                 video_path = _downloaded_video_path(workspace, info, downloader)
-                _validate_processable_video(video_path, require_audio=require_audio)
+                try:
+                    _validate_processable_video(video_path, require_audio=require_audio)
+                except RuntimeError as exc:
+                    if resumed:     # a continued partial can be stitched wrongly: redo it from zero
+                        raise download_integrity.DownloadIntegrityError(str(exc)) from exc
+                    raise
+                download_integrity.check(video_path, metadata.duration_seconds)
             break
         except DownloadCancelled:
             raise
         except Exception as exc:
             if cancel_event and cancel_event.is_set():
                 raise DownloadCancelled("Video download cancelled.") from exc
+            if isinstance(exc, download_integrity.DownloadIntegrityError):
+                # A cut-off file, or a resumed one that was stitched wrongly: start over clean.
+                _discard_workspace_files(workspace)
+                if attempt + 1 < attempts:
+                    report(0, "The video was incomplete, downloading it again")
+                    _wait_for_retry(cancel_event, 0.8 * (attempt + 1))
+                    continue
+                raise RuntimeError(f"{exc} Try again later.") from exc
             if attempt + 1 < attempts and _is_retryable_download_error(exc, metadata.platform):
                 _log_media_retry(metadata.platform, exc, attempt + 1, auth)
                 report(0, "Refreshing video stream and retrying")
@@ -766,6 +784,13 @@ def download_video(
         raise DownloadCancelled("Video download cancelled.")
     report(100, "Download complete")
     return video_path
+
+
+def _discard_workspace_files(workspace: str) -> None:
+    """Delete the files of a failed attempt (partials included), keep the folder."""
+    for path in Path(workspace).glob("*"):
+        if path.is_file():
+            path.unlink(missing_ok=True)
 
 
 def _format_bytes(value: float) -> str:

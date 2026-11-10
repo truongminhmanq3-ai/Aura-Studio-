@@ -206,6 +206,11 @@ class ChannelImportCoordinator(QObject):
         return self._metrics_for(session)["imported"] if session else 0
 
     @Property(int, notify=countsChanged)
+    def duplicateCount(self):
+        session = self._active_session()
+        return sum(1 for candidate in session.candidates if candidate.duplicate) if session else 0
+
+    @Property(int, notify=countsChanged)
     def failedCount(self):
         session = self._active_session()
         return self._metrics_for(session)["failed"] if session else 0

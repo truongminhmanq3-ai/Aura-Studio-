@@ -230,6 +230,7 @@ class VideoDownloadTests(unittest.TestCase):
                 mock.patch.object(
                     video_download, "get_media_stream_types", return_value={"video", "audio"}
                 ),
+                mock.patch("haizflow.services.download_integrity.check"),
             ):
                 path = video_download.download_video(
                     metadata,
@@ -276,6 +277,7 @@ class VideoDownloadTests(unittest.TestCase):
                 mock.patch.object(
                     video_download, "get_media_stream_types", return_value={"video", "audio"}
                 ),
+                mock.patch("haizflow.services.download_integrity.check"),
             ):
                 path = video_download.download_video(
                     metadata,

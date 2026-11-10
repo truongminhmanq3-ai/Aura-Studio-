@@ -701,12 +701,33 @@ class HaizFlowController(QObject):
         )
         self._startup_maintenance_thread.start()
 
+    def _sweep_stale_download_files(self) -> None:
+        """Drop partial downloads older than a day (never finished videos)."""
+        try:
+            from haizflow.config import TMP_DIR
+            from haizflow.services import download_cleanup, project_store
+
+            roots = []
+            for record in project_store.list_projects():
+                try:
+                    roots.append(project_store._record_root(record))
+                except Exception:
+                    continue
+            download_cleanup.sweep_everything(
+                roots, extra_directories=[os.path.join(TMP_DIR, "channel-downloads")])
+        except Exception:
+            import logging
+            logging.getLogger(__name__).warning("Stale download cleanup failed", exc_info=True)
+
     def _run_startup_maintenance(self) -> None:
         try:
             migrated = video_store.migrate_legacy_project_data()
             if self._background_shutdown_event.is_set():
                 return
             recovered = video_store.recover_interrupted_videos()
+            if self._background_shutdown_event.is_set():
+                return
+            self._sweep_stale_download_files()
             if self._background_shutdown_event.is_set():
                 return
             self._migrate_legacy_project_thumbnails()

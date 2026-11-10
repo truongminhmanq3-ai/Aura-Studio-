@@ -367,6 +367,7 @@ def test_expired_media_refreshes_metadata_and_downloads_new_candidate(tmp_path, 
          patch("haizflow.services.video_download._load_yt_dlp", return_value=Mock(YoutubeDL=Downloader)), \
          patch.object(HaizFlowDouyinIE, "_parse_aweme_video_app", parse), \
          patch("haizflow.services.video_download._validate_processable_video"), \
+         patch("haizflow.services.download_integrity.check"), \
          patch("haizflow.services.video_download._normalize_downloaded_audio",
                side_effect=lambda source, target, cancel: target.write_bytes(b"valid audio")):
         if audio_only:

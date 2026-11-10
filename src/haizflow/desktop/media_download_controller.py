@@ -278,6 +278,18 @@ class MediaDownloadController(QObject):
         return self._channel_importer.selectedCount
 
     @Property(int, notify=changed)
+    def channelImportedCount(self):
+        return self._channel_importer.importedCount
+
+    @Property(int, notify=changed)
+    def channelFailedCount(self):
+        return self._channel_importer.failedCount
+
+    @Property(int, notify=changed)
+    def channelDuplicateCount(self):
+        return self._channel_importer.duplicateCount
+
+    @Property(int, notify=changed)
     def channelSelectableCount(self):
         return self._channel_importer.selectableCount
 
@@ -892,8 +904,13 @@ class MediaDownloadController(QObject):
                 entry = download_ledger.get(metadata.platform, metadata.remote_video_id)
                 if entry:
                     raise link_batch.AlreadyHave(value, entry)
-            workspace = output / ".haizflow-downloads" / uuid.uuid4().hex
+            # One folder per video: if this attempt fails or is cancelled the partial file stays
+            # and the next try (batch retry, "Tải lại") continues it. Stale ones are swept at startup.
+            safe_id = "".join(c for c in str(metadata.remote_video_id or "") if c.isalnum() or c in "-_")
+            resumable = mode == "video" and bool(safe_id)
+            workspace = output / ".haizflow-downloads" / (f"video-{safe_id}" if resumable else uuid.uuid4().hex)
             workspace.mkdir(parents=True, exist_ok=True)
+            succeeded = False
             try:
                 if mode == "video":
                     downloaded = download_video(metadata, str(workspace), self._report, self._cancel,
@@ -920,8 +937,10 @@ class MediaDownloadController(QObject):
                     destination = self._move_to_unique_path(
                         downloaded, output / f"{_safe_output_stem(metadata.title, 'audio')}.m4a"
                     )
+                succeeded = True
             finally:
-                shutil.rmtree(workspace, ignore_errors=True)
+                if succeeded or not resumable:
+                    shutil.rmtree(workspace, ignore_errors=True)
         return destination
 
     def _extract(self, source: str, destination: Path):
