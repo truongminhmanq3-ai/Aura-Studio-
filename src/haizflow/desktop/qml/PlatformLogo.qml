@@ -9,6 +9,7 @@ Item {
         "youtube": { "glyph": "▶", "color": "#E53935" },
         "tiktok": { "glyph": "♪", "color": "#25C9CC" },
         "douyin": { "glyph": "♪", "color": "#F0527B" },
+        "rednote": { "glyph": "书", "color": "#FF2442" },
         "bilibili": { "glyph": "B", "color": "#F178A6" },
         "instagram": { "glyph": "◎", "color": "#C94B83" },
         "facebook": { "glyph": "f", "color": "#4D8DFF" },

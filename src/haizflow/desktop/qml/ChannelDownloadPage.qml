@@ -21,6 +21,7 @@ Item {
         { "label": "YouTube", "value": "youtube", "platform": "youtube" },
         { "label": "TikTok", "value": "tiktok", "platform": "tiktok" },
         { "label": "Douyin", "value": "douyin", "platform": "douyin" },
+        { "label": "RedNote", "value": "rednote", "platform": "rednote" },
         { "label": "Bilibili", "value": "bilibili", "platform": "bilibili" },
         { "label": "Facebook", "value": "facebook", "platform": "facebook" },
         { "label": "X", "value": "x", "platform": "x" }
@@ -51,6 +52,8 @@ Item {
         root.inspectedSource = root.downloader.channelPreviewSource;
     }
     // New / all / date-range scans are available for Douyin only; other platforms keep "newest N".
+    // RedNote has no channel scan: its page explains how to collect the post links instead.
+    readonly property bool rednote: selectedPlatform === "rednote"
     readonly property bool scanModesAvailable: selectedPlatform === "douyin" && ranking.currentValue !== "popular"
     readonly property string effectiveScanMode: scanModesAvailable ? scanMode.currentValue : "limit"
     Component.onCompleted: restoreForm()
@@ -137,6 +140,7 @@ Item {
                     AppTextField {
                         id: channelUrl
                         Layout.fillWidth: true
+                        visible: !root.rednote
                         placeholderText: root.placeholder()
                         selectByMouse: true
                         enabled: !root.channelActive
@@ -146,6 +150,7 @@ Item {
 
                     GridLayout {
                         Layout.fillWidth: true
+                        visible: !root.rednote
                         columns: width >= 900 ? 4 : width >= 680 ? 3 : 2
                         columnSpacing: Theme.space12
                         rowSpacing: Theme.space12
@@ -267,12 +272,13 @@ Item {
                         id: douyinAction
                         Layout.fillWidth: true
                         url: channelUrl.text
-                        visible: root.selectedPlatform === "douyin" || requiresSession
+                        visible: !root.rednote && (root.selectedPlatform === "douyin" || requiresSession)
                         operationBusy: root.downloader.hasWork || root.downloader.videoPreviewBusy
                     }
 
                     DownloadDestinationRow {
                         Layout.fillWidth: true
+                        visible: !root.rednote
                         directory: root.downloader.channelOutputDirectory
                         managed: root.downloader.outputManaged
                         selectionEnabled: !root.channelActive
@@ -281,6 +287,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
+                        visible: !root.rednote
                         spacing: Theme.space12
                         Item { Layout.fillWidth: true }
                         StudioButton {
@@ -298,7 +305,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        visible: root.matchesSource && root.downloader.channelStatus.length > 0
+                        visible: !root.rednote && root.matchesSource && root.downloader.channelStatus.length > 0
                         Text {
                             Layout.fillWidth: true
                             text: I18n.channelImportStatus(root.downloader.channelStatus)
@@ -317,9 +324,15 @@ Item {
                     }
                 }
 
+                RedNoteChannelGuide {
+                    Layout.fillWidth: true
+                    visible: root.rednote
+                    downloader: root.downloader
+                }
+
                 AppSurface {
                     Layout.fillWidth: true
-                    visible: root.hasResults
+                    visible: root.hasResults && !root.rednote
                     padding: Theme.space16
 
                     SectionHeader {
