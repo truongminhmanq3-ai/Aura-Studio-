@@ -328,6 +328,7 @@ Item {
                     }
 
                     Text {
+                        objectName: "channelRunSummaryText"
                         Layout.fillWidth: true
                         text: qsTr("Đã tải %1 · Thất bại %2 · Đã có từ trước (bỏ qua) %3 · Đang chọn %4 / %5 video")
                             .arg(root.downloader.channelImportedCount).arg(root.downloader.channelFailedCount)
