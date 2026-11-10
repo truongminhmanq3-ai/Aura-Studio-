@@ -22,7 +22,7 @@ Open the [Aura Studio v1.0.0 Streamline Release](https://github.com/truongminhma
 
 | System | Download | Format |
 | --- | --- | --- |
-| Apple Silicon Mac (M1/M2/M3/M4) | [Aura-Studio-v1.0-Apple-Silicon.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v1.0.0-streamline/Aura-Studio-v1.0-Apple-Silicon.zip) (1.05 GiB) | Giải nén và mở trực tiếp **Aura Studio.app** |
+| Apple Silicon Mac (M1/M2/M3/M4) | [Aura-Studio-v1.0-Apple-Silicon.zip](https://github.com/truongminhmanq3-ai/Aura-Studio-/releases/download/v1.0.0-streamline/Aura-Studio-v1.0-Apple-Silicon.zip) (1.07 GiB, macOS 27; FFmpeg bundled, no Homebrew needed) | Giải nén và mở trực tiếp **Aura Studio.app** |
 
 The release package is fully standalone. It includes Python 3.13, Qt6 runtime, native FFmpeg, Demucs, WhisperX, and Chromium Douyin browser. Extract the ZIP and open `Aura Studio.app` (or drag it into `/Applications`).
 
