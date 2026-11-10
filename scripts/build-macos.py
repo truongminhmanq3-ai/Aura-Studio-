@@ -86,7 +86,7 @@ coll = COLLECT(exe, a.binaries, a.datas, name='HaizFlowEngine', strip=False, upx
     return spec
 
 
-def core_spec(build: Path, ffmpeg: str, ffprobe: str):
+def core_spec(build: Path, ffmpeg: str, ffprobe: str, min_macos: str = "14.0"):
     spec = build / "HaizFlow.spec"
     spec.write_text(f'''
 from PyInstaller.utils.hooks import collect_submodules, collect_data_files, copy_metadata
@@ -113,10 +113,41 @@ app = BUNDLE(coll, name='Aura Studio.app', icon={str(ROOT / 'src/haizflow/deskto
              bundle_identifier='dev.aurastudio.macos.local', version={VERSION!r},
              info_plist={{'CFBundleDisplayName': 'Aura Studio', 'CFBundleName': 'Aura Studio',
                          'CFBundleExecutable': 'Aura Studio', 'CFBundleShortVersionString': {VERSION!r},
-                         'NSHighResolutionCapable': True, 'LSMinimumSystemVersion': '14.0',
+                         'NSHighResolutionCapable': True, 'LSMinimumSystemVersion': {min_macos!r},
                          'NSMicrophoneUsageDescription': 'Aura Studio sử dụng âm thanh khi bạn chọn công cụ giọng đọc.'}})
 ''')
     return spec
+
+
+def _version(text):
+    return tuple(int(part) for part in text.split("."))
+
+
+def lower_minos(app: Path, target: str):
+    """Rewrite the minimum-OS field of bundled Mach-O files built for a newer point release of the same major
+    macOS (for example libtesseract needing 26.6.2 when the app must start on 26.0). Refuses anything that
+    needs a newer major version (except the llama.cpp libraries), since that cannot be fixed by relabeling."""
+    wanted = _version(target)
+    for path in sorted(app.rglob("*")):
+        if path.is_symlink() or not path.is_file() or not os.access(path, os.R_OK):
+            continue
+        info = subprocess.run(["vtool", "-show-build", path], capture_output=True, text=True)
+        if info.returncode != 0:
+            continue
+        fields = dict(line.strip().split(None, 1) for line in info.stdout.splitlines() if " " in line.strip())
+        if "minos" not in fields or "sdk" not in fields:
+            continue
+        have = _version(fields["minos"].strip())
+        if have <= wanted:
+            continue
+        # llama.cpp ships labeled for the build machine's macOS but its imports were checked against the
+        # macOS 26.5 SDK (no 27-only system symbol); every other newer-major binary is still refused.
+        if have[0] != wanted[0] and "llama_cpp/lib/" not in path.as_posix():
+            raise SystemExit(f"{path} needs macOS {fields['minos']}; it cannot run on macOS {target}.")
+        patched = path.with_name(path.name + ".minos")
+        run(["vtool", "-set-build-version", "macos", target, fields["sdk"].strip(), "-replace", "-output", patched, path])
+        patched.replace(path)
+        print(f"Lowered minimum macOS {fields['minos']} -> {target}: {path.relative_to(app)}", flush=True)
 
 
 def main():
@@ -126,6 +157,8 @@ def main():
     parser.add_argument("--reuse-bundle", type=Path, help="Reuse verified native engines and browser from an existing Mac app")
     parser.add_argument("--skip-engines", action="store_true", help="Reuse already-built engines")
     parser.add_argument("--reuse-cpu", action="store_true", help="Reuse a compiled CPU engine, then verify its resources")
+    parser.add_argument("--min-macos", default="14.0", help="Minimum macOS written to Info.plist. A value of 26.x "
+                        "also lowers bundled libraries that were built for a newer 26.x point release")
     parser.add_argument("--skip-smoke", action="store_true", help="Skip browser and UI smoke tests")
     args = parser.parse_args()
     if sys.platform != "darwin" or sys.version_info[:2] != (3, 13):
@@ -160,7 +193,7 @@ def main():
     if not all(name in filters for name in (" ass ", " drawtext ")):
         parser.error("FFmpeg must include libass and drawtext. Install Homebrew ffmpeg-full.")
     run([sys.executable, "-m", "PyInstaller", "--noconfirm", "--distpath", args.output,
-         "--workpath", build / "work-core", core_spec(build, ffmpeg, ffprobe)], env=env)
+         "--workpath", build / "work-core", core_spec(build, ffmpeg, ffprobe, args.min_macos)], env=env)
     app = args.output / "Aura Studio.app"
     resources = app / "Contents/Resources"
     for profile, pack_id in (("cpu", "engine-cpu-py313"), ("vision", "engine-vision-onnx")):
@@ -260,6 +293,8 @@ elif [ -x /usr/local/bin/{bin_name} ]; then
 fi
 """, encoding="utf-8")
             target.chmod(0o755)
+    if _version(args.min_macos) >= (26, 0):
+        lower_minos(app, args.min_macos)
     run(["codesign", "--force", "--deep", "--sign", "-", app])
     # Codesign changes browser resources: publish the final checksum inventory.
     write_inventory(browser)
