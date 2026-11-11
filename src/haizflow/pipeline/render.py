@@ -1297,6 +1297,11 @@ def _subtitle_blur_prefix(
         source_height,
     )
     blur_filter = _subtitle_blur_filter(width, height)
+    # FFmpeg runs every branch of a graph on every frame even where the final overlay is disabled. With
+    # dozens of timed regions that made a render crawl, so the heavy filters are switched off outside
+    # their time window too (a disabled filter passes its input through untouched).
+    timeline = f":enable='{enable_expression}'" if enable_expression else ""
+    blur_filter += timeline
     # Blur an expanded sample so glyphs touching an OCR-box edge can mix with
     # real neighbouring picture pixels. Crop back to the exact OCR box before
     # overlaying, so stronger removal never enlarges the visible replacement.
@@ -1315,7 +1320,7 @@ def _subtitle_blur_prefix(
     # Keep a subtle edge transition without restoring high-contrast source
     # glyphs. The previous zero weight at the boundary left letters visible.
     blur_weight = f"0.94+0.06*min(1,{edge_distance}/{feather})"
-    blend_filter = f"blend=all_expr='A*(1-({blur_weight}))+B*({blur_weight})'"
+    blend_filter = f"blend=all_expr='A*(1-({blur_weight}))+B*({blur_weight})'{timeline}"
     overlay_enable = f":enable='{enable_expression}'" if enable_expression else ""
     return (
         f"[0:v]split=3[source_clean][source_region][source_blur];"
@@ -1443,6 +1448,51 @@ def _original_subtitle_removal_prefix(
     return _subtitle_blur_prefix(region, source_width, source_height, enable_expression)
 
 
+# FFmpeg evaluates every branch of a filter graph on every frame. A long chain of dozens of timed regions
+# therefore slows to a crawl even though only a few are visible at once (measured: 5 regions run at
+# 1.3x realtime, 20 do not finish). Past this many regions the video is cut at every region boundary and
+# each piece only carries the regions visible in it.
+_SEGMENTED_LAYER_THRESHOLD = 4
+
+
+def _segmented_treatment_prefix(layers, offset, source_width, source_height, mode, *, static_mask=False):
+    timed = []
+    for layer in layers:
+        region = _source_subtitle_removal_region(layer.get("region"), source_width, source_height)
+        if not region:
+            continue
+        start = float(layer["start_ms"]) / 1000 - offset
+        end = start + float(layer["duration_ms"]) / 1000
+        if end <= 0:
+            continue
+        timed.append((region, max(0.0, start), end, layer.get("mode", mode)))
+    if not timed:
+        return ""
+    bounds = sorted({0.0, *(item[1] for item in timed), *(item[2] for item in timed)})
+    pieces = list(zip(bounds, bounds[1:])) + [(bounds[-1], None)]
+    graph = [f"[0:v]split={len(pieces)}" + "".join(f"[piece{index}_in]" for index in range(len(pieces))) + ";"]
+    outputs = []
+    for index, (begin, finish) in enumerate(pieces):
+        window = f"start={begin:.6f}" + (f":end={finish:.6f}" if finish is not None else "")
+        label = f"[piece{index}_cut]"
+        graph.append(f"[piece{index}_in]trim={window},setpts=PTS-STARTPTS{label};")
+        # A region is visible in a piece when it starts no later than the piece and ends after its start.
+        # Boundaries sit exactly on region starts/ends, so one that merely ends here is not in the next piece.
+        reach = finish if finish is not None else begin + 1e-3
+        active = [item for item in timed if item[1] <= begin + 1e-6 and item[2] >= reach - 1e-6]
+        for position, (region, _start, _end, layer_mode) in enumerate(active):
+            prefix = _original_subtitle_removal_prefix(
+                region, source_width, source_height, layer_mode, "", static_mask=static_mask)
+            prefix = re.sub(r"\[([A-Za-z_][A-Za-z_0-9]*)\]",
+                            lambda match: f"[p{index}_{position}_{match[1]}]", prefix)
+            prefix = prefix.replace("[0:v]", label)
+            label = f"[p{index}_{position}_source_without_original]"
+            graph.append(prefix)
+        outputs.append(label)
+    graph.append("".join(outputs) + f"concat=n={len(pieces)}:v=1:a=0[source_without_original];")
+    return "".join(graph)
+
+
 def _ordered_subtitle_removal_prefix(payload, source_width, source_height, mode,
                                      source_start_seconds=0.0, *, static_mask=False):
     """Compose each timed mask onto the result of the layer below it."""
@@ -1451,6 +1501,11 @@ def _ordered_subtitle_removal_prefix(payload, source_width, source_height, mode,
         return (_original_subtitle_removal_prefix(region, source_width, source_height, mode, static_mask=static_mask)
                 if region else "")
     offset = float(payload.get("timeline_offset_seconds", source_start_seconds))
+    if len(payload["treatment_layers"]) > _SEGMENTED_LAYER_THRESHOLD:
+        segmented = _segmented_treatment_prefix(
+            payload["treatment_layers"], offset, source_width, source_height, mode, static_mask=static_mask)
+        if segmented:
+            return segmented
     prefixes = []
     input_label = "[0:v]"
     for index, layer in enumerate(payload["treatment_layers"]):
