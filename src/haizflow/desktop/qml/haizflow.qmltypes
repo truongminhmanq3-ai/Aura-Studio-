@@ -2371,6 +2371,7 @@ Module {
         Signal { name: "batchFilterChanged" }
         Method { name: "setBatchFilter"; Parameter { name: "channel"; type: "QString" } Parameter { name: "status"; type: "QString" } }
         Method { name: "selectFilteredBatchVideo"; Parameter { name: "row"; type: "int" } }
+        Method { name: "ensureBatchSampleVideo"; type: "bool" }
         Method { name: "requestBatchProcessingFiltered"; type: "bool" }
         Method { name: "requestBatchRetryFailed"; type: "bool" }
         Method { name: "batchExportSettingsFor"; type: "QVariantMap"; Parameter { name: "videoIds"; type: "QVariantList" } }

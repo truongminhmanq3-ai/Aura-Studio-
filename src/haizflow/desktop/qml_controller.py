@@ -6736,6 +6736,20 @@ class HaizFlowController(QObject):
         if getattr(video, "project_type", "single") == "manual":
             self._schedule_manual_cache_migration(video.video_id)
 
+    @Slot(result=bool)
+    def ensureBatchSampleVideo(self) -> bool:
+        """Batch settings preview and scan one video. When none is chosen yet, use the first one of the project.
+
+        Selecting a video here does not open it; only the card click navigates to its page.
+        """
+        if str(self._selected_video_id or "") and self._video_path:
+            return True
+        video = self.batch_videos.video_at(0)
+        if not video:
+            return False
+        self._select_video(video)
+        return bool(self._video_path)
+
     @Slot(int)
     def selectBatchVideo(self, row: int):
         video = self.batch_videos.video_at(row)

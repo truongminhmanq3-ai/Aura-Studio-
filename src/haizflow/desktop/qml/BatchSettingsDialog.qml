@@ -211,6 +211,8 @@ FloatingToolDialog {
     }
 
     onAboutToShow: {
+        // The preview, subtitle layout and Chinese-text buttons work on one sample video of the batch.
+        AppController.ensureBatchSampleVideo();
         loadDraft();
         placeInCenter();
     }
