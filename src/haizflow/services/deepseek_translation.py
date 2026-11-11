@@ -202,7 +202,9 @@ def _request_chunk(chunk, *, key: str, model: str, source_language: str,
                 f"{lexicon_rules}\n"
                 "Rules for dubbing timing and formatting:\n"
                 "1. Concise & Punchy for TTS Dubbing: Keep translations compact and rhythmically natural so AI voices can speak smoothly without rushing.\n"
-                "2. Strict Formatting: Keep the exact integer ids and order supplied in the input. Return only JSON with translations array.\n"
+                "2. Strict Formatting: Keep the exact integer ids and order supplied in the input. Return only a JSON object of exactly this shape, "
+                "with one element per input entry, `id` copied as a JSON integer (not a string) and `text` as a string: "
+                '{"translations":[{"id":0,"text":"..."},{"id":1,"text":"..."}]}. Never add, merge, skip or rename keys.\n'
                 + ("3. Length budget: an entry with max_chars must be translated in at most that many characters "
                    "(spaces included). Rewrite in natural, modern spoken Vietnamese: drop filler words and repetition, "
                    "prefer short everyday phrasing, never drop a person, action or key fact.\n" if budgets else "")
