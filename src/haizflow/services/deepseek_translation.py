@@ -192,7 +192,7 @@ def _request_chunk(chunk, *, key: str, model: str, source_language: str,
     payload = {
         "model": model, "stream": False, "temperature": 0.1,
         "thinking": {"type": "disabled"},
-        "max_tokens": min(8192, max(1024, sum(len(text) for _, text in chunk) * 4)),
+        "max_tokens": min(8192, max(2048, sum(len(text) for _, text in chunk) * 8)),
         "response_format": {"type": "json_object"},
         "messages": [
             {"role": "system", "content": context_banner + (
@@ -211,42 +211,57 @@ def _request_chunk(chunk, *, key: str, model: str, source_language: str,
             {"role": "user", "content": json.dumps(entries, ensure_ascii=False)},
         ],
     }
-    outgoing = request.Request(
-        _ENDPOINT, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        headers={"Content-Type": "application/json", "Authorization": "Bearer " + key},
-        method="POST",
-    )
-    try:
-        with request.urlopen(outgoing, timeout=90, context=ssl.create_default_context(cafile=certifi.where())) as response:
-            answer = json.load(response)
-        choice = answer["choices"][0]
-        if choice.get("finish_reason") != "stop":
-            raise ValueError("Incomplete generation")
-        translations = json.loads(choice["message"]["content"])["translations"]
-        if not isinstance(translations, list) or len(translations) != len(chunk):
-            raise ValueError("Wrong subtitle count")
-        output = []
-        for (expected_id, _), item in zip(chunk, translations):
-            if (not isinstance(item, dict) or type(item.get("id")) is not int
-                    or item["id"] != expected_id or not isinstance(item.get("text"), str)
-                    or not item["text"].strip()):
-                raise ValueError("Wrong subtitle id or text")
-            output.append(item["text"].strip())
-        return output
-    except error.HTTPError as exc:
-        messages = {
-            401: "API key không hợp lệ hoặc đã bị thu hồi.",
-            402: "Tài khoản hết số dư. Nạp thêm tại DeepSeek Platform.",
-            403: "API key không có quyền dùng model đã chọn.",
-            429: "Đang giới hạn tốc độ. Thử lại sau.",
-        }
-        message = messages.get(exc.code, "Dịch vụ tạm thời không khả dụng. Thử lại sau."
-                               if exc.code >= 500 else "Không xử lý được yêu cầu.")
-        raise RuntimeError(f"DeepSeek (HTTP {exc.code}): {message}") from None
-    except (error.URLError, TimeoutError, OSError):
-        raise RuntimeError("Không kết nối được DeepSeek. Kiểm tra mạng rồi thử lại.") from None
-    except (KeyError, IndexError, TypeError, ValueError, AttributeError):
-        raise RuntimeError("DeepSeek trả về bản dịch thiếu câu, sai thứ tự hoặc không hợp lệ. Dữ liệu cũ được giữ nguyên.") from None
+    context = ssl.create_default_context(cafile=certifi.where())
+    last_problem = ""
+    for attempt in range(2):
+        outgoing = request.Request(
+            _ENDPOINT, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers={"Content-Type": "application/json", "Authorization": "Bearer " + key},
+            method="POST",
+        )
+        try:
+            with request.urlopen(outgoing, timeout=90, context=context) as response:
+                answer = json.load(response)
+            choice = answer["choices"][0]
+            if choice.get("finish_reason") != "stop":
+                last_problem = f"câu trả lời bị cắt giữa chừng ({choice.get('finish_reason')})"
+                # Vietnamese needs several times the tokens of the Chinese it translates: allow more, once.
+                payload["max_tokens"] = 8192
+                continue
+            translations = json.loads(choice["message"]["content"])["translations"]
+            if not isinstance(translations, list) or len(translations) != len(chunk):
+                last_problem = (f"số câu dịch ({len(translations) if isinstance(translations, list) else '?'}) "
+                                f"không khớp số câu gốc ({len(chunk)})")
+                continue
+            output = []
+            for (expected_id, _), item in zip(chunk, translations):
+                if (not isinstance(item, dict) or type(item.get("id")) is not int
+                        or item["id"] != expected_id or not isinstance(item.get("text"), str)
+                        or not item["text"].strip()):
+                    raise ValueError("Wrong subtitle id or text")
+                output.append(item["text"].strip())
+            return output
+        except error.HTTPError as exc:
+            messages = {
+                401: "API key không hợp lệ hoặc đã bị thu hồi.",
+                402: "Tài khoản hết số dư. Nạp thêm tại DeepSeek Platform.",
+                403: "API key không có quyền dùng model đã chọn.",
+                429: "Đang giới hạn tốc độ. Thử lại sau.",
+            }
+            message = messages.get(exc.code, "Dịch vụ tạm thời không khả dụng. Thử lại sau."
+                                   if exc.code >= 500 else "Không xử lý được yêu cầu.")
+            raise RuntimeError(f"DeepSeek (HTTP {exc.code}): {message}") from None
+        except (error.URLError, TimeoutError, OSError):
+            raise RuntimeError("Không kết nối được DeepSeek. Kiểm tra mạng rồi thử lại.") from None
+        except json.JSONDecodeError:
+            last_problem = "phản hồi không phải JSON hợp lệ"
+        except ValueError:
+            last_problem = "sai id hoặc câu dịch rỗng"
+        except (KeyError, IndexError, TypeError, AttributeError):
+            last_problem = "định dạng JSON không đúng"
+    raise RuntimeError(
+        "DeepSeek trả về bản dịch thiếu câu, sai thứ tự hoặc không hợp lệ"
+        + (f" ({last_problem})" if last_problem else "") + ". Dữ liệu cũ được giữ nguyên.")
 
 
 def translate_texts(texts: list[str], *, model: str, source_language: str,
