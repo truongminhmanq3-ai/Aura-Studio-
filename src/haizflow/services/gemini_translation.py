@@ -164,6 +164,16 @@ def _chunks(texts: list[str]):
         yield chunk
 
 
+def _google_error_detail(exc: "error.HTTPError") -> str:
+    """The reason Google gives for a rejected request (for example an invalid key or model), shortened."""
+    try:
+        body = json.loads(exc.read().decode("utf-8", "replace"))
+        message = str((body.get("error") or {}).get("message") or "")
+    except Exception:
+        return ""
+    return " ".join(message.split())[:240]
+
+
 def _request_chunk(
     chunk: list[tuple[int, str]], *, key: str, model: str,
     source_language: str, target_language: str, video_id: str = "",
@@ -390,7 +400,10 @@ def _request_chunk(
                     f"{MODELS[model]}: dịch vụ Google tạm thời không khả dụng (HTTP {exc.code}). "
                     "Thử lại sau hoặc chọn Flash-Lite."
                 ) from None
-            raise RuntimeError(f"Gemini không xử lý được yêu cầu (HTTP {exc.code}).") from None
+            detail = _google_error_detail(exc)
+            raise RuntimeError(
+                f"Gemini không xử lý được yêu cầu (HTTP {exc.code})." + (f" Google báo: {detail}" if detail else "")
+            ) from None
         except (error.URLError, TimeoutError):
             if attempt < 2:
                 time.sleep(min(8, 2 ** attempt + random.random()))
