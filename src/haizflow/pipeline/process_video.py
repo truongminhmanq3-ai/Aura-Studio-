@@ -792,7 +792,7 @@ def process_video_sync(
 
 def _chinese_text_layers_for_render(video, reporter, video_dir, *, pipeline_progress: int = 62) -> list[dict]:
     """Timed blur layers for every detected Chinese text region the user kept enabled."""
-    from haizflow.pipeline.chinese_text_detect import detect_chinese_text
+    from haizflow.pipeline.manual_tools import detect_chinese_text_tracks as detect_chinese_text
     from haizflow.services import chinese_text
 
     video_id = video.video_id

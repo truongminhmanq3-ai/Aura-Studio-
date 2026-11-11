@@ -357,13 +357,22 @@ def run_file_request(request_path: Path) -> int:
             def progress(current, total):
                 _status(status_path, stage="ocr", detail="", current=int(current), total=int(total))
 
-            region = detect_original_subtitle_region(
-                str(payload["video_path"]),
-                str(payload["temp_dir"]),
-                str(payload["video_id"]),
-                progress_callback=progress,
-            )
-            result = {"region": region}
+            if payload.get("mode") == "chinese_text":
+                # Same OCR engine and models, but every Chinese text region instead of one subtitle block.
+                from haizflow.pipeline.chinese_text_detect import detect_chinese_text
+
+                result = {"tracks": detect_chinese_text(
+                    str(payload["video_path"]), str(payload["temp_dir"]), str(payload["video_id"]),
+                    progress_callback=progress,
+                )}
+            else:
+                region = detect_original_subtitle_region(
+                    str(payload["video_path"]),
+                    str(payload["temp_dir"]),
+                    str(payload["video_id"]),
+                    progress_callback=progress,
+                )
+                result = {"region": region}
         elif operation == "demucs_task":
             separate = _demucs_main()
 

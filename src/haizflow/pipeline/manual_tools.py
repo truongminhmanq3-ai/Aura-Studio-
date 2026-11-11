@@ -95,6 +95,34 @@ def detect_original_subtitle_region(*args, **kwargs):
     return implementation(*args, **kwargs)
 
 
+def detect_chinese_text_tracks(video_path, temp_dir, video_id, progress_callback=None):
+    """Timed blur regions for every Chinese text overlay, scanned by the installed OCR engine.
+
+    The packaged app keeps OCR out of its own process, so the scan runs in the engine. An engine built before
+    this scan existed answers with the single-subtitle result; that is reported, not guessed at.
+    """
+    from haizflow.services.external_tasks import run_external_task
+
+    result = run_external_task(
+        "ocr",
+        "subtitle_ocr",
+        {"video_path": video_path, "temp_dir": temp_dir, "video_id": video_id, "mode": "chinese_text"},
+        str(video_id),
+        progress_callback=(
+            (lambda status: progress_callback(int(status.get("current", 0)), int(status.get("total", 0))))
+            if progress_callback is not None
+            else None
+        ),
+    )
+    if result is not None:
+        if "tracks" not in result:
+            raise RuntimeError("The installed OCR engine is too old to scan Chinese text. Update the OCR resource pack.")
+        return list(result["tracks"])
+    from haizflow.pipeline.chinese_text_detect import detect_chinese_text
+
+    return detect_chinese_text(video_path, temp_dir, video_id, progress_callback=progress_callback)
+
+
 def transcribe(*args, **kwargs):
     from haizflow.core.hardware import processing_device_preference
     from haizflow.core.model_choices import recognition_context
