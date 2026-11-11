@@ -192,3 +192,12 @@ def test_manual_tools_transcribe_routes_groq_and_sensevoice():
             )
             mock_run_external.assert_not_called()
 
+
+
+def test_groq_stock_phrases_on_music_are_not_speech():
+    from haizflow.services.groq_asr import _is_non_speech_text
+
+    assert _is_non_speech_text("Thank you.")
+    assert _is_non_speech_text("感谢观看")
+    assert not _is_non_speech_text("Thank you for the help with the car")
+    assert not _is_non_speech_text("你好")

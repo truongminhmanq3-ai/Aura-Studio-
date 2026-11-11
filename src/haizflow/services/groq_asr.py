@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -49,6 +50,28 @@ LANGUAGE_NAME_TO_CODE = {
     "portuguese": "pt",
     "arabic": "ar",
 }
+
+
+# Same credit/applause text the local recognizer rejects (kept here because the app process has no torch).
+_CREDIT_PATTERNS = tuple(re.compile(pattern, re.IGNORECASE) for pattern in (
+    r"字幕\s*(by|[制製]作|公司|[组組]|提供)|by\s*索兰娅|索兰娅",
+    r"生日快[乐樂]",
+    r"请不吝点赞|订阅|点赞.*(订阅|转发)|感谢观看|谢谢观看|謝謝觀看",
+    r"amara\.org|subtitles? by|thanks for watching|please subscribe",
+))
+_NON_SPEECH_PHRASES = frozenset({
+    "thank you", "thanks", "thank you very much", "thanks for watching", "thank you for watching",
+    "bye", "bye bye", "you", "okay", "ok", "oh", "uh", "um", "hmm", "mm", "music",
+})
+
+
+def _is_non_speech_text(text: str) -> bool:
+    """Whisper answers music and noise with a stock phrase such as "Thank you." Treat only a lone stock phrase
+    (or the credit patterns above) as non-speech."""
+    plain = "".join(ch for ch in str(text).lower() if ch.isalnum() or ch == " ").strip()
+    if " ".join(plain.split()) in _NON_SPEECH_PHRASES:
+        return True
+    return any(pattern.search(str(text)) for pattern in _CREDIT_PATTERNS)
 
 
 def active_key() -> str:
@@ -276,6 +299,10 @@ def transcribe_with_groq(
             end = round(float(segment.get("end", 0.0)), 3)
             if end - start < 0.2:
                 continue
+            if _is_non_speech_text(text):
+                log_to_video(video_id, f"Discarded a likely Whisper hallucination on non-speech audio: {text!r}",
+                             level="WARNING")
+                continue
             output_segments.append(
                 {
                     "start": start,
@@ -288,7 +315,9 @@ def transcribe_with_groq(
             )
 
         if not output_segments:
-            raise RuntimeError("Groq Cloud Whisper did not return any speech segments.")
+            raise RuntimeError(
+                "Không phát hiện lời nói trong video này (chỉ có nhạc hoặc tiếng ồn), nên không thể lồng tiếng hay dịch. "
+                "Groq Cloud Whisper did not return any speech segments.")
 
         output_segments = _recover_sparse_segments(
             audio_path, output_segments, headers, data, detected_language, temp_dir, video_id,
