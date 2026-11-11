@@ -131,6 +131,29 @@ def _source_subtitle_intervals(path: str) -> list[tuple[float, float]]:
     return intervals
 
 
+# A video with music or noise only has nothing to dub. It is exported with its own audio and no subtitles.
+# The renderer insists on one subtitle cue, so a cue holding only a zero-width space stands in for "none".
+_BLANK_SUBTITLE = "1\n00:00:00,000 --> 00:00:00,500\n\u200b\n"
+
+
+def _is_no_speech_error(error: Exception) -> bool:
+    text = str(error).lower()
+    return any(marker in text for marker in ("no speech segments", "any speech segments", "không phát hiện lời nói"))
+
+
+def _is_no_speech(transcript_path: str) -> bool:
+    try:
+        with open(transcript_path, encoding="utf-8") as source:
+            rows = json.load(source)
+    except (OSError, ValueError):
+        return False
+    return isinstance(rows, list) and not rows
+
+
+def _write_blank_subtitle(path: str) -> None:
+    Path(path).write_text(_BLANK_SUBTITLE, encoding="utf-8")
+
+
 def _checkpoint_valid(video, name, signature, outputs):
     # Auto projects reuse checkpoints only for pause/resume. Manual projects
     # deliberately execute downstream modules in separate runs, so their
@@ -628,9 +651,24 @@ def process_video_sync(
 
         check_cancellation(video_id)
         _ensure_gpu_available("speech recognition")
-        _segments, detected_language = _recognize_for_translation(
-            video, reporter, transcribe_audio_target, source_segments_json,
-        )
+        try:
+            _segments, detected_language = _recognize_for_translation(
+                video, reporter, transcribe_audio_target, source_segments_json,
+            )
+        except RuntimeError as no_speech_exc:
+            if not _is_no_speech_error(no_speech_exc):
+                raise
+            log_to_video(
+                video_id,
+                "No speech found (music or noise only). Exporting the video with its original audio and no subtitles.",
+                level="WARNING",
+            )
+            for empty_path in (source_segments_json, transcript_json):
+                Path(empty_path).write_text("[]", encoding="utf-8")
+            _mark_checkpoint(video, "translation", translation_signature)
+            # The speech/background split is meaningless without speech: keep the complete original sound.
+            _finish_after_translation(video, reporter, video_dir, temp_audio_wav, stop_after=stop_after)
+            return
 
         # Multi-speaker Diarization before translation:
         speaker_mode = str(getattr(video, "speaker_mode", "single") or "single")
@@ -836,6 +874,7 @@ def _finish_after_translation(video, reporter, video_dir, original_audio_target,
     transcript_json = _required_video_path(video, "transcript_json", must_exist=True)
     voice_parts_dir = os.path.join(video_dir, "temp", "voice_parts")
     transcript_state = _file_state(transcript_json)
+    no_speech = _is_no_speech(transcript_json)
     subtitle_style = getattr(video, "subtitle_style", None) or SubtitleStyle()
     subtitle_signature = _signature(transcript_state, subtitle_style.max_chars_per_line)
     # Subtitle rendering and voice generation are sibling branches. A visual
@@ -850,7 +889,10 @@ def _finish_after_translation(video, reporter, video_dir, original_audio_target,
             reporter.update(64, "creating_subtitle", "Reusing subtitles checkpoint")
         else:
             reporter.update(63, "creating_subtitle", "Formatting timed subtitles")
-            generate_srt(transcript_json, srt_output, subtitle_style.max_chars_per_line, video_id)
+            if no_speech:
+                _write_blank_subtitle(srt_output)
+            else:
+                generate_srt(transcript_json, srt_output, subtitle_style.max_chars_per_line, video_id)
             _mark_checkpoint(video, "subtitles", subtitle_signature)
 
     if stop_after == "subtitles":
@@ -889,14 +931,16 @@ def _finish_after_translation(video, reporter, video_dir, original_audio_target,
     )
     with open(transcript_json, "r", encoding="utf-8") as transcript_file:
         transcript_segments = json.load(transcript_file)
-    if not isinstance(transcript_segments, list) or not transcript_segments:
+    if not isinstance(transcript_segments, list) or (not transcript_segments and not no_speech):
         raise RuntimeError("The translated transcript contains no subtitle segments.")
     for index, segment in enumerate(transcript_segments, 1):
         if not isinstance(segment, dict) or not str(segment.get("text") or "").strip():
             raise RuntimeError(f"Translated subtitle segment {index} is missing text.")
     expected_parts = len(transcript_segments)
     voice_outputs = [os.path.join(voice_parts_dir, f"voice_{index:04d}.mp3") for index in range(1, expected_parts + 1)]
-    if _checkpoint_valid(video, "voice", voice_signature, voice_outputs) or _recovery_checkpoint_valid(
+    if no_speech:
+        reporter.update(82, "creating_voice", "No speech in this video: voice synthesis skipped")
+    elif _checkpoint_valid(video, "voice", voice_signature, voice_outputs) or _recovery_checkpoint_valid(
         video, "voice", voice_signature, voice_outputs
     ):
         reporter.update(82, "creating_voice", "Reusing generated voices", expected_parts, expected_parts)
@@ -1006,6 +1050,7 @@ def _finish_after_translation(video, reporter, video_dir, original_audio_target,
             ducking_enabled=video.audio_ducking_enabled,
             ducking_reduction_db=video.audio_ducking_reduction_db,
             tts_volume=getattr(video, "tts_volume", 100),
+            require_voice_parts=not no_speech,
         )
         _mark_checkpoint(video, "timeline", timeline_signature)
 
@@ -1014,10 +1059,13 @@ def _finish_after_translation(video, reporter, video_dir, original_audio_target,
         return
 
     # Only presentation timing follows speech; editable source windows stay intact.
-    generate_srt(
-        transcript_json, srt_output, subtitle_style.max_chars_per_line, video_id,
-        preserve_segment_boundaries=True, voice_parts_dir=voice_parts_dir,
-    )
+    if no_speech:
+        _write_blank_subtitle(srt_output)
+    else:
+        generate_srt(
+            transcript_json, srt_output, subtitle_style.max_chars_per_line, video_id,
+            preserve_segment_boundaries=True, voice_parts_dir=voice_parts_dir,
+        )
 
     check_cancellation(video_id)
     style_data = subtitle_style.model_dump() if hasattr(subtitle_style, "model_dump") else subtitle_style.dict()
