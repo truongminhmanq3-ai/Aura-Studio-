@@ -17,6 +17,12 @@ from haizflow.config import RUNTIME_DATA_DIR
 from haizflow.services import secure_credentials
 from haizflow.services import glossary
 from haizflow.services.translation_split import BadReply, translate_splitting
+
+# Gemini's thinking tokens count against maxOutputTokens. A small batch used to get 1024 tokens
+# while thinking alone took 700-1000, so the reply was often cut before any translation was
+# written (finishReason MAX_TOKENS, empty or partial JSON) and splitting the batch never helped.
+_THINKING_HEADROOM = 4096
+_MAX_OUTPUT_LIMIT = 32768
 from haizflow.services.video_store import log_to_video
 
 CREDENTIAL_TARGET = "HaizFlow/Gemini/APIKey"
@@ -339,7 +345,7 @@ def _request_chunk(
             "candidateCount": 1,
             # A cap does not prepay tokens. Leave room for language expansion,
             # JSON framing and low-level reasoning so the last cue is not cut.
-            "maxOutputTokens": min(8192, max(1024, sum(len(text) for _, text in chunk) * 4)),
+            "maxOutputTokens": min(_MAX_OUTPUT_LIMIT, max(1024, sum(len(text) for _, text in chunk) * 4) + _THINKING_HEADROOM),
             "thinkingConfig": {"thinkingLevel": "minimal" if model == "gemini-3.5-flash-lite" else "low"},
             "responseMimeType": "application/json",
             "responseSchema": {
@@ -363,7 +369,15 @@ def _request_chunk(
             )
             with request.urlopen(outgoing, timeout=90) as response:
                 answer = json.load(response)
-            parts = answer["candidates"][0]["content"]["parts"]
+            candidate = answer["candidates"][0]
+            if candidate.get("finishReason") == "MAX_TOKENS" and attempt < 2:
+                payload["generationConfig"]["maxOutputTokens"] = _MAX_OUTPUT_LIMIT
+                body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+                if video_id:
+                    log_to_video(video_id, f"Gemini {model}: reply cut by the token limit, retrying with more room.",
+                                 component="TRANSLATE", level="WARNING")
+                continue
+            parts = candidate["content"]["parts"]
             parsed = json.loads("".join(str(part.get("text", "")) for part in parts))
             translations = parsed["translations"]
             if not isinstance(translations, list) or len(translations) != len(chunk):
@@ -495,7 +509,7 @@ def correct_asr_texts(
             asr_correction.transcript_lines(texts, speaker_tags), ensure_ascii=False, separators=(",", ":"))}]}],
         "generationConfig": {
             "temperature": 0.1,
-            "maxOutputTokens": min(8192, max(1024, sum(len(text) for text in texts) * 3)),
+            "maxOutputTokens": min(_MAX_OUTPUT_LIMIT, max(1024, sum(len(text) for text in texts) * 3) + _THINKING_HEADROOM),
             "thinkingConfig": {"thinkingLevel": "minimal" if model == "gemini-3.5-flash-lite" else "low"},
             "responseMimeType": "application/json",
         },
@@ -561,7 +575,7 @@ def analyze_story_context(
         "contents": [{"role": "user", "parts": [{"text": transcript_sample}]}],
         "generationConfig": {
             "temperature": 0.2,
-            "maxOutputTokens": 2048,
+            "maxOutputTokens": 2048 + _THINKING_HEADROOM,
             "thinkingConfig": {"thinkingLevel": "minimal" if model == "gemini-3.5-flash-lite" else "low"},
             "responseMimeType": "application/json",
             "responseSchema": {
@@ -664,7 +678,7 @@ def reflect_and_correct_dialogue(
         "contents": [{"role": "user", "parts": [{"text": dialogue_block}]}],
         "generationConfig": {
             "temperature": 0.1,
-            "maxOutputTokens": 2048,
+            "maxOutputTokens": 2048 + _THINKING_HEADROOM,
             "responseMimeType": "application/json",
             "responseSchema": {
                 "type": "OBJECT",

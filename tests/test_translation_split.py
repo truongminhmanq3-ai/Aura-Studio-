@@ -102,3 +102,25 @@ def test_network_errors_are_not_split():
     with pytest.raises(RuntimeError, match="Không kết nối"):
         translate_splitting([(0, "a"), (1, "b"), (2, "c")], offline, lambda *a: None)
     assert len(calls) == 1
+
+
+def test_gemini_reply_cut_by_thinking_is_retried_with_more_room():
+    sent = []
+
+    def reply(outgoing, **_):
+        sent.append(json.loads(outgoing.data)["generationConfig"]["maxOutputTokens"])
+        if len(sent) == 1:
+            candidate = {"finishReason": "MAX_TOKENS", "content": {"parts": [{"text": ""}]}}
+        else:
+            candidate = {"finishReason": "STOP", "content": {"parts": [
+                {"text": json.dumps({"translations": [{"id": 0, "text": "Xin chào"}]})}]}}
+        response = mock.MagicMock()
+        response.__enter__.return_value = io.BytesIO(json.dumps({"candidates": [candidate]}).encode())
+        return response
+
+    with mock.patch.object(gm.request, "urlopen", side_effect=reply), mock.patch.object(gm, "log_to_video"):
+        out = gm._request_chunk([(0, "你好")], key="k", model=next(iter(gm.MODELS)), source_language="zh",
+                                target_language="Vietnamese", video_id="v", speaker_mode="single",
+                                speaker_tags=None, story_context=None, budgets=None)
+    assert out == ["Xin chào"]
+    assert sent[0] >= 1024 + gm._THINKING_HEADROOM and sent[1] == gm._MAX_OUTPUT_LIMIT
