@@ -38,7 +38,7 @@ def add_engine_resources(target: Path, profile: str):
     # installed distribution records even for imports invisible to analysis.
     for distribution in importlib.metadata.distributions():
         source = Path(distribution._path)
-        if source.is_dir() and source.name.endswith(".dist-info") and distribution.metadata["Name"].lower() != "haizflow":
+        if source.is_dir() and source.name.endswith(".dist-info") and distribution.metadata["Name"].lower() not in {"haizflow", "aura-studio"}:
             shutil.copytree(source, internal / source.name, dirs_exist_ok=True)
     if profile == "cpu":
         for package in ("pyannote.audio", "pyannote.database", "pyannote.pipeline", "lightning", "pytorch_lightning", "lightning_fabric"):
@@ -95,7 +95,7 @@ datas = [(str({str(ROOT / 'src/haizflow/desktop/qml')!r}), 'haizflow/desktop/qml
          (str({str(ROOT / 'src/haizflow/desktop/translations')!r}), 'haizflow/desktop/translations'),
          (str({str(ROOT / 'src/haizflow/assets/fonts')!r}), 'haizflow/assets/fonts')]
 datas += collect_data_files('certifi') + collect_data_files('playwright') + collect_data_files('vieneu') + collect_data_files('sea_g2p') + collect_data_files('sherpa_onnx')
-datas += copy_metadata('playwright') + copy_metadata('haizflow') + copy_metadata('vieneu') + copy_metadata('sea_g2p') + copy_metadata('sherpa-onnx')
+datas += copy_metadata('playwright') + copy_metadata('aura-studio') + copy_metadata('vieneu') + copy_metadata('sea_g2p') + copy_metadata('sherpa-onnx')
 hidden = collect_submodules('haizflow') + collect_submodules('yt_dlp') + collect_submodules('vieneu', filter=lambda n: 'serve' not in n) + collect_submodules('sea_g2p') + ['keyring.backends.macOS', 'psutil', 'soxr', 'kaldi_native_fbank', 'soundfile', 'requests', 'sherpa_onnx']
 excluded = ['torch', 'torchaudio', 'torchvision', 'whisperx', 'pyannote', 'torchcodec',
             'transformers', 'accelerate', 'llama_cpp', 'ctranslate2', 'faster_whisper', 'demucs',
