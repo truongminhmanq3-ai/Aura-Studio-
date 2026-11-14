@@ -1181,7 +1181,11 @@ class ProjectCommandsController:
     def resume_selected_video(self) -> None:
         host = self._host
         video = video_store.get_video(host._selected_video_id) if host._selected_video_id else None
-        if not video or video.status != "paused" or host._processing_queue.contains(video.video_id):
+        if not video or host._processing_queue.contains(video.video_id):
+            return
+        from haizflow.services.processing_resume import can_continue_failed
+
+        if video.status != "paused" and not can_continue_failed(video):
             return
         from haizflow.services.processing_resume import can_resume
 
@@ -1194,7 +1198,10 @@ class ProjectCommandsController:
         # Pre-writing "pending" here used to skip that cleanup and strand the
         # resumed worker in a permanently cancelled state.
         if host._enqueue_video(video.video_id):
-            video_store.log_to_video(video.video_id, "Resumed from the saved processing state.")
+            video_store.log_to_video(
+                video.video_id,
+                "Resumed from the saved processing state." if video.status == "paused"
+                else f"Continuing after the error from step '{video.resume_step}', reusing completed steps.")
             host.selectedVideoChanged.emit()
 
     def restart_selected_video(self) -> None:

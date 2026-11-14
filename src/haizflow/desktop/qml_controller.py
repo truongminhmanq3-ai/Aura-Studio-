@@ -2888,6 +2888,13 @@ class HaizFlowController(QObject):
         video = self._selected_video()
         return video.status if video else "none"
 
+    @Property(bool, notify=selectedVideoChanged)
+    def selectedCanContinue(self):
+        from haizflow.services.processing_resume import can_continue_failed
+
+        video = self._selected_video()
+        return bool(video) and can_continue_failed(video)
+
     @Property(str, notify=selectedVideoChanged)
     def selectedFailureMessage(self):
         from haizflow.core.processing_errors import describe_failure
