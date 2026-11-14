@@ -76,7 +76,7 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 preventStealing: true
-                cursorShape: Qt.SizeAllCursor
+                cursorShape: Qt.ClosedHandCursor
                 onPressed: function(mouse) {
                     box.forceActiveFocus();
                     root.startRect = Qt.rect(box.x, box.y, box.width, box.height);
