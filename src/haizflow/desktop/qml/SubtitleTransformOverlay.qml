@@ -368,7 +368,7 @@ Item {
                 enabled: root.interactive
                 anchors.fill: parent
                 hoverEnabled: true
-                cursorShape: root.editing ? Qt.SizeAllCursor : Qt.PointingHandCursor
+                cursorShape: root.editing ? Qt.ClosedHandCursor : Qt.PointingHandCursor
                 property real offsetX: 0
                 property real offsetY: 0
                 property bool moved: false

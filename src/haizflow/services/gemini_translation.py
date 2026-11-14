@@ -16,6 +16,7 @@ from haizflow.pipeline.process_registry import check_cancellation
 from haizflow.config import RUNTIME_DATA_DIR
 from haizflow.services import secure_credentials
 from haizflow.services import glossary
+from haizflow.services.translation_split import BadReply, translate_splitting
 from haizflow.services.video_store import log_to_video
 
 CREDENTIAL_TARGET = "HaizFlow/Gemini/APIKey"
@@ -366,12 +367,12 @@ def _request_chunk(
             parsed = json.loads("".join(str(part.get("text", "")) for part in parts))
             translations = parsed["translations"]
             if not isinstance(translations, list) or len(translations) != len(chunk):
-                raise RuntimeError("Gemini trả về thiếu câu dịch. Dữ liệu cũ được giữ nguyên.")
+                raise BadReply("Gemini trả về thiếu câu dịch. Dữ liệu cũ được giữ nguyên.")
             expected = [index for index, _ in chunk]
             ids = [item.get("id") for item in translations]
             output = [str(item.get("text") or "").strip() for item in translations]
             if ids != expected or not all(output):
-                raise RuntimeError("Gemini trả về sai thứ tự hoặc câu dịch rỗng. Dữ liệu cũ được giữ nguyên.")
+                raise BadReply("Gemini trả về sai thứ tự hoặc câu dịch rỗng. Dữ liệu cũ được giữ nguyên.")
             return output
         except error.HTTPError as exc:
             if video_id:
@@ -410,7 +411,7 @@ def _request_chunk(
                 continue
             raise RuntimeError("Không kết nối được Gemini. Kiểm tra mạng rồi thử lại.") from None
         except (KeyError, IndexError, TypeError, ValueError):
-            raise RuntimeError("Gemini không trả về dữ liệu dịch hợp lệ. Dữ liệu cũ được giữ nguyên.") from None
+            raise BadReply("Gemini không trả về dữ liệu dịch hợp lệ. Dữ liệu cũ được giữ nguyên.") from None
     raise RuntimeError("Gemini không phản hồi sau các lần thử.")
 
 
@@ -448,18 +449,23 @@ def translate_texts(
         log_to_video(video_id, detail, component="TRANSLATE", level="INFO")
         if progress_callback:
             progress_callback(sum(value is not None for value in output), len(texts), detail)
-        values = _request_chunk(
-            chunk, key=key, model=model,
-            source_language=source_language, target_language=target_language, video_id=video_id,
-            speaker_mode=speaker_mode,
-            speaker_tags=speaker_tags,
-            story_context=story_context,
-            budgets=budgets,
-        )
-        for (index, _), value in zip(chunk, values):
-            output[index] = value
-        if result_callback:
-            result_callback([index for index, _ in chunk], values)
+        def request(part):
+            return _request_chunk(
+                part, key=key, model=model,
+                source_language=source_language, target_language=target_language, video_id=video_id,
+                speaker_mode=speaker_mode,
+                speaker_tags=speaker_tags,
+                story_context=story_context,
+                budgets=budgets,
+            )
+
+        def save(part, values):
+            for (index, _), value in zip(part, values):
+                output[index] = value
+            if result_callback:
+                result_callback([index for index, _ in part], values)
+
+        translate_splitting(chunk, request, save, video_id=video_id, provider="Gemini")
         log_to_video(
             video_id, f"Gemini translated {chunk[-1][0] + 1} of {len(texts)} sentences.",
             component="TRANSLATE", level="INFO",

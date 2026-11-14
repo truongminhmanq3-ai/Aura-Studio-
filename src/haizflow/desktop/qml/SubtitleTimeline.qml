@@ -531,7 +531,7 @@ Rectangle {
                                     anchors.rightMargin: 8
                                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                                     cursorShape: !layerTrack.canEditClips
-                                        ? Qt.ForbiddenCursor : Qt.SizeAllCursor
+                                        ? Qt.ForbiddenCursor : Qt.ClosedHandCursor
                                     preventStealing: true
                                     onPressed: function(mouse) {
                                         root.clipSelected(editorClip.clipId,
@@ -1060,7 +1060,7 @@ Rectangle {
                             anchors.leftMargin: 9
                             anchors.rightMargin: 9
                             acceptedButtons: Qt.LeftButton
-                            cursorShape: Qt.SizeAllCursor
+                            cursorShape: Qt.ClosedHandCursor
                             preventStealing: true
 
                             onPressed: function (mouse) {
