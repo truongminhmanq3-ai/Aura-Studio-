@@ -12,6 +12,7 @@ from haizflow.core.translation_choices import DEEPSEEK_MODELS as MODELS
 from haizflow.pipeline.process_registry import check_cancellation
 from haizflow.services import secure_credentials
 from haizflow.services import glossary
+from haizflow.services.translation_split import BadReply, translate_splitting
 from haizflow.services.video_store import log_to_video
 
 CREDENTIAL_TARGET = "HaizFlow/DeepSeek/APIKey"
@@ -261,7 +262,7 @@ def _request_chunk(chunk, *, key: str, model: str, source_language: str,
             last_problem = "sai id hoặc câu dịch rỗng"
         except (KeyError, IndexError, TypeError, AttributeError):
             last_problem = "định dạng JSON không đúng"
-    raise RuntimeError(
+    raise BadReply(
         "DeepSeek trả về bản dịch thiếu câu, sai thứ tự hoặc không hợp lệ"
         + (f" ({last_problem})" if last_problem else "") + ". Dữ liệu cũ được giữ nguyên.")
 
@@ -298,15 +299,20 @@ def translate_texts(texts: list[str], *, model: str, source_language: str,
         log_to_video(video_id, detail, component="TRANSLATE", level="INFO")
         if progress_callback:
             progress_callback(sum(value is not None for value in output), len(texts), detail)
-        values = _request_chunk(chunk, key=key, model=model,
-                                source_language=source_language, target_language=target_language,
-                                speaker_mode=speaker_mode, speaker_tags=speaker_tags,
-                                story_context=story_context, budgets=budgets)
-        check_cancellation(video_id)
-        if result_callback:
-            result_callback([index for index, _ in chunk], values)
-        for (index, _), value in zip(chunk, values):
-            output[index] = value
+        def request(part):
+            return _request_chunk(part, key=key, model=model,
+                                  source_language=source_language, target_language=target_language,
+                                  speaker_mode=speaker_mode, speaker_tags=speaker_tags,
+                                  story_context=story_context, budgets=budgets)
+
+        def save(part, values):
+            check_cancellation(video_id)
+            if result_callback:
+                result_callback([index for index, _ in part], values)
+            for (index, _), value in zip(part, values):
+                output[index] = value
+
+        translate_splitting(chunk, request, save, video_id=video_id, provider="DeepSeek")
         if progress_callback:
             progress_callback(sum(value is not None for value in output), len(texts), "Đang dịch bằng DeepSeek")
     return output
