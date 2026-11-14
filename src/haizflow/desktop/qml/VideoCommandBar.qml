@@ -76,7 +76,7 @@ Rectangle {
             }
 
             StudioButton {
-                visible: AppController.selectedStatus === "paused" && !root.selectedQueued
+                visible: (AppController.selectedStatus === "paused" || AppController.selectedCanContinue) && !root.selectedQueued
                 text: qsTr("Tiếp tục")
                 iconGlyph: "\uE768"
                 variant: "secondary"

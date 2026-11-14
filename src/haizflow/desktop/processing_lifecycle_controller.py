@@ -28,9 +28,10 @@ class ProcessingLifecycleController:
         video = video_store.get_video(video_id)
         if not video or video.status == "processing" or host._processing_queue.contains(video_id):
             return False
-        from haizflow.services.processing_resume import can_resume, configuration_snapshot
+        from haizflow.services.processing_resume import can_continue_failed, can_resume, configuration_snapshot
 
         resuming = video.status == "paused"
+        continuing = can_continue_failed(video)
         if not can_resume(host, video):
             return False
         manual_tool = (
@@ -53,16 +54,17 @@ class ProcessingLifecycleController:
                 title, message = gemini_key_notice(getattr(host, "_settings_language", "vi"))
                 host.appAlertRequested.emit(title, message, "warning")
                 return False
-        if video.status == "paused":
+        if video.status == "paused" or continuing:
             prepare_video_resume(video_id)
         video_store.update_video(
             video_id,
             status="pending",
+            error=None,
             processing_configuration=(getattr(video, "processing_configuration", {}) if resuming else configuration_snapshot(
                 video, getattr(host, "_settings_processing_device", "cpu"))),
-            progress=0 if manual_tool and not resuming else getattr(video, "progress", 0),
-            current_item=0 if manual_tool and not resuming else getattr(video, "current_item", 0),
-            total_items=0 if manual_tool and not resuming else getattr(video, "total_items", 0),
+            progress=0 if manual_tool and not (resuming or continuing) else getattr(video, "progress", 0),
+            current_item=0 if manual_tool and not (resuming or continuing) else getattr(video, "current_item", 0),
+            total_items=0 if manual_tool and not (resuming or continuing) else getattr(video, "total_items", 0),
             estimated_remaining_seconds=(
                 None if manual_tool else getattr(video, "estimated_remaining_seconds", None)
             ),

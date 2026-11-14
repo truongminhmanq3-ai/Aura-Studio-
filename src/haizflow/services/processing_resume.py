@@ -72,3 +72,21 @@ def can_resume(host, video) -> bool:
         if original else "This older task has no saved configuration to verify. Choose Run again to start safely.")
     host.appAlertRequested.emit(title, detail, "warning")
     return False
+
+
+def can_continue_failed(video) -> bool:
+    """A failed Auto/Batch video can continue from where it stopped while its workspace still exists.
+
+    Settings may have been changed to fix the error (a new key, another model, a missing music
+    file): each stage's checkpoint signature decides whether its old output is still usable.
+    """
+    if getattr(video, "status", "") != "failed" or not str(getattr(video, "resume_step", "") or ""):
+        return False
+    if getattr(video, "project_type", "single") not in {"single", "batch"}:
+        return False
+    try:
+        from haizflow.services.video_store import get_video_dir
+
+        return Path(get_video_dir(video.video_id), "temp").is_dir()
+    except Exception:
+        return False

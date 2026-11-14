@@ -785,7 +785,11 @@ def process_video_sync(
                 configure_translation_model(original_translation)
         stack_trace = traceback.format_exc()
         log_to_video(video_id, f"Execution failed: {error_msg}\n{stack_trace}", level="ERROR", component="PIPELINE")
-        update_video(video_id, status="failed", error=error_msg, step="failed")
+        # Remember where it stopped: "Tiếp tục" reuses every checkpoint that is still valid
+        # instead of discarding the workspace and starting from the source video.
+        resume_from = (getattr(failed_video, "resume_step", "") if failed_video else "") or (
+            failed_stage if failed_stage not in {"failed", "queued", "processing"} else "starting")
+        update_video(video_id, status="failed", error=error_msg, step="failed", resume_step=resume_from)
     finally:
         clean_video(video_id)
 
